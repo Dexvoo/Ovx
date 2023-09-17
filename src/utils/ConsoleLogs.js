@@ -14,4 +14,8 @@ const cleanConsoleLogData = (title, description) => {
 	console.log(`| \u001b[1;32m/${string}|`);
 };
 
-module.exports = { cleanConsoleLog, cleanConsoleLogData };
+const sleep = (milliseconds) => {
+	return new Promise((resolve) => setTimeout(resolve, milliseconds));
+};
+
+module.exports = { cleanConsoleLog, cleanConsoleLogData, sleep };
