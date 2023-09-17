@@ -4,7 +4,7 @@ const { dbUrl, dbName } = process.env;
 const {
 	cleanConsoleLog,
 	cleanConsoleLogData,
-} = require('../../utils/Random.js');
+} = require('../../utils/ConsoleLogs.js');
 
 module.exports = {
 	name: Events.ClientReady,

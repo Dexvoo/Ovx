@@ -1,6 +1,9 @@
 // Getting classes
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
-const { cleanConsoleLog, cleanConsoleLogData } = require('./utils/Random.js');
+const {
+	cleanConsoleLog,
+	cleanConsoleLogData,
+} = require('./utils/ConsoleLogs.js');
 require('dotenv').config();
 const { DeveloperMode, PrivateToken, PublicToken } = process.env;
 const path = require('node:path');
