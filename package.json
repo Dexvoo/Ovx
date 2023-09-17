@@ -1,0 +1,40 @@
+{
+	"name": "ovx",
+	"version": "1.0.0",
+	"description": "Discord Bot",
+	"main": "index.js",
+	"scripts": {
+		"lint": "npm run lint:eslint && npm run lint:prettier",
+		"lint:eslint": "eslint --fix .",
+		"lint:prettier": "prettier --write .",
+		"dev": "nodemon src/index.js",
+		"commands": "node src/deploy-commands.js",
+		"start": "node src/index.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Dexvoo/Ovx.git"
+	},
+	"keywords": [
+		"Discord",
+		"Moderation"
+	],
+	"author": "Discord : @Dexvo || Github : @Dexvoo",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Dexvoo/Ovx/issues"
+	},
+	"homepage": "https://github.com/Dexvoo/Ovx#readme",
+	"dependencies": {
+		"@discordjs/rest": "^2.0.1",
+		"@iamtraction/google-translate": "^2.0.1",
+		"cpu-stat": "^2.0.1",
+		"discord.js": "^14.13.0",
+		"dotenv": "^16.3.1",
+		"eslint": "^8.49.0",
+		"forever": "^4.0.3",
+		"mongoose": "^7.5.2",
+		"os": "^0.1.2",
+		"prettier": "^3.0.3"
+	}
+}
