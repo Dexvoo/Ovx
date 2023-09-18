@@ -1,11 +1,23 @@
 // Getting classes
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const {
+	Client,
+	GatewayIntentBits,
+	Collection,
+	EmbedBuilder,
+} = require('discord.js');
 const {
 	cleanConsoleLog,
 	cleanConsoleLogData,
 } = require('./utils/ConsoleLogs.js');
 require('dotenv').config();
-const { DeveloperMode, PrivateToken, PublicToken } = process.env;
+const {
+	DeveloperMode,
+	PrivateToken,
+	PublicToken,
+	EmbedColour,
+	FooterImage,
+	FooterText,
+} = process.env;
 const path = require('node:path');
 const fsPromises = require('fs').promises;
 
@@ -59,7 +71,7 @@ console.log(
 cleanConsoleLogData('Created by: @Dexvo', ' ');
 init();
 
-client.on('interactionCreate', async () => {
+client.on('interactionCreate', async (interaction) => {
 	if (!interaction.isCommand()) return;
 
 	const command = client.commands.get(interaction.commandName);

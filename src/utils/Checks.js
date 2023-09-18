@@ -9,7 +9,6 @@ const {
 } = require('discord.js');
 require('dotenv').config();
 const { sendEmbed, sendErrorEmbed } = require('./Embeds.js');
-const { FooterText, FooterImage, EmbedColour, ErrorChannelID } = process.env;
 /**
  * @param {CommandInteraction} interaction
  */
