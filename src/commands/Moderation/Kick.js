@@ -13,19 +13,19 @@ const { EmbedColour, FooterImage, FooterText } = process.env;
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('ban')
-		.setDescription('Banish a specified user from a guild.')
+		.setName('kick')
+		.setDescription('Kick a specified user from a guild.')
 		.setDMPermission(false)
 		.addUserOption((option) =>
 			option
 				.setName('member')
-				.setDescription('The specified member to ban.')
+				.setDescription('The specified member to kick.')
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
 			option
 				.setName('reason')
-				.setDescription('The reason for the ban.')
+				.setDescription('The reason for the kick.')
 				.setRequired(false)
 		),
 	/**
@@ -43,7 +43,7 @@ module.exports = {
 			if (!(await guildCheck(interaction))) return;
 
 			// Bot permissions
-			const botPermissionsArry = ['BanMembers'];
+			const botPermissionsArry = ['KickMembers'];
 			const botPermissions = await permissionCheck(
 				interaction,
 				botPermissionsArry,
@@ -57,7 +57,7 @@ module.exports = {
 				);
 
 			// User permissions
-			const userPermissionsArry = ['BanMembers'];
+			const userPermissionsArry = ['KickMembers'];
 			const userPermissions = await permissionCheck(
 				interaction,
 				userPermissionsArry,
@@ -70,7 +70,7 @@ module.exports = {
 					`User Missing Permissions: \`${userPermissions[1]}\``
 				);
 
-			await sendEmbed(interaction, 'Attempting to ban user');
+			await sendEmbed(interaction, 'Attempting to kick user');
 			await sleep(2000);
 
 			// Variables
@@ -84,14 +84,14 @@ module.exports = {
 
 			// Checking if the target is a bot
 			if (targetMember.user.bot)
-				return await sendEmbed(interaction, 'You cannot ban a bot');
+				return await sendEmbed(interaction, 'You cannot kick a bot');
 
 			// Checking if the target is the command user
 			if (targetMember.id === user.id)
-				return await sendEmbed(interaction, 'You cannot ban yourself');
+				return await sendEmbed(interaction, 'You cannot kick yourself');
 
-			// Checking if the target user is bannable
-			if (!targetMember.bannable)
+			// Checking if the target user is kickable
+			if (!targetMember.kickable)
 				return await sendEmbed(
 					interaction,
 					`Bot Missing Permissions | \`RoleHierarchy\``
@@ -101,20 +101,20 @@ module.exports = {
 			if (member.roles.highest.position <= targetMember.roles.highest.position)
 				return await sendEmbed(
 					interaction,
-					'You cannot ban a member with a higher role than you'
+					'You cannot kick a member with a higher role than you'
 				);
 
 			// Checking if the reason is valid
 			if (!reason) {
-				reason2 = `Banned by @${user.username} | Reason: No reason provided`;
+				reason2 = `Kicked by @${user.username} | Reason: No reason provided`;
 			} else {
-				reason2 = `Banned by @${user.username} | Reason: ${reason}`;
+				reason2 = `Kicked by @${user.username} | Reason: ${reason}`;
 			}
 
 			// DM the target user
 			const Embed = new EmbedBuilder()
 				.setColor(EmbedColour)
-				.setDescription(`You have been banned from **${guild.name}**`)
+				.setDescription(`You have been kicked from **${guild.name}**`)
 				.addFields(
 					{ name: 'Reason', value: reason },
 					{
@@ -131,7 +131,7 @@ module.exports = {
 				const Embed = new EmbedBuilder()
 					.setColor(EmbedColour)
 					.setDescription(
-						`${targetMember} has DMs disabled, unable to send ban message`
+						`${targetMember} has DMs disabled, unable to send kick message`
 					)
 					.setTimestamp()
 					.setFooter({ text: FooterText, iconURL: FooterImage });
@@ -139,16 +139,16 @@ module.exports = {
 				await sleep(5000);
 			});
 
-			// Ban the target user
+			// Kick the target user
 			await targetMember
-				.ban({ deleteMessageSeconds: 60 * 60 * 24 * 7, reason: reason2 })
+				.kick(`Kicked by @${user.username} | Reason: ${reason}`)
 				.catch(
 					async(async (error) => {
 						return (
 							(await sendErrorEmbed(interaction, error)) &&
 							(await sendEmbed(
 								interaction,
-								`There was an error banning this user`
+								`There was an error kicking this user`
 							))
 						);
 					})
@@ -157,8 +157,8 @@ module.exports = {
 			// Banned user embed
 			const Embed2 = new EmbedBuilder()
 				.setColor(EmbedColour)
-				.setTitle('Ban')
-				.setDescription(`You banned <@${targetMember.id}> from the server  `)
+				.setTitle('kick')
+				.setDescription(`You kicked <@${targetMember.id}> from the server  `)
 				.addFields(
 					{ name: 'Reason', value: reason },
 					{
