@@ -93,7 +93,7 @@ module.exports = {
 					`User Missing Permissions: \`${userPermissions[1]}\``
 				);
 
-			await sendEmbed(interaction, 'Loading Command ...');
+			await sendEmbed(interaction, 'Attempting to create rule');
 			await sleep(2000);
 
 			switch (subcommand) {
