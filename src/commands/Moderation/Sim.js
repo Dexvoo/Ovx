@@ -12,15 +12,19 @@ require('dotenv').config();
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('purge')
-		.setDescription('Delete a certain amount of messages.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+		.setName('sim')
+		.setDescription('Simulate a joining/leaving a guild.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 		.setDMPermission(false)
-		.addIntegerOption((option) =>
+		.addStringOption((option) =>
 			option
-				.setName('amount')
-				.setDescription('The amount of messages you would like to delete.')
+				.setName('choice')
+				.setDescription('Leave or join the guild.')
 				.setRequired(true)
+				.addChoices(
+					{ name: 'Join', value: 'join' },
+					{ name: 'Leave', value: 'leave' }
+				)
 		),
 	/**
 	 *
@@ -36,22 +40,8 @@ module.exports = {
 			// Checking if the user is in a guild
 			if (!(await guildCheck(interaction))) return;
 
-			// Bot permissions
-			const botPermissionsArry = ['ManageMessages'];
-			const botPermissions = await permissionCheck(
-				interaction,
-				botPermissionsArry,
-				client
-			);
-
-			if (!botPermissions[0])
-				return await sendEmbed(
-					interaction,
-					`Bot Missing Permissions: \`${botPermissions[1]}\``
-				);
-
 			// User permissions
-			const userPermissionsArry = ['ManageMessages'];
+			const userPermissionsArry = ['Administrator'];
 			const userPermissions = await permissionCheck(
 				interaction,
 				userPermissionsArry,
@@ -68,25 +58,21 @@ module.exports = {
 			await sleep(2000);
 
 			// Variables
-			const amount = options.getInteger('amount');
+			const choice = options.getString('choice');
 
-			// Checking if the amount is valid
-			if (amount < 1 || amount > 100)
-				return await sendEmbed(
-					interaction,
-					'Please provide a number between 1 and 100'
-				);
-
-			// Deleting messages
-			const messagesDeleted = await channel
-				.bulkDelete(amount, true)
-				.catch((error) => {
-					console.error(error);
-					return sendErrorEmbed(interaction, error);
-				});
-
-			// Sending embed
-			await sendEmbed(interaction, `Deleted ${messagesDeleted.size} messages`);
+			// Switch statement
+			switch (choice) {
+				case 'join':
+					// Emitting the guildMemberAdd event
+					client.emit('guildMemberAdd', member);
+					return sendEmbed(interaction, 'Simulated a user joining the guild');
+				case 'leave':
+					// Emitting the guildMemberRemove event
+					client.emit('guildMemberRemove', member);
+					return sendEmbed(interaction, 'Simulated a user leaving the guild');
+				default:
+					return sendEmbed(interaction, 'Invalid choice');
+			}
 		} catch (error) {
 			console.error(error);
 			await sendErrorEmbed(interaction, error);
