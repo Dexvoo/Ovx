@@ -13,21 +13,21 @@ const { EmbedColour, FooterImage, FooterText } = process.env;
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('kick')
-		.setDescription('Kick a specified user from a guild.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
+		.setName('nickname')
+		.setDescription("Change a user's nickname.")
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageNicknames)
 		.setDMPermission(false)
 		.addUserOption((option) =>
 			option
 				.setName('member')
-				.setDescription('The specified member to kick.')
+				.setDescription('The user you would like to change the nickname of.')
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
 			option
-				.setName('reason')
-				.setDescription('The reason for the kick.')
-				.setRequired(false)
+				.setName('nickname')
+				.setDescription('The nickname you would like to change the member to.')
+				.setRequired(true)
 		),
 	/**
 	 *
@@ -44,7 +44,7 @@ module.exports = {
 			if (!(await guildCheck(interaction))) return;
 
 			// Bot permissions
-			const botPermissionsArry = ['KickMembers'];
+			const botPermissionsArry = ['ManageNicknames'];
 			const botPermissions = await permissionCheck(
 				interaction,
 				botPermissionsArry,
@@ -58,7 +58,7 @@ module.exports = {
 				);
 
 			// User permissions
-			const userPermissionsArry = ['KickMembers'];
+			const userPermissionsArry = ['ManageNicknames'];
 			const userPermissions = await permissionCheck(
 				interaction,
 				userPermissionsArry,
@@ -71,53 +71,54 @@ module.exports = {
 					`User Missing Permissions: \`${userPermissions[1]}\``
 				);
 
-			await sendEmbed(interaction, 'Attempting to kick user');
+			await sendEmbed(interaction, 'Attempting to change nickname');
 			await sleep(2000);
 
 			// Variables
 			const targetMember = options.getMember('member');
-			var reason = options.getString('reason');
-			var reason2;
+			const targetNickname = options.getString('nickname');
+			const targetOldNickname =
+				targetMember.nickname || `@${targetMember.user.username}`;
 
 			// Checking if the target is a member
 			if (!targetMember)
 				return await sendEmbed(interaction, 'Please specify a valid member');
 
-			// Checking if the target is a bot
-			if (targetMember.user.bot)
-				return await sendEmbed(interaction, 'You cannot kick a bot');
-
-			// Checking if the target is the command user
-			if (targetMember.id === user.id)
-				return await sendEmbed(interaction, 'You cannot kick yourself');
-
-			// Checking if the target user is kickable
-			if (!targetMember.kickable)
-				return await sendEmbed(
-					interaction,
-					`Bot Missing Permissions | \`RoleHierarchy\``
-				);
+			// Checking if tartget is the client user
+			if (targetMember.id === client.user.id)
+				return await sendEmbed(interaction, 'You cannot change my nickname');
 
 			// Checking If the interaction member has a higher role than the target member
 			if (member.roles.highest.position <= targetMember.roles.highest.position)
 				return await sendEmbed(
 					interaction,
-					'You cannot kick a member with a higher role than you'
+					'You cannot change a member`s nickname with a higher role than you'
 				);
 
-			// Checking if the reason is valid
-			if (!reason) {
-				reason2 = `Kicked by @${user.username} | Reason: No reason provided`;
-			} else {
-				reason2 = `Kicked by @${user.username} | Reason: ${reason}`;
-			}
+			// Checking if the nickname is less than 32 characters
+			if (targetNickname.length > 32)
+				return await sendEmbed(
+					interaction,
+					'The nickname must be less than 32 characters'
+				);
+
+			// Checking if the nickname is the same as the old nickname
+			if (targetNickname === targetOldNickname)
+				return await sendEmbed(
+					interaction,
+					'The nickname must be different from the old nickname'
+				);
+
+			// Change the nickname
+			await targetMember.setNickname(targetNickname);
 
 			// DM the target user
 			const Embed = new EmbedBuilder()
 				.setColor(EmbedColour)
-				.setDescription(`You have been kicked from **${guild.name}**`)
+				.setDescription(`Your nickname has been changed in **${guild.name}**`)
 				.addFields(
-					{ name: 'Reason', value: reason },
+					{ name: 'Old Nickname', value: targetOldNickname, inline: true },
+					{ name: 'New Nickname', value: targetNickname, inline: true },
 					{
 						name: 'Moderator',
 						value: `@${user.username} | (${member})`,
@@ -132,7 +133,7 @@ module.exports = {
 				const Embed = new EmbedBuilder()
 					.setColor(EmbedColour)
 					.setDescription(
-						`${targetMember} has DMs disabled, unable to send kick message`
+						`${targetMember} has DMs disabled, unable to send a message`
 					)
 					.setTimestamp()
 					.setFooter({ text: FooterText, iconURL: FooterImage });
@@ -140,30 +141,18 @@ module.exports = {
 				await sleep(5000);
 			});
 
-			// Kick the target user
-			await targetMember.kick(reason2).catch(
-				async(async (error) => {
-					return (
-						(await sendErrorEmbed(interaction, error)) &&
-						(await sendEmbed(
-							interaction,
-							`There was an error kicking this user`
-						))
-					);
-				})
-			);
-
-			// Banned user embed
+			// Nickname changed embed
 			const Embed2 = new EmbedBuilder()
 				.setColor(EmbedColour)
-				.setTitle('kick')
-				.setDescription(`You kicked <@${targetMember.id}> from the server  `)
+				.setTitle('Nickname')
+				.setDescription(`You Changed the nickname of ${targetMember}`)
 				.addFields(
-					{ name: 'Reason', value: reason },
+					{ name: 'Old Nickname', value: targetOldNickname, inline: true },
+					{ name: 'New Nickname', value: targetNickname, inline: true },
 					{
 						name: 'Moderator',
 						value: `@${user.username} | (${member})`,
-						inline: true,
+						inline: false,
 					}
 				)
 				.setTimestamp()

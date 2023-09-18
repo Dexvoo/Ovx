@@ -15,6 +15,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ban')
 		.setDescription('Banish a specified user from a guild.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.setDMPermission(false)
 		.addUserOption((option) =>
 			option
