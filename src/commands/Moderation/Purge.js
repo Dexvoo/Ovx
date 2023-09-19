@@ -37,7 +37,7 @@ module.exports = {
 			if (!(await guildCheck(interaction))) return;
 
 			// Bot permissions
-			const botPermissionsArry = ['ManageMessages'];
+			const botPermissionsArry = ['ManageMessages', 'ViewChannel'];
 			const botPermissions = await permissionCheck(
 				interaction,
 				botPermissionsArry,
@@ -64,7 +64,7 @@ module.exports = {
 					`User Missing Permissions: \`${userPermissions[1]}\``
 				);
 
-			await sendEmbed(interaction, 'Attempting to change nickname');
+			await sendEmbed(interaction, 'Attempting to remove messages');
 			await sleep(2000);
 
 			// Variables

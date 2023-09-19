@@ -98,13 +98,26 @@ client.on('interactionCreate', async (interaction) => {
 		const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
 
 		if (now < expirationTime) {
-			const timeLeft = (expirationTime - now) / 1000;
-			return await sendEmbed(
-				interaction,
-				`Please wait ${timeLeft.toFixed(
-					1
-				)} more second(s) before reusing the \`${command.data.name}\` command`
-			);
+			const expiredTimestamp = Math.round(expirationTime / 1000);
+			const CooldownEmbed = new EmbedBuilder()
+				.setColor(EmbedColour)
+				.setDescription('• You are on cooldown! •')
+				.addFields(
+					{
+						name: 'Command',
+						value: `\`${command.data.name}\``,
+						inline: true,
+					},
+					{
+						name: 'Cooldown Ends',
+						value: `<t:${expiredTimestamp}:R>`,
+					}
+				);
+			const cooldownMessage = await interaction.reply({
+				embeds: [CooldownEmbed],
+				ephemeral: true,
+			});
+			return setTimeout(() => cooldownMessage.delete(), cooldownAmount - 2000);
 		}
 	}
 
