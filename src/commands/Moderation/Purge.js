@@ -64,9 +64,6 @@ module.exports = {
 					`User Missing Permissions: \`${userPermissions[1]}\``
 				);
 
-			await sendEmbed(interaction, 'Attempting to remove messages');
-			await sleep(2000);
-
 			// Variables
 			const amount = options.getInteger('amount');
 
@@ -87,6 +84,14 @@ module.exports = {
 
 			// Sending embed
 			await sendEmbed(interaction, `Deleted ${messagesDeleted.size} messages`);
+			await sleep(5000);
+
+			// Get message
+			const message = await channel.messages.fetch(interaction.id).catch(() => {
+				return false;
+			});
+			if (!message) return;
+			await interaction.deleteReply();
 		} catch (error) {
 			console.error(error);
 			await sendErrorEmbed(interaction, error);
