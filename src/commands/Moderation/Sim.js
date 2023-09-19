@@ -54,7 +54,10 @@ module.exports = {
 					`User Missing Permissions: \`${userPermissions[1]}\``
 				);
 
-			await sendEmbed(interaction, 'Attempting to change nickname');
+			await sendEmbed(
+				interaction,
+				'Simulating a user joining/leaving the guild'
+			);
 			await sleep(2000);
 
 			// Variables

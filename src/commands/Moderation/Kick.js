@@ -141,17 +141,12 @@ module.exports = {
 			});
 
 			// Kick the target user
-			await targetMember.kick(reason2).catch(
-				async(async (error) => {
-					return (
-						(await sendErrorEmbed(interaction, error)) &&
-						(await sendEmbed(
-							interaction,
-							`There was an error kicking this user`
-						))
-					);
-				})
-			);
+			await targetMember.kick(reason2).catch(async (error) => {
+				return (
+					(await sendErrorEmbed(interaction, error)) &&
+					(await sendEmbed(interaction, `There was an error kicking this user`))
+				);
+			});
 
 			// Banned user embed
 			const Embed2 = new EmbedBuilder()
