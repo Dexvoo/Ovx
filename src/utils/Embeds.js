@@ -9,7 +9,7 @@ const {
 } = require('discord.js');
 require('dotenv').config();
 const { FooterText, FooterImage, EmbedColour, ErrorChannelID } = process.env;
-const { permissionCheck, guildCheck } = require('./Checks.js');
+const { permissionCheck } = require('./Checks.js');
 
 /**
  * @param {CommandInteraction | GuildChannel | GuildMember} interactionChannelMember - Interaction / Channel / Member

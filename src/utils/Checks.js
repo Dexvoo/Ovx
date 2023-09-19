@@ -8,7 +8,7 @@ const {
 	Client,
 } = require('discord.js');
 require('dotenv').config();
-const { sendEmbed, sendErrorEmbed } = require('./Embeds.js');
+const { sendEmbed } = require('./Embeds.js');
 /**
  * @param {CommandInteraction} interaction
  */

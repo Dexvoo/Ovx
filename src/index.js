@@ -9,7 +9,7 @@ const {
 	cleanConsoleLog,
 	cleanConsoleLogData,
 } = require('./utils/ConsoleLogs.js');
-const { sendEmbed, sendErrorEmbed } = require('./utils/Embeds.js');
+const { sendEmbed } = require('./utils/Embeds.js');
 require('dotenv').config();
 const {
 	DeveloperMode,
