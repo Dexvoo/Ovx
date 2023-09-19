@@ -79,6 +79,39 @@ client.on('interactionCreate', async (interaction) => {
 
 	if (!command) return;
 
+	// Get cooldowns from client
+	const { cooldowns } = client;
+
+	// Check if the command has a cooldown
+	if (!cooldowns.has(command.data.name)) {
+		cooldowns.set(command.data.name, new Collection());
+	}
+
+	// Variables
+	const now = Date.now();
+	const timestamps = cooldowns.get(command.data.name);
+	const defaultCooldown = 5;
+	const cooldownAmount = (command.data.cooldown || defaultCooldown) * 1000;
+
+	// Check if the user is on cooldown
+	if (timestamps.has(interaction.user.id)) {
+		const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
+
+		if (now < expirationTime) {
+			const timeLeft = (expirationTime - now) / 1000;
+			return await sendEmbed(
+				interaction,
+				`Please wait ${timeLeft.toFixed(
+					1
+				)} more second(s) before reusing the \`${command.data.name}\` command`
+			);
+		}
+	}
+
+	// Set the cooldown
+	timestamps.set(interaction.user.id, now);
+	setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
+
 	try {
 		await command.execute(interaction);
 	} catch (error) {
