@@ -107,6 +107,7 @@ module.exports = {
 
 			// Checking if the reason is valid
 			if (!reason) {
+				reason = 'No reason provided';
 				reason2 = `Banned by @${user.username} | Reason: No reason provided`;
 			} else {
 				reason2 = `Banned by @${user.username} | Reason: ${reason}`;
