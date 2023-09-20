@@ -95,7 +95,7 @@ const sendEmbed = async (interactionChannelMember, description) => {
 		return true;
 		// member.send the embed
 	} else {
-		throw new Error('Invalid interaction or channel provided.');
+		throw new Error('Invalid interaction/channel/guildmember provided.');
 	}
 };
 

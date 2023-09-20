@@ -21,7 +21,7 @@ const levelNotificationsSchema = require('../../models/LevelNotifications.js');
 // const MemberLogs = require('../../models/GuildMemberLogs.js');
 // const RoleLogs = require('../../models/GuildRoleLogs.js');
 // const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
-// const MessageLogs = require('../../models/GuildMessageLogs.js');
+const MessageLogs = require('../../models/GuildMessageLogs.js');
 // const BlacklistedChannels = require('../../models/GuildBlacklistedChannels.js');
 
 module.exports = {
@@ -39,6 +39,7 @@ module.exports = {
 						.setDescription(
 							'The channel you would like to send the welcome messages in.'
 						)
+						.addChannelTypes(ChannelType.GuildText)
 						.setRequired(true)
 				)
 				.addBooleanOption((option) =>
@@ -78,6 +79,61 @@ module.exports = {
 						.setDescription(
 							'The channel you would like to send the level messages in.'
 						)
+						.addChannelTypes(ChannelType.GuildText)
+						.setRequired(false)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('logs')
+				.setDescription('Setup logs for the guild.')
+				.addStringOption((option) =>
+					option
+						.setName('type')
+						.setDescription('Type of logs to setup.')
+						.addChoices(
+							{
+								name: 'Channel Logs',
+								value: 'channel',
+							},
+							{
+								name: 'Member Logs',
+								value: 'member',
+							},
+							{
+								name: 'Message Logs',
+								value: 'message',
+							},
+							{
+								name: 'Joins/Leaves Logs',
+								value: 'joinleave',
+							},
+							{
+								name: 'Role Logs',
+								value: 'role',
+							},
+							{
+								name: 'Server Logs',
+								value: 'server',
+							},
+							{
+								name: 'Voice Logs',
+								value: 'voice',
+							}
+						)
+						.setRequired(true)
+				)
+				.addBooleanOption((option) =>
+					option
+						.setName('logs-toggle')
+						.setDescription('Enable or disable the channel logs.')
+						.setRequired(true)
+				)
+				.addChannelOption((option) =>
+					option
+						.setName('logs-channel')
+						.setDescription('Channel to send the channel logs in.')
+						.addChannelTypes(ChannelType.GuildText)
 						.setRequired(false)
 				)
 		),
@@ -321,6 +377,73 @@ module.exports = {
 						.setFooter({ text: FooterText, iconURL: FooterImage });
 					await interaction.editReply({ embeds: [SuccessEmbed2] });
 					break;
+				case 'logs':
+					const logsType = options.getString('type');
+					const logsToggle = options.getBoolean('logs-toggle');
+					const logsChannel = options.getChannel('logs-channel');
+
+					switch (logsType) {
+						case 'message':
+							if (logsToggle) {
+								if (!logsChannel) {
+									return await sendEmbed(
+										interaction,
+										'Please provide a channel'
+									);
+								}
+
+								// Bot permissions
+								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+								const botPermissions = await permissionCheck(
+									logsChannel,
+									botPermissionsArry,
+									client
+								);
+
+								if (!botPermissions[0])
+									return await sendEmbed(
+										interaction,
+										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${logsChannel}`
+									);
+
+								await MessageLogs.findOneAndUpdate(
+									{
+										guild: guild.id,
+									},
+									{
+										guild: guild.id,
+										channel: logsChannel.id,
+									},
+									{
+										upsert: true,
+									}
+								);
+
+								const SuccessEmbed = new EmbedBuilder()
+									.setColor(EmbedColour)
+									.setDescription('• Message Logs Setup Successfully •')
+									.addFields({
+										name: '• Message Logs Channel •',
+										value: `${logsChannel}`,
+									})
+									.setTimestamp()
+									.setFooter({ text: FooterText, iconURL: FooterImage });
+								await interaction.editReply({ embeds: [SuccessEmbed] });
+							} else {
+								await MessageLogs.deleteOne({
+									guild: guild.id,
+								});
+
+								return await sendEmbed(
+									interaction,
+									'Message logs have been disabled'
+								);
+							}
+
+							break;
+						default:
+							break;
+					}
 
 				default:
 					break;

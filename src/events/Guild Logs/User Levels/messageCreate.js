@@ -110,7 +110,7 @@ module.exports = {
 
 								if (!botPermissions[0])
 									return await sendEmbed(
-										guild.fetchOwner(),
+										await guild.fetchOwner(),
 										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${LevelNotificationsChannel}`
 									);
 
@@ -128,7 +128,7 @@ module.exports = {
 
 								if (!botPermissions[0])
 									return await sendEmbed(
-										guild.fetchOwner(),
+										await guild.fetchOwner(),
 										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${channel}`
 									);
 
