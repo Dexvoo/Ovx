@@ -20,7 +20,7 @@ module.exports = {
 			option
 				.setName('amount')
 				.setDescription('The amount of messages you would like to delete.')
-				.setRequired(true)
+				.setRequired(false)
 		),
 	/**
 	 *
@@ -65,7 +65,8 @@ module.exports = {
 				);
 
 			// Variables
-			const amount = options.getInteger('amount');
+			var amount = options.getInteger('amount');
+			if (!amount) amount = 100;
 
 			// Checking if the amount is valid
 			if (amount < 1 || amount > 100)
