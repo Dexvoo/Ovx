@@ -20,7 +20,7 @@ const levelNotificationsSchema = require('../../models/LevelNotifications.js');
 // const ChannelLogs = require('../../models/GuildChannelLogs.js');
 // const MemberLogs = require('../../models/GuildMemberLogs.js');
 // const RoleLogs = require('../../models/GuildRoleLogs.js');
-// const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
+const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
 const MessageLogs = require('../../models/GuildMessageLogs.js');
 // const BlacklistedChannels = require('../../models/GuildBlacklistedChannels.js');
 
@@ -380,12 +380,12 @@ module.exports = {
 				case 'logs':
 					const logsType = options.getString('type');
 					const logsToggle = options.getBoolean('logs-toggle');
-					const logsChannel = options.getChannel('logs-channel');
 
 					switch (logsType) {
 						case 'message':
+							const messageLogsChannel = options.getChannel('logs-channel');
 							if (logsToggle) {
-								if (!logsChannel) {
+								if (!messageLogsChannel) {
 									return await sendEmbed(
 										interaction,
 										'Please provide a channel'
@@ -395,7 +395,7 @@ module.exports = {
 								// Bot permissions
 								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
 								const botPermissions = await permissionCheck(
-									logsChannel,
+									messageLogsChannel,
 									botPermissionsArry,
 									client
 								);
@@ -403,7 +403,7 @@ module.exports = {
 								if (!botPermissions[0])
 									return await sendEmbed(
 										interaction,
-										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${logsChannel}`
+										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${messageLogsChannel}`
 									);
 
 								await MessageLogs.findOneAndUpdate(
@@ -412,7 +412,7 @@ module.exports = {
 									},
 									{
 										guild: guild.id,
-										channel: logsChannel.id,
+										channel: messageLogsChannel.id,
 									},
 									{
 										upsert: true,
@@ -423,8 +423,8 @@ module.exports = {
 									.setColor(EmbedColour)
 									.setDescription('• Message Logs Setup Successfully •')
 									.addFields({
-										name: '• Message Logs Channel •',
-										value: `${logsChannel}`,
+										name: '• Channel •',
+										value: `${messageLogsChannel}`,
 									})
 									.setTimestamp()
 									.setFooter({ text: FooterText, iconURL: FooterImage });
@@ -437,6 +437,65 @@ module.exports = {
 								return await sendEmbed(
 									interaction,
 									'Message logs have been disabled'
+								);
+							}
+
+							break;
+						case 'joinleave':
+							const joinLeaveLogsChannel = options.getChannel('logs-channel');
+							if (logsToggle) {
+								if (!joinLeaveLogsChannel) {
+									return await sendEmbed(
+										interaction,
+										'Please provide a channel'
+									);
+								}
+
+								// Bot permissions
+								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+								const botPermissions = await permissionCheck(
+									joinLeaveLogsChannel,
+									botPermissionsArry,
+									client
+								);
+
+								if (!botPermissions[0])
+									return await sendEmbed(
+										interaction,
+										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${joinLeaveLogsChannel}`
+									);
+
+								await JoinLeaveLogs.findOneAndUpdate(
+									{
+										guild: guild.id,
+									},
+									{
+										guild: guild.id,
+										channel: joinLeaveLogsChannel.id,
+									},
+									{
+										upsert: true,
+									}
+								);
+
+								const SuccessEmbed = new EmbedBuilder()
+									.setColor(EmbedColour)
+									.setDescription('• Join/Leave Logs Setup Successfully •')
+									.addFields({
+										name: '• Channel •',
+										value: `${joinLeaveLogsChannel}`,
+									})
+									.setTimestamp()
+									.setFooter({ text: FooterText, iconURL: FooterImage });
+								await interaction.editReply({ embeds: [SuccessEmbed] });
+							} else {
+								await JoinLeaveLogs.deleteOne({
+									guild: guild.id,
+								});
+
+								return await sendEmbed(
+									interaction,
+									'Join/Leave logs have been disabled'
 								);
 							}
 

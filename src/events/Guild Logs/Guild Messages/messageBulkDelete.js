@@ -21,7 +21,6 @@ module.exports = {
 	 *  @param {Message} oldMessage
 	 */
 	async execute(messages, channel) {
-		console.log('messages', messages);
 		// Deconstructing channel
 		const { guild, client, content, attachments, id } = channel;
 
@@ -84,16 +83,6 @@ module.exports = {
 						await MessageLogs.findOneAndDelete({ guildId: guild.id });
 						return;
 					}
-
-					// How to get content of bulk deleted messages
-
-					const premiumRole = client.guilds.cache
-						.get(DeveloperGuildID)
-						.roles.cache.get(PremiumUserRoleID);
-
-					const hasPremiumRole = premiumRole.members.has(executor.id)
-						? `• ${SuccessEmoji} •`
-						: `• ${ErrorEmoji} •`;
 
 					// Creating embed
 					const Embed = new EmbedBuilder()

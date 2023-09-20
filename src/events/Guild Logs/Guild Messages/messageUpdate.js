@@ -22,7 +22,6 @@ module.exports = {
 	 * @param {Message} newMessage
 	 */
 	async execute(oldMessage, newMessage) {
-		console.log('Old Message');
 		// Deconstructing message
 		const { guild, client, member, channel, author, content, attachments, id } =
 			oldMessage;
