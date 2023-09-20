@@ -86,12 +86,12 @@ module.exports = {
 			await sendEmbed(interaction, `Deleted ${messagesDeleted.size} messages`);
 			await sleep(5000);
 
-			// Get message
-			const message = await channel.messages.fetch(interaction.id).catch(() => {
+			// fetch reply message
+			const reply = await interaction.fetchReply().catch(() => {
 				return false;
 			});
-			if (!message) return;
-			await interaction.deleteReply();
+
+			if (reply) await reply.delete();
 		} catch (error) {
 			console.error(error);
 			await sendErrorEmbed(interaction, error);

@@ -3,7 +3,7 @@ const { sendEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const WelcomeMessages = require('../../models/WelcomeMessages');
 require('dotenv').config();
-const { EmbedColour, FooterImage, FooterText } = process.env;
+const { EmbedColour, FooterImage, FooterText, DeveloperMode } = process.env;
 
 module.exports = {
 	name: 'guildMemberAdd',
@@ -15,7 +15,10 @@ module.exports = {
 	async execute(member) {
 		// Deconstructing member
 		const { guild, user, client } = member;
-		//if(DeveloperMode == 'true) return;
+		if (DeveloperMode == 'true')
+			return console.log(
+				`[EVENT] ${this.nickname} | [USER] @${user.username} | [Guild] ${guild.name}`
+			);
 
 		// Variables
 		const waveGifs = [
@@ -35,7 +38,7 @@ module.exports = {
 		const getWelcomeMessageData = await WelcomeMessages.findOne(query);
 
 		// If nothing in database return
-		if (!getWelcomeMessageData) return;
+		if (!getWelcomeMessageData) return console.log('No data in database');
 
 		// Deconstructing getWelcomeMessageData
 		const { channel, message, role } = getWelcomeMessageData;
