@@ -8,6 +8,7 @@ const {
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
+const MessageLogs = require('../../models/GuildMessageLogs.js');
 require('dotenv').config();
 
 module.exports = {
@@ -44,11 +45,13 @@ module.exports = {
 				client
 			);
 
-			if (!botPermissions[0])
-				return await sendEmbed(
+			if (!botPermissions[0]) {
+				await sendEmbed(
 					interaction,
 					`Bot Missing Permissions: \`${botPermissions[1]}\``
 				);
+				return;
+			}
 
 			// User permissions
 			const userPermissionsArry = ['ManageMessages'];
@@ -93,6 +96,47 @@ module.exports = {
 			});
 
 			if (reply) await reply.delete();
+
+			// Fetching message logs
+			const MessageLogsData = await MessageLogs.findOne({
+				guild: guild.id,
+			});
+
+			// Checking if the guild has a message logs set up
+			if (!MessageLogsData) return;
+
+			// Getting guild channel
+			const channelToSend = guild.channels.cache.get(MessageLogsData.channel);
+
+			// Check if the channel exists
+			if (!channelToSend) {
+				await MessageLogs.findOneAndDelete({ guildId: guild.id });
+				await sendEmbed(
+					await guild.fetchOwner(),
+					`Message Logs channel was deleted or changed | Message Logs is now \`disabled\``
+				);
+				return;
+			}
+
+			// Bot permissions
+			const botPermissionsArry2 = ['SendMessages', 'ViewChannel'];
+			const botPermissions2 = await permissionCheck(
+				channelToSend,
+				botPermissionsArry2,
+				client
+			);
+
+			// Checking if the bot has permissions
+			if (!botPermissions2[0]) {
+				await MessageLogs.findOneAndDelete({ guildId: guild.id });
+				return await sendEmbed(
+					await guild.fetchOwner(),
+					`Bot Missing Permissions: \`${botPermissions2[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``
+				);
+			}
+
+			// Sending embed
+			await sendEmbed(channelToSend, `${member} Used the /purge in ${channel}`);
 		} catch (error) {
 			console.error(error);
 			await sendErrorEmbed(interaction, error);

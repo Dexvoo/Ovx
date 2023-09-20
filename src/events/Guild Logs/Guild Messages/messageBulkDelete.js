@@ -14,20 +14,18 @@ const {
 } = process.env;
 
 module.exports = {
-	name: Events.MessageUpdate,
+	name: Events.MessageBulkDelete,
 	nickname: 'Message Logs',
 
 	/**
 	 *  @param {Message} oldMessage
-	 * @param {Message} newMessage
 	 */
-	async execute(oldMessage, newMessage) {
-		console.log('Old Message');
-		// Deconstructing message
-		const { guild, client, member, channel, author, content, attachments, id } =
-			oldMessage;
+	async execute(messages, channel) {
+		console.log('messages', messages);
+		// Deconstructing channel
+		const { guild, client, content, attachments, id } = channel;
 
-		if (author.bot || !guild) return;
+		if (!guild) return;
 
 		// Bot permissions
 		const botPermissionsArry = ['ViewAuditLog'];
@@ -46,7 +44,7 @@ module.exports = {
 
 		try {
 			guild
-				.fetchAuditLogs({ type: AuditLogEvent.MessageUpdate })
+				.fetchAuditLogs({ type: AuditLogEvent.MessageBulkDelete })
 				.then(async (audit) => {
 					// Deconstructing audit
 					const { executor, target, createdAt } = audit.entries.first();
@@ -87,68 +85,40 @@ module.exports = {
 						return;
 					}
 
+					// How to get content of bulk deleted messages
+
 					const premiumRole = client.guilds.cache
 						.get(DeveloperGuildID)
 						.roles.cache.get(PremiumUserRoleID);
 
-					const hasPremiumRole = premiumRole.members.has(author.id)
+					const hasPremiumRole = premiumRole.members.has(executor.id)
 						? `• ${SuccessEmoji} •`
 						: `• ${ErrorEmoji} •`;
 
-					// Getting old message content
-					var messageContentOld = content;
-					if (content === '') {
-						messageContentOld = 'No content';
-					}
-
-					// Getting new message content
-					var messageContentNew = newMessage.content;
-					if (newMessage.content === '') {
-						messageContentNew = 'No content';
-					}
-
 					// Creating embed
 					const Embed = new EmbedBuilder()
-						.setTitle('Message Edited')
+						.setTitle('Message Bulk Deleted')
 						.setColor('Orange')
 						.addFields(
 							{
-								name: `User's Message`,
-								value: `@${author.username} (<@${author.id}>)`,
-								inline: true,
-							},
-							{
-								name: 'User Premium',
-								value: `${hasPremiumRole}`,
-								inline: true,
-							},
-							{
 								name: 'Channel',
-								value: `<#${channel.id}>`,
+								value: `<#${id}>`,
 							},
 							{
-								name: 'Before',
-								value: `${messageContentOld}`,
+								name: 'Messages Deleted',
+								value: `${messages.size}`,
 							},
 							{
-								name: 'After',
-								value: `${messageContentNew}`,
+								name: 'Deleted By',
+								value: `${executor}`,
 							},
 							{
 								name: "ID's",
-								value: `\`\`\`User | ${author.id}\nMessage | ${id}\`\`\``,
+								value: `\`\`\`User | ${executor.id}\nMessage | ${id}\`\`\``,
 							}
 						)
 						.setFooter({ text: FooterText, iconURL: FooterImage })
 						.setTimestamp();
-
-					// Getting attachments and sending them
-					if (attachments.size > 0) {
-						Array.from(attachments.values());
-						const data = [...attachments.values()];
-						await channelToSend.send({ embeds: [Embed], files: data });
-						return;
-					}
 
 					// Sending embed
 					await channelToSend.send({ embeds: [Embed] });

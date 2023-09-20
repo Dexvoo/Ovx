@@ -99,7 +99,7 @@ module.exports = {
 					}
 
 					const Embed = new EmbedBuilder()
-						.setTitle('Message Log')
+						.setTitle('Message Deleted')
 						.setColor('Red')
 						.addFields(
 							{
