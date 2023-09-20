@@ -6,16 +6,14 @@ const {
 	GuildMember,
 	GuildChannel,
 	Client,
+	Guild,
 } = require('discord.js');
 require('dotenv').config();
 const { sendEmbed } = require('./Embeds.js');
 /**
- * @param {CommandInteraction} interaction
+ * @param {Guild} guild
  */
-const guildCheck = async (interaction) => {
-	if (!interaction) throw new Error('No interaction provided.');
-
-	const { guild } = interaction;
+const guildCheck = async (guild) => {
 	if (!guild) {
 		await sendEmbed(interaction, 'Please use this command in a guild.');
 		return false;

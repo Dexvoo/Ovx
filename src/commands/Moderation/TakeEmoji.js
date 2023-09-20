@@ -64,7 +64,7 @@ module.exports = {
 			console.log(guilds);
 
 			// Checking if the user is in a guild
-			if (!(await guildCheck(interaction))) return;
+			if (!(await guildCheck(guild))) return;
 
 			// Bot permissions
 			const botPermissionsArry = ['ManageGuildExpressions'];

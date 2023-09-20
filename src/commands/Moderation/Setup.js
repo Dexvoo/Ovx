@@ -15,7 +15,7 @@ const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
 const { FooterText, FooterImage, EmbedColour } = process.env;
 const welcomeMessagesSchema = require('../../models/WelcomeMessages.js');
-// const levelNotificationsSchema = require('../../models/LevelNotifications.js');
+const levelNotificationsSchema = require('../../models/LevelNotifications.js');
 // const inviteTrackerSchema = require('../../models/InviteTracker.js');
 // const ChannelLogs = require('../../models/GuildChannelLogs.js');
 // const MemberLogs = require('../../models/GuildMemberLogs.js');
@@ -61,9 +61,30 @@ module.exports = {
 						.setDescription('The message you would like to send.')
 						.setRequired(false)
 				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('level-notifications')
+				.setDescription('Enable/disable level notifications.')
+				.addBooleanOption((option) =>
+					option
+						.setName('level-notifications-toggle')
+						.setDescription('Toggle the level messages.')
+						.setRequired(true)
+				)
+				.addChannelOption((option) =>
+					option
+						.setName('level-notifications-channel')
+						.setDescription(
+							'The channel you would like to send the level messages in.'
+						)
+						.setRequired(false)
+				)
 		),
 	/**
 	 * @param {CommandInteraction} interaction
+	 * @param {Client} client
+	 * @param {import('discord.js').Channel} levelNotificationsChannel
 	 */
 	async execute(interaction) {
 		try {
@@ -71,7 +92,7 @@ module.exports = {
 			const { guild, member, options, user, client, channel } = interaction;
 
 			// Checking if the user is in a guild
-			if (!(await guildCheck(interaction))) return;
+			if (!(await guildCheck(guild))) return;
 
 			// Bot permissions
 			const botPermissionsArry = ['ManageMessages'];
@@ -216,6 +237,89 @@ module.exports = {
 						.setFooter({ text: FooterText, iconURL: FooterImage });
 					await interaction.editReply({ embeds: [SuccessEmbed] });
 
+					break;
+				case 'level-notifications':
+					const levelNotificationsChannel = options.getChannel(
+						'level-notifications-channel'
+					);
+
+					const levelNotificationsToggle = options.getBoolean(
+						'level-notifications-toggle'
+					);
+
+					const levelNotificationsData = await levelNotificationsSchema.findOne(
+						{
+							guild: guild.id,
+						}
+					);
+					if (levelNotificationsData) {
+						if (!levelNotificationsToggle) {
+							await levelNotificationsSchema.findOneAndDelete({
+								guild: guild.id,
+							});
+
+							return await sendEmbed(
+								interaction,
+								'Level notifications have been disabled'
+							);
+						}
+					}
+
+					if (!levelNotificationsToggle) {
+						return await sendEmbed(
+							interaction,
+							'There was no data found for level notifications'
+						);
+					}
+
+					// if channel was provided
+					if (levelNotificationsChannel) {
+						// Bot permissions
+						const botPermissionsArry2 = ['ManageMessages'];
+						const botPermissions2 = await permissionCheck(
+							levelNotificationsChannel,
+							botPermissionsArry2,
+							client
+						);
+
+						if (!botPermissions2[0])
+							return await sendEmbed(
+								interaction,
+								`Bot Missing Permissions: \`${botPermissions2[1]}\``
+							);
+
+						if (levelNotificationsChannel.type !== ChannelType.GuildText)
+							return await sendEmbed(
+								interaction,
+								'Please provide a text channel'
+							);
+					}
+
+					await levelNotificationsSchema.findOneAndUpdate(
+						{
+							guild: guild.id,
+						},
+						{
+							guild: guild.id,
+							channel: levelNotificationsChannel
+								? levelNotificationsChannel.id
+								: null,
+						},
+						{
+							upsert: true,
+						}
+					);
+
+					const SuccessEmbed2 = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setDescription('• Level Notifications Setup Successfully •')
+						.addFields({
+							name: '• Welcome Message Channel •',
+							value: `${levelNotificationsChannel || 'Message channel'} `,
+						})
+						.setTimestamp()
+						.setFooter({ text: FooterText, iconURL: FooterImage });
+					await interaction.editReply({ embeds: [SuccessEmbed2] });
 					break;
 
 				default:

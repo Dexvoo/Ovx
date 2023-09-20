@@ -1,12 +1,12 @@
-const { GuildMember, EmbedBuilder } = require('discord.js');
-const { sendEmbed } = require('../../utils/Embeds.js');
-const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
-const WelcomeMessages = require('../../models/WelcomeMessages');
+const { GuildMember, EmbedBuilder, Events } = require('discord.js');
+const { sendEmbed } = require('../../../utils/Embeds.js');
+const { guildCheck, permissionCheck } = require('../../../utils/Checks.js');
+const WelcomeMessages = require('../../../models/WelcomeMessages.js');
 require('dotenv').config();
 const { EmbedColour, FooterImage, FooterText, DeveloperMode } = process.env;
 
 module.exports = {
-	name: 'guildMemberAdd',
+	name: Events.GuildMemberAdd,
 	nickname: 'Welcome Messages',
 
 	/**

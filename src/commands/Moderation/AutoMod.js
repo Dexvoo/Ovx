@@ -63,7 +63,7 @@ module.exports = {
 			const subcommand = options.getSubcommand();
 
 			// Checking if the user is in a guild
-			if (!(await guildCheck(interaction))) return;
+			if (!(await guildCheck(guild))) return;
 
 			// Bot permissions
 			const botPermissionsArry = ['ManageGuild'];
