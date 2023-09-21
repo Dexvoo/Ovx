@@ -17,7 +17,7 @@ const { FooterText, FooterImage, EmbedColour } = process.env;
 const welcomeMessagesSchema = require('../../models/WelcomeMessages.js');
 const levelNotificationsSchema = require('../../models/LevelNotifications.js');
 // const inviteTrackerSchema = require('../../models/InviteTracker.js');
-// const ChannelLogs = require('../../models/GuildChannelLogs.js');
+const ChannelLogs = require('../../models/GuildChannelLogs.js');
 // const MemberLogs = require('../../models/GuildMemberLogs.js');
 // const RoleLogs = require('../../models/GuildRoleLogs.js');
 const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
@@ -490,6 +490,65 @@ module.exports = {
 								await interaction.editReply({ embeds: [SuccessEmbed] });
 							} else {
 								await JoinLeaveLogs.deleteOne({
+									guild: guild.id,
+								});
+
+								return await sendEmbed(
+									interaction,
+									'Join/Leave logs have been disabled'
+								);
+							}
+
+							break;
+						case 'channel':
+							const ChannelLogsChannel = options.getChannel('logs-channel');
+							if (logsToggle) {
+								if (!ChannelLogsChannel) {
+									return await sendEmbed(
+										interaction,
+										'Please provide a channel'
+									);
+								}
+
+								// Bot permissions
+								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+								const botPermissions = await permissionCheck(
+									ChannelLogsChannel,
+									botPermissionsArry,
+									client
+								);
+
+								if (!botPermissions[0])
+									return await sendEmbed(
+										interaction,
+										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${ChannelLogsChannel}`
+									);
+
+								await ChannelLogs.findOneAndUpdate(
+									{
+										guild: guild.id,
+									},
+									{
+										guild: guild.id,
+										channel: ChannelLogsChannel.id,
+									},
+									{
+										upsert: true,
+									}
+								);
+
+								const SuccessEmbed = new EmbedBuilder()
+									.setColor(EmbedColour)
+									.setDescription('• Channel Logs Setup Successfully •')
+									.addFields({
+										name: '• Channel •',
+										value: `${ChannelLogsChannel}`,
+									})
+									.setTimestamp()
+									.setFooter({ text: FooterText, iconURL: FooterImage });
+								await interaction.editReply({ embeds: [SuccessEmbed] });
+							} else {
+								await ChannelLogs.deleteOne({
 									guild: guild.id,
 								});
 
