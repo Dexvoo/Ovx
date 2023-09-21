@@ -93,45 +93,74 @@ module.exports = {
 						return;
 					}
 
-					// Variables
-					let oldType = oldChannel.type;
 					let oldTypeText = '';
-					if (oldType == ChannelType.GuildAnnouncement)
-						oldTypeText = 'Announcement';
-					if (oldType == ChannelType.GuildText) oldTypeText = 'Text';
-					if (oldType == ChannelType.GuildVoice) oldTypeText = 'Voice';
-					if (oldType == ChannelType.GuildStore) oldTypeText = 'Store';
-					if (oldType == ChannelType.GuildCategory) oldTypeText = 'Category';
-					if (oldType == ChannelType.GuildStageVoice)
-						oldTypeText = 'Stage Voice';
-					if (oldType == ChannelType.PublicThread)
-						oldTypeText = 'Public Thread';
-					if (oldType == ChannelType.PrivateThread)
-						oldTypeText = 'Private Thread';
-					if (oldType == ChannelType.GuildStageVoice)
-						oldTypeText = 'Stage Voice';
-
-					let newType = newChannel.type;
 					let newTypeText = '';
-					if (newType == ChannelType.GuildAnnouncement)
-						newTypeText = 'Announcement';
-					if (newType == ChannelType.GuildText) newTypeText = 'Text';
-					if (newType == ChannelType.GuildVoice) newTypeText = 'Voice';
-					if (newType == ChannelType.GuildStore) newTypeText = 'Store';
-					if (newType == ChannelType.GuildCategory) newTypeText = 'Category';
-					if (newType == ChannelType.GuildStageVoice)
-						newTypeText = 'Stage Voice';
-					if (newType == ChannelType.PublicThread)
-						newTypeText = 'Public Thread';
-					if (newType == ChannelType.PrivateThread)
-						newTypeText = 'Private Thread';
-					if (newType == ChannelType.GuildStageVoice)
-						newTypeText = 'Stage Voice';
+					if (oldChannel.type != newChannel.type) {
+						switch (oldChannel.type) {
+							case ChannelType.GuildAnnouncement:
+								oldTypeText = 'Announcement';
+								break;
+							case ChannelType.GuildText:
+								oldTypeText = 'Text';
+								break;
+							case ChannelType.GuildVoice:
+								oldTypeText = 'Voice';
+								break;
+							case ChannelType.GuildStore:
+								oldTypeText = 'Store';
+								break;
+							case ChannelType.GuildCategory:
+								oldTypeText = 'Category';
+								break;
+							case ChannelType.GuildStageVoice:
+								oldTypeText = 'Stage Voice';
+								break;
+							case ChannelType.PublicThread:
+								oldTypeText = 'Public Thread';
+								break;
+							case ChannelType.PrivateThread:
+								oldTypeText = 'Private Thread';
+								break;
+							case ChannelType.GuildStageVoice:
+								oldTypeText = 'Stage Voice';
+								break;
+						}
+
+						switch (newChannel.type) {
+							case ChannelType.GuildAnnouncement:
+								newTypeText = 'Announcement';
+								break;
+							case ChannelType.GuildText:
+								newTypeText = 'Text';
+								break;
+							case ChannelType.GuildVoice:
+								newTypeText = 'Voice';
+								break;
+							case ChannelType.GuildStore:
+								newTypeText = 'Store';
+								break;
+							case ChannelType.GuildCategory:
+								newTypeText = 'Category';
+								break;
+							case ChannelType.GuildStageVoice:
+								newTypeText = 'Stage Voice';
+								break;
+							case ChannelType.PublicThread:
+								newTypeText = 'Public Thread';
+								break;
+							case ChannelType.PrivateThread:
+								newTypeText = 'Private Thread';
+								break;
+							case ChannelType.GuildStageVoice:
+								newTypeText = 'Stage Voice';
+								break;
+						}
+					}
 
 					// Started Embed
 					const Embed = new EmbedBuilder()
 						.setTitle(`${newTypeText} Channel Updated`)
-						.setColor('Green')
+						.setColor('Orange')
 						.addFields({
 							name: `Channel`,
 							value: `${newChannel} (${newChannel.id})`,
@@ -144,7 +173,7 @@ module.exports = {
 					const currentTime = `<t:${Math.floor(Date.now() / 1000)}:R>`;
 
 					// Checking if the channel type changed
-					if (oldType != newType) {
+					if (oldChannel.type != newChannel.type) {
 						Embed.addFields({
 							name: 'Type',
 							value: `${oldTypeText} -> ${newTypeText}`,
@@ -219,8 +248,6 @@ module.exports = {
 					var oldSlowmode = oldChannel.rateLimitPerUser;
 					var newSlowmode = newChannel.rateLimitPerUser;
 					if (oldSlowmode != newSlowmode) {
-						console.log('oldSlowmode', oldSlowmode);
-						console.log('newSlowmode', newSlowmode);
 						if (oldSlowmode == undefined) oldSlowmode = 'No Slowmode';
 						if (newSlowmode == undefined) newSlowmode = 'No Slowmode';
 						Embed.addFields({

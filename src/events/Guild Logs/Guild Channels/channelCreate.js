@@ -93,20 +93,40 @@ module.exports = {
 					}
 
 					// Variables
-					let type = channel.type;
-					if (type == ChannelType.GuildAnnouncement) type = 'Announcement';
-					if (type == ChannelType.GuildText) type = 'Text';
-					if (type == ChannelType.GuildVoice) type = 'Voice';
-					if (type == ChannelType.GuildStore) type = 'Store';
-					if (type == ChannelType.GuildCategory) type = 'Category';
-					if (type == ChannelType.GuildStageVoice) type = 'Stage Voice';
-					if (type == ChannelType.PublicThread) type = 'Public Thread';
-					if (type == ChannelType.PrivateThread) type = 'Private Thread';
-					if (type == ChannelType.GuildStageVoice) type = 'Stage Voice';
 					const currentTime = `<t:${Math.floor(Date.now() / 1000)}:R>`;
+					let TypeText = '';
+					switch (channel.type) {
+						case ChannelType.GuildAnnouncement:
+							TypeText = 'Announcement';
+							break;
+						case ChannelType.GuildText:
+							TypeText = 'Text';
+							break;
+						case ChannelType.GuildVoice:
+							TypeText = 'Voice';
+							break;
+						case ChannelType.GuildStore:
+							TypeText = 'Store';
+							break;
+						case ChannelType.GuildCategory:
+							TypeText = 'Category';
+							break;
+						case ChannelType.GuildStageVoice:
+							TypeText = 'Stage Voice';
+							break;
+						case ChannelType.PublicThread:
+							TypeText = 'Public Thread';
+							break;
+						case ChannelType.PrivateThread:
+							TypeText = 'Private Thread';
+							break;
+						case ChannelType.GuildStageVoice:
+							TypeText = 'Stage Voice';
+							break;
+					}
 
 					const Embed = new EmbedBuilder()
-						.setTitle(`${type} Channel Created`)
+						.setTitle(`${TypeText} Channel Created`)
 						.setColor('Green')
 						.addFields(
 							{
