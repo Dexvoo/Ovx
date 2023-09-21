@@ -554,7 +554,66 @@ module.exports = {
 
 								return await sendEmbed(
 									interaction,
-									'Join/Leave logs have been disabled'
+									'Channel logs have been disabled'
+								);
+							}
+
+							break;
+						case 'member':
+							const MemberLogsChannel = options.getChannel('logs-channel');
+							if (logsToggle) {
+								if (!MemberLogsChannel) {
+									return await sendEmbed(
+										interaction,
+										'Please provide a channel'
+									);
+								}
+
+								// Bot permissions
+								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+								const botPermissions = await permissionCheck(
+									MemberLogsChannel,
+									botPermissionsArry,
+									client
+								);
+
+								if (!botPermissions[0])
+									return await sendEmbed(
+										interaction,
+										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${MemberLogsChannel}`
+									);
+
+								await ChannelLogs.findOneAndUpdate(
+									{
+										guild: guild.id,
+									},
+									{
+										guild: guild.id,
+										channel: MemberLogsChannel.id,
+									},
+									{
+										upsert: true,
+									}
+								);
+
+								const SuccessEmbed = new EmbedBuilder()
+									.setColor(EmbedColour)
+									.setDescription('• Member Logs Setup Successfully •')
+									.addFields({
+										name: '• Channel •',
+										value: `${MemberLogsChannel}`,
+									})
+									.setTimestamp()
+									.setFooter({ text: FooterText, iconURL: FooterImage });
+								await interaction.editReply({ embeds: [SuccessEmbed] });
+							} else {
+								await ChannelLogs.deleteOne({
+									guild: guild.id,
+								});
+
+								return await sendEmbed(
+									interaction,
+									'Member logs have been disabled'
 								);
 							}
 
