@@ -44,6 +44,7 @@ module.exports = {
 		const query = { guild: guild.id };
 		const afkUsers = await AFKUsers.exists(query);
 
+		// Check if user exists in database
 		if (!afkUsers) {
 			const newAFKUser = new AFKUsers({
 				guild: guild.id,
@@ -55,17 +56,17 @@ module.exports = {
 		}
 
 		const afkUsersData = await AFKUsers.findOne(query);
-
-		console.log(afkUsersData);
-
+		// checks database data and checks if user is already afk
 		if (afkUsersData.users.includes(user.id)) {
 			await sendEmbed(interaction, 'You are already AFK');
 			return;
 		}
 
+		// adds user to database
 		afkUsersData.users.push(user.id);
 		await afkUsersData.save().catch((error) => console.log(error));
 
+		// sends embed
 		await sendEmbed(interaction, 'You are now AFK');
 	},
 };
