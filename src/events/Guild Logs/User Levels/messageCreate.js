@@ -1,7 +1,7 @@
 const { EmbedBuilder, Events, Message } = require('discord.js');
 const { sendEmbed } = require('../../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../../utils/Checks.js');
-const LevelsSchema = require('../../../models/Levels.js');
+const LevelsSchema = require('../../../models/GuildLevels.js');
 const LevelNotificationsSchema = require('../../../models/LevelNotifications.js');
 require('dotenv').config();
 const {
@@ -35,7 +35,7 @@ module.exports = {
 		// Variables
 		var randomXP = getRandomXP(5, 15);
 		// if (author.id == '387341502134878218') randomXP = getRandomXP(100, 300);
-		const query = { guildId: guild.id };
+		const query = { guildId: guild.id, userId: author.id };
 
 		try {
 			const level = await LevelsSchema.findOne(query);
@@ -53,6 +53,7 @@ module.exports = {
 				setTimeout(() => {
 					cooldowns.delete(author.id);
 				}, 30000);
+				return;
 			} else {
 				level.xp += randomXP;
 				if (level.xp >= calculateLevel(level.level)) {
@@ -78,7 +79,7 @@ module.exports = {
 						);
 
 					const DeveloperLogsChannel =
-						guild.channels.cache.get(LevelUpChannelID);
+						client.channels.cache.get(LevelUpChannelID);
 
 					if (DeveloperLogsChannel) {
 						DeveloperLogsChannel.send({ embeds: [DeveloperLogsEmbed] });
