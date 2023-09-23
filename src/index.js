@@ -29,11 +29,11 @@ const client = new Client({
 		GatewayIntentBits.GuildMembers, // Member add/update/remove events
 		GatewayIntentBits.GuildModeration, // Ban add/remove and Guild audit log events
 		GatewayIntentBits.GuildEmojisAndStickers, // Emoji and sticker create/update/delete events
-		//GatewayIntentBits.GuildIntegrations, // Integration create/update/delete events
-		//GatewayIntentBits.GuildWebhooks, // Webhook create/update/delete events
+		// GatewayIntentBits.GuildIntegrations, // Integration create/update/delete events
+		// GatewayIntentBits.GuildWebhooks, // Webhook create/update/delete events
 		GatewayIntentBits.GuildInvites, // Invite create/update/delete events
-		GatewayIntentBits.GuildVoiceStates, // Voice state create/update/delete events
-		GatewayIntentBits.GuildPresences, // Presence update events
+		// GatewayIntentBits.GuildVoiceStates, // Voice state create/update/delete events
+		// GatewayIntentBits.GuildPresences, // Presence update events
 		GatewayIntentBits.GuildMessages, // Message create/update/delete events
 		// GatewayIntentBits.GuildMessageReactions, // Reaction add/remove events
 		// GatewayIntentBits.GuildMessageTyping, // Typing start events
@@ -43,7 +43,7 @@ const client = new Client({
 		GatewayIntentBits.MessageContent, // Message content in DMs and guilds
 		// GatewayIntentBits.GuildScheduledEvents, // Scheduled event create/update/delete events
 		GatewayIntentBits.AutoModerationConfiguration, // Auto-moderation config update events
-		GatewayIntentBits.AutoModerationExecution,
+		GatewayIntentBits.AutoModerationExecution, // Auto-moderation execution events
 	],
 });
 

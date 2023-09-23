@@ -18,7 +18,7 @@ const welcomeMessagesSchema = require('../../models/WelcomeMessages.js');
 const levelNotificationsSchema = require('../../models/LevelNotifications.js');
 // const inviteTrackerSchema = require('../../models/InviteTracker.js');
 const ChannelLogs = require('../../models/GuildChannelLogs.js');
-// const MemberLogs = require('../../models/GuildMemberLogs.js');
+const MemberLogs = require('../../models/GuildMemberLogs.js');
 // const RoleLogs = require('../../models/GuildRoleLogs.js');
 const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
 const MessageLogs = require('../../models/GuildMessageLogs.js');
@@ -406,6 +406,7 @@ module.exports = {
 										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${messageLogsChannel}`
 									);
 
+								console.log('Adding In Database');
 								await MessageLogs.findOneAndUpdate(
 									{
 										guild: guild.id,
@@ -430,6 +431,7 @@ module.exports = {
 									.setFooter({ text: FooterText, iconURL: FooterImage });
 								await interaction.editReply({ embeds: [SuccessEmbed] });
 							} else {
+								console.log('Deleting In Database');
 								await MessageLogs.deleteOne({
 									guild: guild.id,
 								});
@@ -583,7 +585,8 @@ module.exports = {
 										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${MemberLogsChannel}`
 									);
 
-								await ChannelLogs.findOneAndUpdate(
+								console.log('Adding In Database');
+								await MemberLogs.findOneAndUpdate(
 									{
 										guild: guild.id,
 									},
@@ -607,7 +610,8 @@ module.exports = {
 									.setFooter({ text: FooterText, iconURL: FooterImage });
 								await interaction.editReply({ embeds: [SuccessEmbed] });
 							} else {
-								await ChannelLogs.deleteOne({
+								console.log('Deleting In Database');
+								await MemberLogs.deleteOne({
 									guild: guild.id,
 								});
 

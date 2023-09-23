@@ -2,6 +2,7 @@ const { EmbedBuilder, Events, Message, AuditLogEvent } = require('discord.js');
 const { sendEmbed } = require('../../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../../utils/Checks.js');
 const MessageLogs = require('../../../models/GuildMessageLogs.js');
+const { sleep } = require('../../../utils/ConsoleLogs.js');
 require('dotenv').config();
 const {
 	FooterImage,
@@ -21,6 +22,7 @@ module.exports = {
 	 *  @param {Message} message
 	 */
 	async execute(message) {
+		console.log(`Message Delete Event Triggered`);
 		// Deconstructing message
 		const { guild, client, member, channel, author, content, attachments, id } =
 			message;
@@ -43,11 +45,16 @@ module.exports = {
 		}
 
 		try {
-			guild
-				.fetchAuditLogs({ type: AuditLogEvent.MessageDelete })
+			await guild
+				.fetchAuditLogs({
+					type: AuditLogEvent.MessageDelete,
+					limit: 1,
+				})
 				.then(async (audit) => {
 					// Deconstructing audit
-					const { executor, target, createdAt } = audit.entries.first();
+					// const
+					const { executor, target, createdAt, changes, actionType, extra } =
+						audit.entries.first();
 
 					// Getting message logs data from database
 					const MessageLogsData = await MessageLogs.findOne({
@@ -122,7 +129,7 @@ module.exports = {
 							},
 							{
 								name: 'Deleted By',
-								value: `${executor}`,
+								value: `${executor} (<@${executor.id}>) or ${author.username} (<@${author})`,
 							},
 							{
 								name: "ID's",
