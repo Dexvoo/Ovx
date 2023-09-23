@@ -49,11 +49,10 @@ module.exports = {
 			// Variables
 			const target = options.getUser('user') || user;
 
+			const query = { guildId: guild.id, userId: target.id };
+
 			// Checking if the user is in the database
-			const userExists = await Levels.exists({
-				guildId: guild.id,
-				userId: target.id,
-			});
+			const userExists = await Levels.exists(query);
 
 			if (!userExists) {
 				await sendEmbed(
@@ -63,10 +62,7 @@ module.exports = {
 				return;
 			}
 
-			const userData = await Levels.findOne({
-				guildId: guild.id,
-				userId: target.id,
-			});
+			const userData = await Levels.findOne(query);
 
 			// Embed
 			const LevelEmbed = new EmbedBuilder()

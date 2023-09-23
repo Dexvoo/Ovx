@@ -44,7 +44,6 @@ module.exports = {
 
 			// Variables
 			const rawLeaderboard = await fetchLeaderboard(guild.id, 25);
-			var totalGuildLevels = 0;
 
 			// Checking if the leaderboard is empty
 			if (rawLeaderboard.length < 1) {
