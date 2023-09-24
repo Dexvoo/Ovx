@@ -17,12 +17,7 @@ module.exports = {
 	async execute(message) {
 		const { client, guild, member, channel, content, author } = message;
 		// Checking if the command is being used in a guild and if the author is a bot
-		if (!guild || author.bot)
-			return console.log('Message is not in a guild or is a bot');
-
-		console.log(
-			'--------------------------------------------------------------------------------------'
-		);
+		if (!guild || author.bot) return;
 
 		// Bot permissions
 		const botPermissionsArry = ['ViewChannel', 'SendMessages'];
@@ -32,26 +27,17 @@ module.exports = {
 			client
 		);
 
-		if (!botPermissions[0]) {
-			return await sendEmbed(
-				await guild.fetchOwner(),
-				`Bot Missing Permissions: \`${botPermissions[1]}\` | AFK Users`
-			);
-		}
+		if (!botPermissions[0]) return;
 
 		const afkUsers = await GuildAFKUsers.findOne({
 			guild: guild.id,
 		});
 
-		if (!afkUsers) return console.log('No AFK Users in database');
-
-		console.log('AFK Users in database');
+		if (!afkUsers) return;
 
 		const AFKUser = afkUsers.users.find((user) => user === author.id);
 
-		if (!AFKUser) return console.log('User is not AFK');
-
-		console.log('User is AFK');
+		if (!AFKUser) return;
 
 		const embed = new EmbedBuilder()
 			.setTitle('AFK')
@@ -69,7 +55,5 @@ module.exports = {
 
 		afkUsers.users.splice(afkUsers.users.indexOf(AFKUser), 1);
 		await afkUsers.save().catch((error) => console.log(error));
-
-		console.log('User removed from AFK database');
 	},
 };

@@ -17,12 +17,7 @@ module.exports = {
 	async execute(message) {
 		const { client, guild, member, channel, content, author } = message;
 		// Checking if the command is being used in a guild and if the author is a bot
-		if (!guild || author.bot)
-			return console.log('Message is not in a guild or is a bot');
-
-		console.log(
-			'--------------------------------------------------------------------------------------'
-		);
+		if (!guild || author.bot) return;
 
 		// Bot permissions
 		const botPermissionsArry = ['ViewChannel', 'SendMessages'];
@@ -32,12 +27,7 @@ module.exports = {
 			client
 		);
 
-		if (!botPermissions[0]) {
-			return await sendEmbed(
-				await guild.fetchOwner(),
-				`Bot Missing Permissions: \`${botPermissions[1]}\` | AFK Users`
-			);
-		}
+		if (!botPermissions[0]) return;
 
 		// get the mentioned users
 		const mentionedUsers = message.mentions.users;
@@ -51,7 +41,7 @@ module.exports = {
 		});
 
 		// if there is no data in the database
-		if (!afkUsers) return console.log('No AFK Users in database');
+		if (!afkUsers) return;
 
 		// if there is data in the database check that the mentioned users are not afk
 		for (const mentionedUser of mentionedUsers.values()) {
