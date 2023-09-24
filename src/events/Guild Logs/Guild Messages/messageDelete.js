@@ -126,18 +126,28 @@ module.exports = {
 							{
 								name: 'Content',
 								value: `${messageContent}`,
-							},
-							{
-								name: 'Deleted By',
-								value: `${executor} (<@${executor.id}>) or ${author.username} (<@${author})`,
-							},
-							{
-								name: "ID's",
-								value: `\`\`\`User | ${author.id}\nMessage | ${id}\`\`\``,
 							}
 						)
 						.setFooter({ text: FooterText, iconURL: FooterImage })
 						.setTimestamp();
+
+					var deletedBy;
+					if (executor.username == author.username) {
+						deletedBy = `\`@${author.username}\` (<@${author.id}>)`;
+					} else {
+						deletedBy = `\`@${executor.username}\` (<@${executor.id}>) or \`@${author.username}\` (${author})`;
+					}
+
+					Embed.addFields(
+						{
+							name: 'Deleted By',
+							value: deletedBy,
+						},
+						{
+							name: "ID's",
+							value: `\`\`\`User | ${author.id}\nMessage | ${id}\`\`\``,
+						}
+					);
 
 					// Getting attachments and sending them
 					if (attachments.size > 0) {

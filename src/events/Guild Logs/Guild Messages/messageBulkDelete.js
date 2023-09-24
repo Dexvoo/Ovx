@@ -103,7 +103,7 @@ module.exports = {
 							},
 							{
 								name: "ID's",
-								value: `\`\`\`User | ${executor.id}\nMessage | ${id}\`\`\``,
+								value: `\`\`\`User | ${executor.id}\nChannel | ${id}\`\`\``,
 							}
 						)
 						.setFooter({ text: FooterText, iconURL: FooterImage })
