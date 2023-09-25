@@ -40,7 +40,6 @@ Make sure you have the following software and resources installed:
    ```cmd
    npm install
 
-
 3. Please rename the `example.env` file provided to `.env` and fill out the information
 
 4. Start the bot in developer mode:
