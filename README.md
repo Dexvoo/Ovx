@@ -1,31 +1,56 @@
-# 🤖 Welcome to Ovx Open Source Project 🚀
+# Ovx Discord Bot
 
-Ovx is an open-source Discord bot designed to simplify and enhance your server's moderation experience. With a wide range of features, including commands like `/kick`, `/ban`, `/timeout`, and many more, Ovx is here to help you maintain a safe and enjoyable community on your Discord server.
+[![GitHub license](https://img.shields.io/github/license/Dexvoo/Ovx)](https://github.com/Dexvoo/Ovx/blob/main/LICENSE)
+[![Discord](https://img.shields.io/discord/1115336808834805780)](https://discord.gg/t7tF2Qs3Qc)
 
-# 🌟 Main Features:
-- **/kick:** Easily remove unwanted members from your server.
-- **/ban:** Permanently ban rule-breakers to maintain order.
-- **/timeout:** Temporarily mute or restrict access for disruptive users.
-- **/purge:** Quickly delete multiple messages to keep your channels tidy.
-- **Logging:** Keep track of important server actions and events.
-- **And More:** Explore a variety of other moderation and utility commands!
+## About
 
-# 🌐 Why Contribute?
-Contributing to Ovx is not only a great way to improve your coding skills but also a chance to help make Discord communities safer and more enjoyable. By joining us, you can enhance Ovx with new features, improve existing ones, fix bugs, and ensure that it remains a valuable tool for server administrators.
+Ovx is a versatile Discord bot designed to make your server management and interaction with your community more enjoyable. It comes with a variety of features and commands to enhance your Discord server.
 
-# 🎯 How to Contribute
-We welcome contributions of all sizes! Whether you're submitting a bug report, writing documentation, or creating new features, please make a pull request and it will be looked at.
+## Table of Contents
 
-# 📢 Community
-Join our Discord server [here](https://discord.gg/t7tF2Qs3Qc) to chat with other contributors, ask questions, or just hang out with fellow Discord enthusiasts.
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
 
-# 🙏 Thank You
-Thank you for considering contributing to Ovx. Your support and contributions are essential to the success of this project. Together, we can create an amazing Discord bot that benefits the entire community.
+## Getting Started
 
-# 📝 License
-Ovx is released under the [ISC License](https://opensource.org/license/isc-license-txt/), a permissive open-source license that encourages collaboration and innovation.
+To get started with Ovx, follow these steps:
 
-Happy coding, and welcome to the Ovx community! 🎉
+### Prerequisites
+
+Make sure you have the following software and resources installed:
+
+- Node.js 14+
+- Discord API Token (get it from the [Discord Developer Portal](https://discord.com/developers/applications))
+- Other dependencies...
+
+### Installation
+
+1. Clone the repository:
+
+   ```cmd
+   git clone https://github.com/Dexvoo/Ovx.git
+
+2. Install the dependencies:
+
+   ```cmd
+   npm install
+
+3. Install the dependencies:
+
+   ```cmd
+   npm install
+
+4. Please rename the `example.env` file provided to `.env` and fill out the information
+
+3. Start the bot in developer mode:
+
+   ```cmd
+   npm run dev
 
 # Dependencies
 Package | Required | Reason
