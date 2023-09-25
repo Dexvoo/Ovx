@@ -19,7 +19,7 @@ const levelNotificationsSchema = require('../../models/LevelNotifications.js');
 // const inviteTrackerSchema = require('../../models/InviteTracker.js');
 const ChannelLogs = require('../../models/GuildChannelLogs.js');
 const MemberLogs = require('../../models/GuildMemberLogs.js');
-// const RoleLogs = require('../../models/GuildRoleLogs.js');
+const RoleLogs = require('../../models/GuildRoleLogs.js');
 const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
 const MessageLogs = require('../../models/GuildMessageLogs.js');
 // const BlacklistedChannels = require('../../models/GuildBlacklistedChannels.js');
@@ -622,6 +622,66 @@ module.exports = {
 							}
 
 							break;
+						case 'role':
+							const RoleLogsChannel = options.getChannel('logs-channel');
+							if (logsToggle) {
+								if (!RoleLogsChannel) {
+									return await sendEmbed(
+										interaction,
+										'Please provide a channel'
+									);
+								}
+
+								// Bot permissions
+								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+								const botPermissions = await permissionCheck(
+									RoleLogsChannel,
+									botPermissionsArry,
+									client
+								);
+
+								if (!botPermissions[0])
+									return await sendEmbed(
+										interaction,
+										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${RoleLogsChannel}`
+									);
+
+								await RoleLogs.findOneAndUpdate(
+									{
+										guild: guild.id,
+									},
+									{
+										guild: guild.id,
+										channel: RoleLogsChannel.id,
+									},
+									{
+										upsert: true,
+									}
+								);
+
+								const SuccessEmbed = new EmbedBuilder()
+									.setColor(EmbedColour)
+									.setDescription('• Role Logs Setup Successfully •')
+									.addFields({
+										name: '• Channel •',
+										value: `${RoleLogsChannel}`,
+									})
+									.setTimestamp()
+									.setFooter({ text: FooterText, iconURL: FooterImage });
+								await interaction.editReply({ embeds: [SuccessEmbed] });
+							} else {
+								await RoleLogs.deleteOne({
+									guild: guild.id,
+								});
+
+								return await sendEmbed(
+									interaction,
+									'Role logs have been disabled'
+								);
+							}
+
+							break;
+
 						default:
 							break;
 					}
