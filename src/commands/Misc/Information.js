@@ -68,7 +68,7 @@ module.exports = {
 
 	async execute(interaction) {
 		const { options } = interaction;
-		const Subcommand = options.getSubcommand();
+		const subcommandName = options.getSubcommand();
 
 		// Placeholder Embed
 		await sendEmbed(interaction, `Grabbing Information`);
@@ -78,7 +78,7 @@ module.exports = {
 			// Checking if the command is being used in a guild
 			if (!(await guildCheck(interaction))) return;
 
-			switch (Subcommand) {
+			switch (subcommandName) {
 				case 'user':
 					await handleUserInformation(interaction);
 					break;
