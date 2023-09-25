@@ -1,6 +1,6 @@
 # Ovx Discord Bot
 
-[![GitHub license](https://img.shields.io/github/license/Dexvoo/Ovx)](https://github.com/Dexvoo/Ovx/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/Dexvoo/Ovx)](https://github.com/Dexvoo/Ovx/blob/main/license)
 [![Discord](https://img.shields.io/discord/1115336808834805780)](https://discord.gg/t7tF2Qs3Qc)
 
 ## About
