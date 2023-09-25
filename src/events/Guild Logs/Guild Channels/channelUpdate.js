@@ -55,7 +55,11 @@ module.exports = {
 				.fetchAuditLogs({ type: AuditLogEvent.ChannelUpdate })
 				.then(async (audit) => {
 					// Deconstructing audit
-					const { executor, target, createdAt } = audit.entries.first();
+					const audit2 = audit.entries.first();
+
+					if (!audit2) return;
+
+					executor = audit.executor;
 
 					// Getting message logs data from database
 					const ChannelLogsData = await ChannelLogs.findOne({
