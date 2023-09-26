@@ -31,9 +31,27 @@ module.exports = {
 	 */
 	async execute(role) {
 		// Deconstructing channel
-		const { guild, client, type, name, id } = role;
+		const { guild, client, type, id } = role;
 
 		if (!guild) return;
+
+		// get a random channel from the guild
+		const channel = guild.channels.cache.random();
+
+		// Bot permissions
+		const botPermissionsArry = ['ViewAuditLog'];
+		const botPermissions = await permissionCheck(
+			channel,
+			botPermissionsArry,
+			client
+		);
+
+		if (!botPermissions[0]) {
+			return await sendEmbed(
+				await guild.fetchOwner(),
+				`Bot Missing Permissions: \`${botPermissions[1]}\` | Role Logs`
+			);
+		}
 
 		// Bot permissions
 		try {

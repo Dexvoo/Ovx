@@ -30,6 +30,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('information')
 		.setDescription('Get information about a user, guild, role, or bot')
+		.setDMPermission(false)
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('user')
@@ -109,6 +110,12 @@ async function handleUserInformation(interaction) {
 	// Deconstructing interaction
 	const { guild, member, options, user, client, channel } = interaction;
 
+	if (!guild)
+		return await sendEmbed(
+			interaction,
+			'This command can only be used in a guild'
+		);
+
 	// Variables
 	const discordBadges = {
 		ActiveDeveloper: '<:OVX_ActiveDeveloper:1115592693284876308>',
@@ -135,7 +142,7 @@ async function handleUserInformation(interaction) {
 	let userRoles;
 
 	if (!userInformation)
-		return await sendErrorEmbed(interaction, 'Please specify a valid user.');
+		return await sendErrorEmbed(interaction, 'Please specify a valid user');
 
 	// User permissions
 	const userPermissionsArray = ['ManageMessages'];
@@ -240,6 +247,12 @@ async function handleServerInformation(interaction) {
 	// ... Server information logic
 	// Deconstructing interaction
 	const { guild, member, options, user, client, channel } = interaction;
+
+	if (!guild)
+		return await sendEmbed(
+			interaction,
+			'This command can only be used in a guild'
+		);
 
 	// Variables
 	const guildName = guild.name;
@@ -463,17 +476,19 @@ async function handleBotInformation(interaction) {
 		new Date(client.user.createdAt).getTime() / 1000
 	)}:R>`;
 	let botRoles = 'None';
+	if (guild) {
+		if (guild.members.me.roles.cache.size > 1) {
+			botRoles = guild.members.me.roles.cache
+				.filter((role) => role.id !== guild.id)
+				.map((role) => role.toString())
+				.join(', ')
+				.substring(0, 1000);
+		}
+	}
 	const guilds = client.guilds.cache
 		.map((guild) => guild.name)
 		.join('\n')
 		.substring(0, 1000);
-	if (guild.members.me.roles.cache.size > 1) {
-		botRoles = guild.members.me.roles.cache
-			.filter((role) => role.id !== guild.id)
-			.map((role) => role.toString())
-			.join(', ')
-			.substring(0, 1000);
-	}
 	const botSlashCommands = client.commands
 		.map(
 			(command) =>
