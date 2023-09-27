@@ -90,129 +90,17 @@ module.exports = {
 				.setFooter({ text: FooterText, iconURL: FooterImage });
 
 			const pageSize = 5;
-			for (let i = 0; i < lb.length; i += pageSize) {
+			const maxPages = 5;
+			let currentPage = 1; // Initialize the current page to 1
+
+			for (let i = 0; i < lb.length && currentPage <= maxPages; i += pageSize) {
 				const page = lb.slice(i, i + pageSize);
 				const name = `Top ${i + 1}-${Math.min(i + pageSize, lb.length)}`;
 				const value = page.join('\n');
 				LeaderboardEmbed.addFields({ name, value, inline: false });
-			}
 
-			// if (lb.length < 5) {
-			// 	LeaderboardEmbed.addFields({
-			// 		name: `Top 1-${lb.length}`,
-			// 		value: lb.join('\n'),
-			// 		inline: false,
-			// 	});
-			// } else if (lb.length > 5 && lb.length <= 10) {
-			// 	LeaderboardEmbed.addFields(
-			// 		{
-			// 			name: 'Top 5',
-			// 			value: lb.slice(0, 5).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: `Top 6-${lb.length}`,
-			// 			value: lb.slice(5, lb.length).join('\n'),
-			// 		}
-			// 	);
-			// } else if (lb.length > 10 && lb.length <= 15) {
-			// 	LeaderboardEmbed.addFields(
-			// 		{
-			// 			name: 'Top 1-5',
-			// 			value: lb.slice(0, 5).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 6-10',
-			// 			value: lb.slice(5, 10).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: `Top 11-${lb.length}`,
-			// 			value: lb.slice(10, lb.length).join('\n'),
-			// 			inline: false,
-			// 		}
-			// 	);
-			// } else if (lb.length > 15 && lb.length <= 20) {
-			// 	LeaderboardEmbed.addFields(
-			// 		{
-			// 			name: 'Top 1-5',
-			// 			value: lb.slice(0, 5).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 6-10',
-			// 			value: lb.slice(5, 10).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 11-15',
-			// 			value: lb.slice(10, 15).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: `Top 16-${lb.length}`,
-			// 			value: lb.slice(15, lb.length).join('\n'),
-			// 			inline: false,
-			// 		}
-			// 	);
-			// } else if (lb.length > 20 && lb.length <= 24) {
-			// 	LeaderboardEmbed.addFields(
-			// 		{
-			// 			name: 'Top 1-5',
-			// 			value: lb.slice(0, 5).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 6-10',
-			// 			value: lb.slice(5, 10).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 11-15',
-			// 			value: lb.slice(10, 15).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 16-20',
-			// 			value: lb.slice(15, 20).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: `Top 21-${lb.length}`,
-			// 			value: lb.slice(20, lb.length).join('\n'),
-			// 			inline: false,
-			// 		}
-			// 	);
-			// } else if (lb.length >= 25) {
-			// 	LeaderboardEmbed.addFields(
-			// 		{
-			// 			name: 'Top 1-5',
-			// 			value: lb.slice(0, 5).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 6-10',
-			// 			value: lb.slice(5, 10).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 11-15',
-			// 			value: lb.slice(10, 15).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 16-20',
-			// 			value: lb.slice(15, 20).join('\n'),
-			// 			inline: false,
-			// 		},
-			// 		{
-			// 			name: 'Top 21-25',
-			// 			value: lb.slice(20, 25).join('\n'),
-			// 			inline: false,
-			// 		}
-			// 	);
-			// }
+				currentPage++; // Increment the current page number
+			}
 			return interaction.editReply({ embeds: [LeaderboardEmbed] });
 		} catch (error) {
 			console.error(error);
@@ -268,6 +156,7 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 			});
 		}
 	} else {
+		totalGuildLevels = totalGuildLevels + key.level;
 		leaderboard.map((key) =>
 			computedArray.push({
 				guildID: key.guildID,

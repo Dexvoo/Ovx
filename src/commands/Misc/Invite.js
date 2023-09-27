@@ -55,7 +55,7 @@ module.exports = {
 					.setStyle(ButtonStyle.Link)
 					.setLabel('Invite Bot')
 					.setURL(
-						`https://discord.com/api/oauth2/authorize?client_id=${ClientID}&permissions=10171690855591&scope=bot`
+						`https://discord.com/api/oauth2/authorize?client_id=${ClientID}&permissions=9898960465063&scope=bot`
 					)
 					.setDisabled(true)
 			);
@@ -69,7 +69,7 @@ module.exports = {
 					.setStyle(ButtonStyle.Link)
 					.setLabel('Invite Bot')
 					.setURL(
-						`https://discord.com/api/oauth2/authorize?client_id=${ClientID}&permissions=9896812882982&scope=bot`
+						`https://discord.com/api/oauth2/authorize?client_id=${ClientID}&permissions=9898960465063&scope=bot`
 					)
 			);
 		}
