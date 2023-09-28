@@ -13,13 +13,15 @@ const {
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
-const { FooterText, FooterImage, EmbedColour } = process.env;
+const { FooterText, FooterImage, EmbedColour, SteamAPIKey } = process.env;
 const welcomeMessagesSchema = require('../../models/WelcomeMessages.js');
 const levelNotificationsSchema = require('../../models/LevelNotifications.js');
 // const inviteTrackerSchema = require('../../models/InviteTracker.js');
 const ChannelLogs = require('../../models/GuildChannelLogs.js');
 const MemberLogs = require('../../models/GuildMemberLogs.js');
 const RoleLogs = require('../../models/GuildRoleLogs.js');
+const ServerLogs = require('../../models/GuildServerLogs.js');
+const VoiceLogs = require('../../models/GuildVoiceLogs.js');
 const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
 const MessageLogs = require('../../models/GuildMessageLogs.js');
 // const BlacklistedChannels = require('../../models/GuildBlacklistedChannels.js');
@@ -682,6 +684,137 @@ module.exports = {
 
 							break;
 
+						case 'server':
+							const ServerLogsChannel = options.getChannel('logs-channel');
+							if (logsToggle) {
+								if (!ServerLogsChannel) {
+									return await sendEmbed(
+										interaction,
+										'Please provide a channel'
+									);
+								}
+
+								// Bot permissions
+								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+								const botPermissions = await permissionCheck(
+									ServerLogsChannel,
+									botPermissionsArry,
+									client
+								);
+
+								if (!botPermissions[0])
+									return await sendEmbed(
+										interaction,
+										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${ServerLogsChannel}`
+									);
+
+								await ServerLogs.findOneAndUpdate(
+									{
+										guild: guild.id,
+									},
+									{
+										guild: guild.id,
+										channel: ServerLogsChannel.id,
+									},
+									{
+										upsert: true,
+									}
+								);
+
+								const SuccessEmbed = new EmbedBuilder()
+									.setColor(EmbedColour)
+									.setDescription('• Server Logs Setup Successfully •')
+									.addFields(
+										{
+											name: '• Channel •',
+											value: `${ServerLogsChannel}`,
+										},
+										{
+											name: '• Server Logs •',
+											value: `This is a work in progress, please be patient for this feature to role out c:`,
+										}
+									)
+									.setTimestamp()
+									.setFooter({ text: FooterText, iconURL: FooterImage });
+								await interaction.editReply({ embeds: [SuccessEmbed] });
+							} else {
+								await ServerLogs.deleteOne({
+									guild: guild.id,
+								});
+
+								return await sendEmbed(
+									interaction,
+									'Server logs have been disabled'
+								);
+							}
+
+							break;
+
+						case 'voice':
+							const VoiceLogsChannel = options.getChannel('logs-channel');
+							if (logsToggle) {
+								if (!VoiceLogsChannel) {
+									return await sendEmbed(
+										interaction,
+										'Please provide a channel'
+									);
+								}
+
+								// Bot permissions
+								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+								const botPermissions = await permissionCheck(
+									VoiceLogsChannel,
+									botPermissionsArry,
+									client
+								);
+
+								if (!botPermissions[0])
+									return await sendEmbed(
+										interaction,
+										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${VoiceLogsChannel}`
+									);
+
+								await VoiceLogs.findOneAndUpdate(
+									{
+										guild: guild.id,
+									},
+									{
+										guild: guild.id,
+										channel: VoiceLogsChannel.id,
+									},
+									{
+										upsert: true,
+									}
+								);
+
+								const SuccessEmbed = new EmbedBuilder()
+									.setColor(EmbedColour)
+									.setDescription('• Voice Logs Setup Successfully •')
+									.addFields(
+										{
+											name: '• Channel •',
+											value: `${VoiceLogsChannel}`,
+										},
+										{
+											name: '• Voice Logs •',
+											value: `This is a work in progress, please be patient for this feature to role out c:`,
+										}
+									)
+									.setTimestamp()
+									.setFooter({ text: FooterText, iconURL: FooterImage });
+								await interaction.editReply({ embeds: [SuccessEmbed] });
+							} else {
+								await VoiceLogs.deleteOne({
+									guild: guild.id,
+								});
+
+								return await sendEmbed(
+									interaction,
+									'Voice logs have been disabled'
+								);
+							}
+
+							break;
 						default:
 							break;
 					}
