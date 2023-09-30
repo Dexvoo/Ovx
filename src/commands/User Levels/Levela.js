@@ -67,7 +67,8 @@ module.exports = {
 	async execute(interaction) {
 		try {
 			// Deconstructing interaction
-			const { guild, member, options, user, client, channel } = interaction;
+			const { guild, member, options, user, client, channel } =
+				await interaction;
 
 			// Placeholder embed
 			await sendEmbed(interaction, 'Gathering user information');
@@ -255,24 +256,11 @@ module.exports = {
 						}
 					});
 
-					console.log(collector);
-					if (!collector) {
-						await sendEmbed(
-							interaction,
-							'You did not respond in time, please try again.'
-						);
-						return;
-					}
-
 					break;
 			}
 		} catch (error) {
 			console.error(error);
 			await sendErrorEmbed(interaction, error);
-			await sendEmbed(
-				interaction,
-				`There was an error running this command\n\n${error}`
-			);
 			return;
 		}
 	},
