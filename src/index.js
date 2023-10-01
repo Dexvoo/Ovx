@@ -32,7 +32,7 @@ const client = new Client({
 		// GatewayIntentBits.GuildIntegrations, // Integration create/update/delete events
 		// GatewayIntentBits.GuildWebhooks, // Webhook create/update/delete events
 		GatewayIntentBits.GuildInvites, // Invite create/update/delete events
-		// GatewayIntentBits.GuildVoiceStates, // Voice state create/update/delete events
+		GatewayIntentBits.GuildVoiceStates, // Voice state create/update/delete events
 		// GatewayIntentBits.GuildPresences, // Presence update events
 		GatewayIntentBits.GuildMessages, // Message create/update/delete events
 		// GatewayIntentBits.GuildMessageReactions, // Reaction add/remove events

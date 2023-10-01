@@ -63,6 +63,12 @@ module.exports = {
 						MessageLogsData.channel
 					);
 
+					// Checking if the channel exists
+					if (!channelToSend) {
+						await MessageLogs.findOneAndDelete({ guildId: guild.id });
+						return;
+					}
+
 					// Bot permissions
 					const botPermissionsArry = ['SendMessages', 'ViewChannel'];
 					const botPermissions = await permissionCheck(
@@ -78,12 +84,6 @@ module.exports = {
 							await guild.fetchOwner(),
 							`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``
 						);
-					}
-
-					// Checking if the channel exists
-					if (!channelToSend) {
-						await MessageLogs.findOneAndDelete({ guildId: guild.id });
-						return;
 					}
 
 					const premiumRole = client.guilds.cache
