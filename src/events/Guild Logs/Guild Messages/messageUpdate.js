@@ -134,8 +134,8 @@ module.exports = {
 								value: `${messageContentNew}`,
 							},
 							{
-								name: "ID's",
-								value: `\`\`\`User | ${author.id}\nMessage | ${id}\`\`\``,
+								name: 'ID`s',
+								value: `\`\`\`ansi\n[2;31mUser | ${author.id}\n[2;36mMessage | ${newMessage.id}\n[2;34mGuild | ${guild.id}\`\`\``,
 							}
 						)
 						.setFooter({ text: FooterText, iconURL: FooterImage })

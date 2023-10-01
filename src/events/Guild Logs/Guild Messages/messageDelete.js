@@ -145,7 +145,7 @@ module.exports = {
 						},
 						{
 							name: "ID's",
-							value: `\`\`\`User | ${author.id}\nMessage | ${id}\`\`\``,
+							value: `\`\`\`ansi\n[2;31mUser | ${author.id}\n[2;36mMessage | ${message.id}\n[2;34mGuild | ${guild.id}\`\`\``,
 						}
 					);
 

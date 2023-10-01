@@ -114,6 +114,11 @@ module.exports = {
 			});
 		}
 
+		RolesLogEmbed.addFields({
+			name: 'ID`s',
+			value: `\`\`\`ansi\n[2;31mUser | ${user.id}\n[2;36mRole | ${role.id}\n[2;34mGuild | ${guild.id}\`\`\``,
+		});
+
 		if (removedRoles.size < 1 && addedRoles.size < 1)
 			return console.log('No roles were added or removed | Guild Roles');
 

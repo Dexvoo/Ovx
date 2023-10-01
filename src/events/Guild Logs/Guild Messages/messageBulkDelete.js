@@ -103,7 +103,7 @@ module.exports = {
 							},
 							{
 								name: "ID's",
-								value: `\`\`\`User | ${executor.id}\nChannel | ${id}\`\`\``,
+								value: `\`\`\`ansi\n[2;31mUser | ${executor.id}\n[2;36mChannel | ${id}\n[2;34mGuild | ${guild.id}\`\`\``,
 							}
 						)
 						.setFooter({ text: FooterText, iconURL: FooterImage })
