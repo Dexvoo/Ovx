@@ -92,36 +92,34 @@ module.exports = {
 					name: 'User Premium',
 					value: `${hasPremiumRole}`,
 					inline: true,
-				},
-				{
-					name: 'Guild',
-					value: `${guild.name} (${guild.id})`,
 				}
 			)
 			.setFooter({ text: FooterText, iconURL: FooterImage })
 			.setTimestamp();
 
+		var roleID;
 		if (removedRoles.size > 0) {
+			roleID = removedRoles.map((r) => r.id);
 			RolesLogEmbed.addFields({
 				name: 'Roles Removed',
 				value: `${removedRoles.map((r) => r.name) || 'None'} ${ErrorEmoji}`,
 			});
 		}
 		if (addedRoles.size > 0) {
+			roleID = addedRoles.map((r) => r.id);
 			RolesLogEmbed.addFields({
 				name: 'Roles Added',
 				value: `${addedRoles.map((r) => r.name) || 'None'} ${SuccessEmoji}`,
 			});
 		}
 
-		RolesLogEmbed.addFields({
-			name: 'ID`s',
-			value: `\`\`\`ansi\n[2;31mUser | ${user.id}\n[2;36mRole | ${role.id}\n[2;34mGuild | ${guild.id}\`\`\``,
-		});
-
 		if (removedRoles.size < 1 && addedRoles.size < 1)
 			return console.log('No roles were added or removed | Guild Roles');
 
+		RolesLogEmbed.addFields({
+			name: 'ID`s',
+			value: `\`\`\`ansi\n[2;31mUser | ${user.id}\n[2;36mRole | ${roleID}\n[2;34mGuild | ${guild.id}\`\`\``,
+		});
 		await channelToSend.send({ embeds: [RolesLogEmbed] });
 	},
 };
