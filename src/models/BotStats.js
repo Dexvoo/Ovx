@@ -21,6 +21,16 @@ const BotStats = new Schema({
 		type: Number,
 		required: true,
 	},
+	emojis: {
+		type: Number,
+		required: true,
+		default: 0,
+	},
+	roles: {
+		type: Number,
+		required: true,
+		default: 0,
+	},
 });
 
 module.exports = model('Bot-Stats', BotStats);

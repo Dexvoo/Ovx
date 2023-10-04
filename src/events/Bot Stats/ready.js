@@ -27,6 +27,8 @@ module.exports = {
 		var usersCount;
 		var channelsCount;
 		var uptimeCount;
+		var emojisCount;
+		var rolesCount;
 		let startTime = Date.now();
 
 		const messageToEdit =
@@ -53,6 +55,8 @@ module.exports = {
 					users: 0,
 					channels: 0,
 					uptime: 0,
+					emojis: 0,
+					roles: 0,
 				});
 
 				// Saving stats
@@ -67,6 +71,11 @@ module.exports = {
 			usersCount = client.users.cache.size;
 			channelsCount = client.channels.cache.size;
 			uptimeCount = 0;
+			emojisCount = client.emojis.cache.size;
+			rolesCount = client.guilds.cache.reduce(
+				(a, g) => a + g.roles.cache.size,
+				0
+			);
 
 			// Updating stats
 
@@ -91,6 +100,21 @@ module.exports = {
 				);
 			}
 
+			// Updating emojis count
+			if (emojisCount > BotStatsData.emojis) {
+				BotStatsData.emojis = emojisCount;
+				cleanConsoleLogData(
+					'Bot Stats',
+					`New Emojis Statistic: ${emojisCount}`
+				);
+			}
+
+			// Updating roles count
+			if (rolesCount > BotStatsData.roles) {
+				BotStatsData.roles = rolesCount;
+				cleanConsoleLogData('Bot Stats', `New Roles Statistic: ${rolesCount}`);
+			}
+
 			// Updating uptime count
 			const currentTime = Date.now();
 			var uptimeInSeconds = Math.floor((currentTime - startTime) / 1000);
@@ -106,7 +130,7 @@ module.exports = {
 			// Saving stats
 			await BotStatsData.save();
 			console.log(
-				`Bot Stats: Guilds: ${guildsCount} | Users: ${usersCount} | Channels: ${channelsCount} | Uptime: ${uptimeInSeconds}`
+				`Bot Stats: Guilds: ${guildsCount} | Users: ${usersCount} | Channels: ${channelsCount} | Roles: ${rolesCount} | Uptime: ${uptimeInSeconds} | Emojis: ${emojisCount} | `
 			);
 
 			// converting uptimeInSeconds to a readable format
@@ -123,6 +147,8 @@ module.exports = {
 				(uptimeInSeconds % secondsInAnHour) / secondsInAMinute
 			);
 			const String = `${days} days, ${hours} hours, ${minutes} minutes`;
+
+			const currentTimeString = `<t:${Math.floor(Date.now() / 1000)}:R>`;
 
 			const Embed = new EmbedBuilder()
 				.setTitle(`Bot Top Statistics`)
@@ -142,8 +168,16 @@ module.exports = {
 						value: `${BotStatsData.channels}`,
 					},
 					{
+						name: 'Roles',
+						value: `${BotStatsData.roles}`,
+					},
+					{
 						name: 'Uptime',
 						value: `${String}`,
+					},
+					{
+						name: 'Last Updated',
+						value: currentTimeString,
 					}
 				)
 				.setFooter({ text: FooterText, iconURL: FooterImage })
