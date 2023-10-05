@@ -172,6 +172,10 @@ module.exports = {
 						value: `${BotStatsData.roles}`,
 					},
 					{
+						name: 'Emojis',
+						value: `${BotStatsData.emojis}`,
+					},
+					{
 						name: 'Uptime',
 						value: `${String}`,
 					},

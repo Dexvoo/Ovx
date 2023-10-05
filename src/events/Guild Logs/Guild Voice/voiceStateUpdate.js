@@ -47,7 +47,7 @@ module.exports = {
 		const channelToSend = client.channels.cache.get(VoiceLogsData.channel);
 
 		if (!channelToSend)
-			return await MessageLogs.findOneAndDelete({ guildId: guild.id });
+			return await VoiceLogs.findOneAndDelete({ guildId: guild.id });
 
 		// Bot permissions
 		const botPermissionsArry = ['SendMessages', 'ViewChannel'];
@@ -59,7 +59,7 @@ module.exports = {
 
 		// Checking if the bot has permissions
 		if (!botPermissions[0]) {
-			await MessageLogs.findOneAndDelete({ guildId: guild.id });
+			await VoiceLogs.findOneAndDelete({ guildId: guild.id });
 			return await sendEmbed(
 				await guild.fetchOwner(),
 				`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Voice Logs is now \`disabled\``
