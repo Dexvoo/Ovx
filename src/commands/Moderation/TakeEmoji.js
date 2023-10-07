@@ -55,6 +55,9 @@ module.exports = {
 	 */
 
 	async execute(interaction) {
+		// how would i defer the reply and then edit it later?
+		await interaction.deferReply();
+
 		try {
 			// Deconstructing interaction
 			const { guild, member, options, user, client, channel } = interaction;
@@ -157,7 +160,7 @@ module.exports = {
 				}
 
 				// Variables
-				let emojiName = emoji.name;
+				let emojiName = `OVX_${emoji.name}`;
 				let extention = emoji.animated ? '.gif' : '.png';
 				let emojiUrl = `https://cdn.discordapp.com/emojis/${emojiId}${extention}`;
 
