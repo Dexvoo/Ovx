@@ -254,9 +254,6 @@ async function handleServerInformation(interaction) {
 			'This command can only be used in a guild'
 		);
 
-	// fetch all guild members and store them in cache
-	await guild.members.fetch();
-
 	// Variables
 	const guildName = guild.name;
 	const guildCreated = `<t:${Math.round(

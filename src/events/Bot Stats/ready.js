@@ -1,4 +1,4 @@
-const { Events, EmbedBuilder } = require('discord.js');
+const { Events, EmbedBuilder, Client } = require('discord.js');
 const {
 	cleanConsoleLog,
 	cleanConsoleLogData,
@@ -22,7 +22,37 @@ module.exports = {
 	once: true,
 	nickname: 'Bot Stats',
 
+	/**
+	 * @param {Client} client
+	 * @returns
+	 */
+
 	async execute(client) {
+		// fetch all guilds
+		const guilds = await client.guilds.fetch();
+
+		// Loop through guilds
+		await Promise.all(
+			guilds.map(async (id) => {
+				// fetch guild
+				const guild = await id.fetch(id);
+
+				// fetch all guild members
+				await guild.members.fetch();
+				// fetch all guild members, users, channels, emojis, and roles in parallel
+				await Promise.all([
+					await guild.members.fetch(),
+					guild.members.cache.forEach(async (member) => {
+						await client.users.fetch(member.id);
+						console.log(`Fetched ${member.user.username}`);
+					}),
+					guild.channels.fetch(),
+					guild.emojis.fetch(),
+					guild.roles.fetch(),
+				]);
+			})
+		);
+
 		var guildsCount;
 		var usersCount;
 		var channelsCount;
