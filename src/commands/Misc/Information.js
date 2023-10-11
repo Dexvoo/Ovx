@@ -254,6 +254,9 @@ async function handleServerInformation(interaction) {
 			'This command can only be used in a guild'
 		);
 
+	// fetch all guild members and store them in cache
+	await guild.members.fetch();
+
 	// Variables
 	const guildName = guild.name;
 	const guildCreated = `<t:${Math.round(
@@ -331,7 +334,6 @@ async function handleServerInformation(interaction) {
 		guild.emojis.cache.size + guildStickersCount;
 
 	// Guild Boost Variables
-
 	const guildBoostLevel = guild.premiumTier;
 	const guildBoostersCount = guild.premiumSubscriptionCount;
 	var guildBoosters =
