@@ -17,11 +17,17 @@ module.exports = {
 		.setDescription('Banish a specified user from a guild.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.setDMPermission(false)
+		.addStringOption((option) =>
+			option
+				.setName('userid')
+				.setDescription('The specified userid to ban.')
+				.setRequired(false)
+		)
 		.addUserOption((option) =>
 			option
 				.setName('member')
 				.setDescription('The specified member to ban.')
-				.setRequired(true)
+				.setRequired(false)
 		)
 		.addStringOption((option) =>
 			option
@@ -75,13 +81,24 @@ module.exports = {
 			await sleep(2000);
 
 			// Variables
-			const targetMember = options.getMember('member');
+			var targetMember = options.getMember('member');
+			var userId;
 			var reason = options.getString('reason');
 			var reason2;
 
 			// Checking if the target is a member
-			if (!targetMember)
-				return await sendEmbed(interaction, 'Please specify a valid member');
+			if (!targetMember) {
+				userId = options.getString('userid');
+
+				if (!userId)
+					return await sendEmbed(interaction, `Please specify a user to ban`);
+
+				// Fetching the target user from guild cache
+				targetMember = guild.members.cache.get(userId);
+
+				if (!targetMember)
+					return await sendEmbed(interaction, `User not found in guild cache`);
+			}
 
 			// Checking if the target is a bot
 			if (targetMember.user.bot)

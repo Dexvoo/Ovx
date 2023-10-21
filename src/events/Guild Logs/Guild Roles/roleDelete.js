@@ -59,6 +59,7 @@ module.exports = {
 				.fetchAuditLogs({ type: AuditLogEvent.RoleDelete })
 				.then(async (audit) => {
 					// Deconstructing audit
+					console.log(audit.entries.first());
 					const { executor, target, createdAt } = audit.entries.first();
 
 					// Getting message logs data from database

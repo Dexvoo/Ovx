@@ -25,14 +25,14 @@ module.exports = {
 			.connect(dbString, dbOptions)
 			.then(() => {
 				// Logging to console
-				cleanConsoleLogData('Database', 'Connected');
-				cleanConsoleLogData('Bot', 'Online');
+				cleanConsoleLogData('Database', 'Connected', 'success');
+				cleanConsoleLogData('Bot', 'Online', 'success');
 				cleanConsoleLog('Database Connected');
 			})
 			.catch((error) => {
 				// Logging to console
-				cleanConsoleLogData('Database is not connected');
-				cleanConsoleLogData('Bot', 'Online');
+				cleanConsoleLogData('Database is not connected', ' ', 'error');
+				cleanConsoleLogData('Bot', 'Online', 'success');
 				cleanConsoleLog('Database Connection Failed');
 			});
 	},

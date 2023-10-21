@@ -44,7 +44,6 @@ module.exports = {
 					await guild.members.fetch(),
 					guild.members.cache.forEach(async (member) => {
 						await client.users.fetch(member.id);
-						console.log(`Fetched ${member.user.username}`);
 					}),
 					guild.channels.fetch(),
 					guild.emojis.fetch(),
@@ -159,8 +158,17 @@ module.exports = {
 
 			// Saving stats
 			await BotStatsData.save();
-			console.log(
-				`Bot Stats: Guilds: ${guildsCount} | Users: ${usersCount} | Channels: ${channelsCount} | Roles: ${rolesCount} | Uptime: ${uptimeInSeconds} | Emojis: ${emojisCount} | `
+
+			cleanConsoleLogData(
+				'Bot Stats',
+				`Guilds: ${guildsCount} | Users: ${usersCount} | Channels: ${channelsCount}`,
+				'debug'
+			);
+
+			cleanConsoleLogData(
+				'Bot Stats',
+				`Roles: ${rolesCount} | Uptime: ${uptimeInSeconds} | Emojis: ${emojisCount}`,
+				'debug'
 			);
 
 			// converting uptimeInSeconds to a readable format

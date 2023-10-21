@@ -1,48 +1,35 @@
-const {
-	EmbedBuilder,
-	PermissionsBitField,
-	Events,
-	GuildMember,
-	VoiceState,
-	Guild,
-} = require('discord.js');
-const {
-	FooterText,
-	FooterImage,
-	EmbedColour,
-	DeveloperGuildID,
-	PremiumUserRoleID,
-	DeveloperMode,
-	SuccessEmoji,
-	ErrorEmoji,
-} = process.env;
+const { EmbedBuilder, Events, Guild, AuditLogEvent } = require('discord.js');
+const { FooterText, FooterImage, EmbedColour } = process.env;
 const ServerLogs = require('../../../models/GuildServerLogs.js');
 const { sendEmbed } = require('../../../utils/Embeds.js');
 const { permissionCheck } = require('../../../utils/Checks.js');
 
 // Define constants for field names
 const FIELD_NAMES = {
-	NAME: 'Name Changed',
-	ICON: 'Icon Changed',
-	SPLASH: 'Splash Image Changed',
-	BANNER: 'Banner Changed',
-	DESCRIPTION: 'Description Changed',
-	OWNER: 'Owner Changed',
-	AFK_CHANNEL: 'AFK Channel Changed',
-	AFK_TIMEOUT: 'AFK Timeout Changed',
-	EXPLICIT_CONTENT_FILTER: 'Explicit Content Filter Changed',
-	VERIFICATION_LEVEL: 'Verification Level Changed',
-	DEFAULT_NOTIFICATIONS: 'Default Notifications Changed',
-	MFA_LEVEL: 'MFA Level Changed',
-	PREMIUM_SUBSCRIPTION_COUNT: 'Premium Subscription Count Changed',
-	PREMIUM_TIER: 'Premium Tier Changed',
-	VANITY_URL: 'Vanity URL Changed',
+	NAME: 'Name',
+	ICON: 'Icon',
+	SPLASH: 'Splash Image',
+	BANNER: 'Banner',
+	DESCRIPTION: 'Description',
+	OWNER: 'Owner',
+	AFK_CHANNEL: 'AFK Channel',
+	AFK_TIMEOUT: 'AFK Timeout',
+	EXPLICIT_CONTENT_FILTER: 'Explicit Content Filter',
+	VERIFICATION_LEVEL: 'Verification Level',
+	DEFAULT_NOTIFICATIONS: 'Default Notifications',
+	MFA_LEVEL: 'MFA Level',
+	PREMIUM_SUBSCRIPTION_COUNT: 'Premium Subscription Count',
+	PREMIUM_TIER: 'Premium Tier',
+	VANITY_URL: 'Vanity URL',
 };
 
-// Create a function to add fields to the embed
 function addFieldIfChanged(embed, fieldName, oldValue, newValue) {
 	if (oldValue !== newValue) {
-		embed.addField(fieldName, `\`${oldValue}\` -> \`${newValue}\``);
+		embed.addFields({
+			name: fieldName,
+			value: `${oldValue} => ${newValue}`,
+			inline: false,
+		});
 	}
 }
 
@@ -53,6 +40,7 @@ module.exports = {
 	/**
 	 * @param {Guild} oldGuild
 	 * @param {Guild} newGuild
+	 * @param {Embed} embed
 	 */
 
 	async execute(oldGuild, newGuild) {
@@ -65,7 +53,27 @@ module.exports = {
 
 		if (!channelToSend) {
 			await ServerLogs.findOneAndDelete({ guildId: id });
+			const guildOwner = await newGuild.fetchOwner();
+			await sendEmbed(
+				guildOwner,
+				`Missing Channel: \`${ServerLogsData.channel}\` | Guild Logs is now \`disabled\``
+			);
 			return;
+		}
+
+		// Bot permissions
+		const botPermissionsArry = ['ViewAuditLog', 'SendMessages', 'ViewChannel'];
+		const botPermissions = await permissionCheck(
+			channelToSend,
+			botPermissionsArry,
+			client
+		);
+
+		if (!botPermissions[0]) {
+			return await sendEmbed(
+				await newGuild.fetchOwner(),
+				`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Guild Logs is now \`disabled\``
+			);
 		}
 
 		const ServerLogEmbed = new EmbedBuilder()
@@ -73,6 +81,9 @@ module.exports = {
 			.setColor(EmbedColour)
 			.setFooter({ text: FooterText, iconURL: FooterImage })
 			.setTimestamp();
+
+		for (const field in FIELD_NAMES) {
+		}
 
 		// Add fields for various changes using the addFieldIfChanged function
 		addFieldIfChanged(
@@ -176,13 +187,27 @@ module.exports = {
 			newGuild.vanityURLCode
 		);
 
+		const logs = await newGuild.fetchAuditLogs({
+			limit: 1,
+			type: AuditLogEvent.GuildUpdate,
+		});
+
+		const logEntry = logs.entries.first();
+
+		if (logEntry && logEntry.executor) {
+			const responsibleUser = logEntry.executor;
+			ServerLogEmbed.addFields({
+				name: 'Responsible User',
+				value: `${responsibleUser} | ${responsibleUser.id}`,
+			});
+		}
+
 		// Add the ID's field
 		ServerLogEmbed.addFields({
 			name: 'ID`s',
 			value: `\`\`\`ansi\n[2;34mGuild | ${id}[0m\`\`\``,
 		});
 
-		// Check if the embed has fields to send
 		if (ServerLogEmbed.data.fields.length > 1) {
 			await channelToSend.send({ embeds: [ServerLogEmbed] });
 		}

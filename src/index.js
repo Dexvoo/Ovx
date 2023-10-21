@@ -65,10 +65,7 @@ const init = async () => {
 	cleanConsoleLog('Loaded Models');
 };
 
-const discordBot = 'Ovx Discord Bot';
-console.log(
-	`|${discordBot.padStart(41 + discordBot.length / 2, '-').padEnd(84, '-')}|`
-);
+cleanConsoleLog('Ovx Discord Bot');
 cleanConsoleLogData('Created by: @Dexvo', ' ');
 init();
 
@@ -167,10 +164,14 @@ async function commandsCrawl(directory, filesArray) {
 				const command = await require(newPath);
 
 				if ('data' in command && 'execute' in command) {
-					cleanConsoleLogData(command.data.name, command.data.description);
+					cleanConsoleLogData(
+						command.data.name,
+						command.data.description,
+						'info'
+					);
 					client.commands.set(command.data.name, command);
 				} else {
-					cleanConsoleLogData(currentDir.name);
+					cleanConsoleLogData(currentDir.name, ' ', 'error');
 				}
 			}
 		}
@@ -205,9 +206,9 @@ async function eventsCrawl(directory, filesArray) {
 					} else {
 						client.on(event.name, (...args) => event.execute(...args, client));
 					}
-					cleanConsoleLogData(event.name, event.nickname);
+					cleanConsoleLogData(event.name, event.nickname, 'info');
 				} else {
-					cleanConsoleLogData(currentDir.name);
+					cleanConsoleLogData(currentDir.name, ' ', 'error');
 				}
 			}
 		}
@@ -235,9 +236,9 @@ async function modelsCrawl(directory, filesArray) {
 				const model = await require(newPath);
 
 				if (model.length > 0) {
-					cleanConsoleLogData(currentDir.name, ' ');
+					cleanConsoleLogData(currentDir.name, ' ', 'info');
 				} else {
-					cleanConsoleLogData(currentDir.name);
+					cleanConsoleLogData(currentDir.name, ' ', 'error');
 				}
 			}
 		}
