@@ -11,6 +11,7 @@ const { sendEmbed } = require('../../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../../utils/Checks.js');
 const RoleLogs = require('../../../models/GuildRoleLogs.js');
 const { type } = require('os');
+const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs.js');
 require('dotenv').config();
 const {
 	FooterImage,
@@ -55,11 +56,10 @@ module.exports = {
 
 		try {
 			guild
-				.fetchAuditLogs({ type: AuditLogEvent.RoleCreate })
+				.fetchAuditLogs({ type: AuditLogEvent.RoleCreate, limit: 1 })
 				.then(async (audit) => {
 					// Deconstructing audit
-					const { executor, target, createdAt } = audit.entries.first();
-
+					console.log(audit);
 					// Getting message logs data from database
 					const RoleLogsData = await RoleLogs.findOne({
 						guild: guild.id,
@@ -108,7 +108,7 @@ module.exports = {
 							},
 							{
 								name: 'Created By',
-								value: `@${executor.username} (<@${executor.id}>)`,
+								value: `( Not Found )`,
 							},
 							{
 								name: 'Created At',
@@ -116,7 +116,7 @@ module.exports = {
 							},
 							{
 								name: "ID's",
-								value: `\`\`\`ansi\n[2;31mUser | ${executor.id}\n[2;36mRole | ${role.id}\n[2;34mGuild | ${guild.id}\`\`\``,
+								value: `\`\`\`ansi\n[2;36mRole | ${role.id}\n[2;34mGuild | ${guild.id}\`\`\``,
 							}
 						)
 						.setFooter({ text: FooterText, iconURL: FooterImage })
@@ -124,6 +124,9 @@ module.exports = {
 
 					// Sending embed
 					await channelToSend.send({ embeds: [Embed] });
+				})
+				.catch((err) => {
+					console.log(err);
 				});
 		} catch (error) {
 			console.log(error);

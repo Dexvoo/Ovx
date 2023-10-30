@@ -64,11 +64,6 @@ const sendEmbed = async (interactionChannelMember, description) => {
 				interactionChannelMember.client
 			))
 		) {
-			console.log(
-				`Bot Missing Permissions | ${botPermissions.join(', ')}} | #${
-					interactionChannelMember.name
-				}`
-			);
 			return false;
 		}
 

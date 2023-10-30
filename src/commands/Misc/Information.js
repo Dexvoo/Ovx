@@ -484,18 +484,16 @@ async function handleBotInformation(interaction) {
 				.substring(0, 1000);
 		}
 	}
-	const guilds = client.guilds.cache
-		.map((guild) => guild.name)
-		.join('\n')
-		.substring(0, 1000);
-	const botSlashCommands = client.commands
-		.map(
-			(command) =>
-				`\`/${command.data.toJSON().name}\` | ${
-					command.data.toJSON().description
-				}`
-		)
+
+	// get all slash commands and map them
+	const commands = await client.application.commands.fetch();
+	const commandsMapped = commands
+		.map((command) => `</${command.name}:${command.id}>`)
 		.join('\n');
+
+	// how to split a string into chunks of 1000 characters
+	const chunkedCommands = commandsMapped.match(/.{1,1000}/g);
+
 	// Performance Statistics Variables
 	const botPercentageFreeRam = `${((os.freemem() * 100) / os.totalmem).toFixed(
 		0
@@ -569,10 +567,6 @@ async function handleBotInformation(interaction) {
 					inline: false,
 				},
 				{
-					name: 'Guilds',
-					value: guilds,
-				},
-				{
 					name: 'Total Guild Statistics',
 					value: [
 						`- Guilds: ${client.guilds.cache.size}`,
@@ -599,7 +593,7 @@ async function handleBotInformation(interaction) {
 				},
 				{
 					name: 'Commands',
-					value: botSlashCommands,
+					value: `${chunkedCommands}`,
 				},
 				{
 					name: 'Invite',

@@ -2,7 +2,7 @@ const { EmbedBuilder, Events, Message, AuditLogEvent } = require('discord.js');
 const { sendEmbed } = require('../../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../../utils/Checks.js');
 const MessageLogs = require('../../../models/GuildMessageLogs.js');
-const { sleep } = require('../../../utils/ConsoleLogs.js');
+const { sleep, cleanConsoleLogData } = require('../../../utils/ConsoleLogs.js');
 require('dotenv').config();
 const {
 	FooterImage,
@@ -22,7 +22,6 @@ module.exports = {
 	 *  @param {Message} message
 	 */
 	async execute(message) {
-		console.log(`Message Delete Event Triggered`);
 		// Deconstructing message
 		const { guild, client, member, channel, author, content, attachments, id } =
 			message;
@@ -38,6 +37,11 @@ module.exports = {
 		);
 
 		if (!botPermissions[0]) {
+			cleanConsoleLogData(
+				'Message Deleted',
+				`Guild: ${guild.name} | Message Logs | Incorrect Channel Permissions`,
+				'warning'
+			);
 			return await sendEmbed(
 				await guild.fetchOwner(),
 				`Bot Missing Permissions: \`${botPermissions[1]}\``
@@ -62,8 +66,12 @@ module.exports = {
 					});
 
 					// Checking if the guild has a message logs set up
-					if (!MessageLogsData) return;
-
+					if (!MessageLogsData)
+						return cleanConsoleLogData(
+							'Message Deleted',
+							`Guild: ${guild.name} | Message Logs Not Setup`,
+							'warning'
+						);
 					// Getting guild channel
 					const channelToSend = guild.channels.cache.get(
 						MessageLogsData.channel
@@ -80,6 +88,11 @@ module.exports = {
 					// Checking if the bot has permissions
 					if (!botPermissions[0]) {
 						await MessageLogs.findOneAndDelete({ guildId: guild.id });
+						cleanConsoleLogData(
+							'Message Deleted',
+							`Guild: ${guild.name} | Message Logs | Incorrect Channel Permissions`,
+							'warning'
+						);
 						return await sendEmbed(
 							await guild.fetchOwner(),
 							`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``
@@ -88,6 +101,11 @@ module.exports = {
 
 					// Checking if the channel exists
 					if (!channelToSend) {
+						cleanConsoleLogData(
+							'Message Deleted',
+							`Guild: ${guild.name} | Message Logs Channel Deleted`,
+							'warning'
+						);
 						await MessageLogs.findOneAndDelete({ guildId: guild.id });
 						return;
 					}
@@ -137,6 +155,12 @@ module.exports = {
 					} else {
 						deletedBy = `\`@${executor.username}\` (<@${executor.id}>) or \`@${author.username}\` (${author})`;
 					}
+
+					cleanConsoleLogData(
+						'Message Deleted',
+						`User: @${author.username} Guild: ${guild.name}`,
+						'info'
+					);
 
 					Embed.addFields(
 						{

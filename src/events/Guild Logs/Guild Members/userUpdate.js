@@ -118,83 +118,87 @@ module.exports = {
 	nickname: 'User Logs',
 
 	async execute(oldUser, newUser) {
-		cleanConsoleLogData('User Update', `@${newUser.username}`, 'info');
+		try {
+			cleanConsoleLogData('User Update', `@${newUser.username}`, 'info');
 
-		const { client } = oldUser;
-		const guilds = client.guilds.cache.filter((guild) =>
-			guild.members.cache.has(newUser.id)
-		);
-
-		if (guilds.size === 0) return;
-
-		for (const guild of guilds.values()) {
-			const MemberLogsData = await MemberLogs.findOne({ guild: guild.id });
-
-			if (!MemberLogsData) {
-				cleanConsoleLogData(
-					'User Update',
-					`\u001B[36mGuild: ${guild.name} | Member Logs Not Setup`,
-					'warning'
-				);
-				continue;
-			}
-
-			const channelToSend = guild.channels.cache.get(MemberLogsData.channel);
-
-			if (!channelToSend) {
-				await MemberLogs.findOneAndDelete({ guildId: guild.id });
-				cleanConsoleLogData(
-					'User Update',
-					`\u001B[36mGuild: ${guild.name} | Member Logs Channel Missing`,
-					'warning'
-				);
-				await sendEmbed(
-					await guild.fetchOwner(),
-					`Channel Missing: ${channelToSend} | Member Logs is now disabled`
-				);
-				continue;
-			}
-
-			const botPermissionsArry = ['SendMessages', 'ViewChannel'];
-			const botPermissions = await permissionCheck(
-				channelToSend,
-				botPermissionsArry,
-				client
+			const { client } = oldUser;
+			const guilds = client.guilds.cache.filter((guild) =>
+				guild.members.cache.has(newUser.id)
 			);
 
-			if (!botPermissions[0]) {
-				await MemberLogs.findOneAndDelete({ guildId: guild.id });
-				cleanConsoleLogData(
-					'User Update',
-					`\u001B[36mGuild: ${guild.name} | Incorrect Channel Permissions`,
-					'warning'
+			if (guilds.size === 0) return;
+
+			for (const guild of guilds.values()) {
+				const MemberLogsData = await MemberLogs.findOne({ guild: guild.id });
+
+				if (!MemberLogsData) {
+					cleanConsoleLogData(
+						'User Update',
+						`Guild: ${guild.name} | Member Logs Not Setup`,
+						'warning'
+					);
+					continue;
+				}
+
+				const channelToSend = guild.channels.cache.get(MemberLogsData.channel);
+
+				if (!channelToSend) {
+					await MemberLogs.findOneAndDelete({ guildId: guild.id });
+					cleanConsoleLogData(
+						'User Update',
+						`Guild: ${guild.name} | Member Logs Channel Missing`,
+						'warning'
+					);
+					await sendEmbed(
+						await guild.fetchOwner(),
+						`Channel Missing: ${channelToSend} | Member Logs is now disabled`
+					);
+					continue;
+				}
+
+				const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+				const botPermissions = await permissionCheck(
+					channelToSend,
+					botPermissionsArry,
+					client
 				);
-				await sendEmbed(
-					await guild.fetchOwner(),
-					`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Member Logs is now \`disabled\``
-				).catch((err) => {});
-				continue;
+
+				if (!botPermissions[0]) {
+					await MemberLogs.findOneAndDelete({ guildId: guild.id });
+					cleanConsoleLogData(
+						'User Update',
+						`Guild: ${guild.name} | Incorrect Channel Permissions`,
+						'warning'
+					);
+					await sendEmbed(
+						await guild.fetchOwner(),
+						`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Member Logs is now \`disabled\``
+					).catch((err) => {});
+					continue;
+				}
+
+				const Embed = await handleUserUpdate(
+					client,
+					oldUser,
+					newUser,
+					MemberLogsData
+				);
+
+				Embed.addFields({
+					name: "ID's",
+					value: `\`\`\`ansi\n[0;31mUser | ${newUser.id}\n[0;34mGuild | ${guild.id}\`\`\``,
+				});
+
+				await channelToSend.send({ embeds: [Embed] });
 			}
 
-			const Embed = await handleUserUpdate(
-				client,
-				oldUser,
-				newUser,
-				MemberLogsData
+			cleanConsoleLogData(
+				'User Update',
+				`${guilds.map((guild) => guild.name).join(' | ')}`,
+				'info'
 			);
-
-			Embed.addFields({
-				name: "ID's",
-				value: `\`\`\`ansi\n[0;31mUser | ${newUser.id}\n[0;34mGuild | ${guild.id}\`\`\``,
-			});
-
-			await channelToSend.send({ embeds: [Embed] });
+		} catch (error) {
+			console.log(error);
 		}
-
-		cleanConsoleLogData(
-			'User Update',
-			`${guilds.map((guild) => guild.name).join(' | ')}`,
-			'info'
-		);
 	},
 };

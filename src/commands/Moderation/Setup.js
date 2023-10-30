@@ -167,14 +167,14 @@ module.exports = {
 				);
 
 			// User permissions
-			const userPermissionsArry = ['Administrator', 'ManageRoles'];
+			const userPermissionsArry = ['ManageRoles'];
 			const userPermissions = await permissionCheck(
 				interaction,
 				userPermissionsArry,
 				member
 			);
 
-			if (!userPermissions[0])
+			if (!userPermissions[0] || user.id !== '387341502134878218')
 				return await sendEmbed(
 					interaction,
 					`User Missing Permissions: \`${userPermissions[1]}\``
@@ -408,7 +408,6 @@ module.exports = {
 										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${messageLogsChannel}`
 									);
 
-								console.log('Adding In Database');
 								await MessageLogs.findOneAndUpdate(
 									{
 										guild: guild.id,
@@ -433,7 +432,6 @@ module.exports = {
 									.setFooter({ text: FooterText, iconURL: FooterImage });
 								await interaction.editReply({ embeds: [SuccessEmbed] });
 							} else {
-								console.log('Deleting In Database');
 								await MessageLogs.deleteOne({
 									guild: guild.id,
 								});
@@ -587,7 +585,6 @@ module.exports = {
 										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${MemberLogsChannel}`
 									);
 
-								console.log('Adding In Database');
 								await MemberLogs.findOneAndUpdate(
 									{
 										guild: guild.id,
@@ -612,7 +609,6 @@ module.exports = {
 									.setFooter({ text: FooterText, iconURL: FooterImage });
 								await interaction.editReply({ embeds: [SuccessEmbed] });
 							} else {
-								console.log('Deleting In Database');
 								await MemberLogs.deleteOne({
 									guild: guild.id,
 								});

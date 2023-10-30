@@ -15,37 +15,29 @@ module.exports = {
 		const repeatingFunction = async () => {
 			// Variables
 			const textArray = [
-				`with ${client.guilds.cache.size} guilds`,
-				`with ${client.users.cache.size} users`,
-				`with ${client.channels.cache.size} channels`,
-				`with ${client.guilds.cache.reduce(
-					(a, g) => a + g.memberCount,
-					0
-				)} users`,
-				`with ${client.guilds.cache.reduce(
-					(a, g) => a + g.channels.cache.size,
-					0
-				)} channels`,
-				`with ${client.guilds.cache.reduce(
-					(a, g) => a + g.roles.cache.size,
-					0
-				)} roles`,
-				`with ${client.guilds.cache.reduce(
-					(a, g) => a + g.emojis.cache.size,
-					0
-				)} emojis`,
-				`with ${client.guilds.cache.reduce(
-					(a, g) => a + g.voiceStates.cache.size,
-					0
-				)} voice states`,
-				`with ${client.guilds.cache.reduce(
-					(a, g) => a + g.members.cache.filter((m) => m.user.bot).size,
-					0
-				)} bots`,
-				`with ${client.guilds.cache.reduce(
-					(a, g) => a + g.members.cache.filter((m) => !m.user.bot).size,
-					0
-				)} users`,
+				`with ${client.guilds.cache.size.toLocaleString()} guilds`,
+				`with ${client.channels.cache.size.toLocaleString()} channels`,
+				`with ${client.guilds.cache
+					.reduce((a, g) => a + g.memberCount, 0)
+					.toLocaleString()} users`,
+				`with ${client.guilds.cache
+					.reduce((a, g) => a + g.channels.cache.size, 0)
+					.toLocaleString()} channels`,
+				`with ${client.guilds.cache
+					.reduce((a, g) => a + g.roles.cache.size, 0)
+					.toLocaleString()} roles`,
+				`with ${client.guilds.cache
+					.reduce((a, g) => a + g.emojis.cache.size, 0)
+					.toLocaleString()} emojis`,
+				`with ${client.guilds.cache
+					.reduce((a, g) => a + g.voiceStates.cache.size, 0)
+					.toLocaleString()} voice states`,
+				`with ${client.guilds.cache
+					.reduce(
+						(a, g) => a + g.members.cache.filter((m) => m.user.bot).size,
+						0
+					)
+					.toLocaleString()} bots`,
 			];
 			const randomNumberOfArray = Math.floor(Math.random() * textArray.length);
 			const clientActivityText = textArray[randomNumberOfArray];

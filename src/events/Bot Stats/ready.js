@@ -91,7 +91,7 @@ module.exports = {
 				// Saving stats
 				newBotStats.save();
 
-				cleanConsoleLogData('Bot Stats', `no stats found`);
+				cleanConsoleLogData('Bot Stats', `no stats found`, 'error');
 				return;
 			}
 
@@ -111,13 +111,21 @@ module.exports = {
 			// Updating guilds count
 			if (guildsCount > BotStatsData.guilds) {
 				BotStatsData.guilds = guildsCount;
-				cleanConsoleLogData('Bot Stats', `New Guild Statistic: ${guildsCount}`);
+				cleanConsoleLogData(
+					'Bot Stats',
+					`New Guild Statistic: ${guildsCount.toLocaleString()}`,
+					'success'
+				);
 			}
 
 			// Updating users count
 			if (usersCount > BotStatsData.users) {
 				BotStatsData.users = usersCount;
-				cleanConsoleLogData('Bot Stats', `New Users Statistic: ${usersCount}`);
+				cleanConsoleLogData(
+					'Bot Stats',
+					`New Users Statistic: ${usersCount.toLocaleString()}`,
+					'success'
+				);
 			}
 
 			// Updating channels count
@@ -125,7 +133,8 @@ module.exports = {
 				BotStatsData.channels = channelsCount;
 				cleanConsoleLogData(
 					'Bot Stats',
-					`New Channels Statistic: ${channelsCount}`
+					`New Channels Statistic: ${channelsCount.toLocaleString()}`,
+					'success'
 				);
 			}
 
@@ -134,14 +143,18 @@ module.exports = {
 				BotStatsData.emojis = emojisCount;
 				cleanConsoleLogData(
 					'Bot Stats',
-					`New Emojis Statistic: ${emojisCount}`
+					`New Emojis Statistic: ${emojisCount.toLocaleString()}`
 				);
 			}
 
 			// Updating roles count
 			if (rolesCount > BotStatsData.roles) {
 				BotStatsData.roles = rolesCount;
-				cleanConsoleLogData('Bot Stats', `New Roles Statistic: ${rolesCount}`);
+				cleanConsoleLogData(
+					'Bot Stats',
+					`New Roles Statistic: ${rolesCount.toLocaleString()}`,
+					'success'
+				);
 			}
 
 			// Updating uptime count
@@ -152,7 +165,8 @@ module.exports = {
 
 				cleanConsoleLogData(
 					'Bot Stats',
-					`New Uptime Statistic: ${uptimeInSeconds}`
+					`New Uptime Statistic: ${uptimeInSeconds.toLocaleString()}`,
+					'success'
 				);
 			}
 
@@ -161,13 +175,13 @@ module.exports = {
 
 			cleanConsoleLogData(
 				'Bot Stats',
-				`Guilds: ${guildsCount} | Users: ${usersCount} | Channels: ${channelsCount}`,
+				`Guilds: ${guildsCount.toLocaleString()} | Users: ${usersCount.toLocaleString()} | Channels: ${channelsCount.toLocaleString()}`,
 				'debug'
 			);
 
 			cleanConsoleLogData(
 				'Bot Stats',
-				`Roles: ${rolesCount} | Uptime: ${uptimeInSeconds} | Emojis: ${emojisCount}`,
+				`Roles: ${rolesCount.toLocaleString()} | Uptime: ${uptimeInSeconds.toLocaleString()} | Emojis: ${emojisCount.toLocaleString()}`,
 				'debug'
 			);
 
@@ -194,24 +208,24 @@ module.exports = {
 				.addFields(
 					{
 						name: `Guilds`,
-						value: `${BotStatsData.guilds}`,
+						value: `${BotStatsData.guilds.toLocaleString()}`,
 						inline: true,
 					},
 					{
 						name: 'Users',
-						value: `${BotStatsData.users}`,
+						value: `${BotStatsData.users.toLocaleString()}`,
 					},
 					{
 						name: 'Channels',
-						value: `${BotStatsData.channels}`,
+						value: `${BotStatsData.channels.toLocaleString()}`,
 					},
 					{
 						name: 'Roles',
-						value: `${BotStatsData.roles}`,
+						value: `${BotStatsData.roles.toLocaleString()}`,
 					},
 					{
 						name: 'Emojis',
-						value: `${BotStatsData.emojis}`,
+						value: `${BotStatsData.emojis.toLocaleString()}`,
 					},
 					{
 						name: 'Uptime',

@@ -147,15 +147,16 @@ module.exports = {
 				});
 
 			// DM the target user
-			await targetUserFetched.send({ content: '222' }).catch(async (error) => {
-				// await sendErrorEmbed(interaction, error);
-				console.log('Error sending DM');
-				await sendEmbed(
-					interaction,
-					`${targetUserFetched} has DMs disabled or does not have a common server with the bot, unable to send unban message`
-				);
-				await sleep(5000);
-			});
+			await targetUserFetched
+				.send({ embeds: [DMUnbanEmbed] })
+				.catch(async (error) => {
+					// await sendErrorEmbed(interaction, error);
+					await sendEmbed(
+						interaction,
+						`${targetUserFetched} has DMs disabled or does not have a common server with the bot, unable to send unban message`
+					);
+					await sleep(5000);
+				});
 
 			// Unban the target user
 			await guild.members

@@ -41,7 +41,6 @@ module.exports = {
 			const level = await LevelsSchema.findOne(query);
 
 			if (!level) {
-				console.log('No data in database');
 				const newLevel = new LevelsSchema({
 					userId: author.id,
 					guildId: guild.id,

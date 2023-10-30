@@ -4,6 +4,8 @@ const {
 	GatewayIntentBits,
 	Collection,
 	EmbedBuilder,
+	Events,
+	ChannelType,
 } = require('discord.js');
 const {
 	cleanConsoleLog,
@@ -20,6 +22,7 @@ const {
 	FooterText,
 } = process.env;
 const path = require('node:path');
+const { permissionCheck } = require('./utils/Checks.js');
 const fsPromises = require('fs').promises;
 
 // Creating a new client
@@ -88,7 +91,7 @@ client.on('interactionCreate', async (interaction) => {
 	const now = Date.now();
 	const timestamps = cooldowns.get(command.data.name);
 	const defaultCooldown = 5;
-	const cooldownAmount = (command.data.cooldown || defaultCooldown) * 1000;
+	const cooldownAmount = (command.cooldown || defaultCooldown) * 1000;
 
 	// Check if the user is on cooldown
 	if (timestamps.has(interaction.user.id)) {
@@ -102,7 +105,7 @@ client.on('interactionCreate', async (interaction) => {
 				.addFields(
 					{
 						name: 'Command',
-						value: `\`${command.data.name}\``,
+						value: `\`/${command.data.name}\``,
 						inline: true,
 					},
 					{
@@ -138,6 +141,104 @@ client.on('interactionCreate', async (interaction) => {
 				interaction,
 				'There was an error while executing this command!'
 			);
+		}
+	}
+});
+
+client.on(Events.MessageCreate, async (message) => {
+	// Destructure the message
+	const { author, guild, channel, content } = message;
+
+	if (!content) return;
+
+	console.log('content', content);
+	const args = content.slice(1).trim().split(/ +/);
+	const commandName = args.shift().toLowerCase();
+
+	if (content.startsWith('o')) {
+		if (!author.id === '387341502134878218') return;
+
+		if (!commandName) return;
+
+		if (commandName === 'topservers') {
+			// how to only display the first 10 entries
+
+			const Members = client.guilds.cache
+				.sort((a, b) => b.memberCount - a.memberCount)
+				.map((guild) => {
+					return `${guild.memberCount.toLocaleString()}`;
+				});
+
+			const IDs = client.guilds.cache
+				.sort((a, b) => b.memberCount - a.memberCount)
+				.map((guild) => {
+					return `${guild.id}`;
+				});
+
+			const Names = client.guilds.cache
+				.sort((a, b) => b.memberCount - a.memberCount)
+				.map((guild) => {
+					return `${guild.name}`;
+				});
+
+			const embed = new EmbedBuilder()
+				.setColor(EmbedColour)
+				.setTitle(`Top 10 Ovx Servers (${client.guilds.cache.size})`)
+				.addFields(
+					{
+						name: 'Names',
+						value: `${Names.slice(0, 10).join('\n')}`,
+						inline: true,
+					},
+					{
+						name: 'IDs',
+						value: `${IDs.slice(0, 10).join('\n')}`,
+						inline: true,
+					},
+					{
+						name: 'Members',
+						value: `${Members.slice(0, 10).join('\n')}`,
+						inline: true,
+					}
+				)
+				.setTimestamp()
+				.setFooter({ text: FooterText, iconURL: FooterImage });
+
+			return await message.channel.send({ embeds: [embed] });
+		} else if (commandName === 'getinvite') {
+			const targetGuild = client.guilds.cache.get(args[0]);
+
+			if (!targetGuild) return await message.channel.send('Invalid guild id');
+
+			// get first channel
+			const targetChannel = targetGuild.channels.cache
+				.filter((channel) => channel.type === ChannelType.GuildText)
+				.first();
+
+			// bot permissions
+			const botPermissionsArry = ['ManageGuild'];
+			const botPermissions = await permissionCheck(
+				targetChannel,
+				botPermissionsArry,
+				client
+			);
+
+			if (!botPermissions[0])
+				return await message.channel.send(
+					`Bot Missing Permissions: \`${botPermissions[1]}\``
+				);
+
+			// fetch invite
+			const invites = await targetGuild.invites.fetch().catch((err) => {
+				console.log(err);
+				return;
+			});
+
+			const invite = invites.first();
+
+			if (!invite) return await message.channel.send('No invites found');
+
+			return await message.channel.send(`https://discord.gg/${invite.code}`);
 		}
 	}
 });

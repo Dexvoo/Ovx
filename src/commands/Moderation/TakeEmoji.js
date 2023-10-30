@@ -129,12 +129,6 @@ module.exports = {
 			if (guildBoostLevel === 2) maxGuildEmojis = 150;
 			if (guildBoostLevel === 3) maxGuildEmojis = 250;
 
-			console.log('guildAnimatedEmojis', guildAnimatedEmojis);
-			console.log(
-				'maxGuildEmojis - allEmojis.length',
-				maxGuildEmojis - allEmojis.length
-			);
-
 			// Checking if the guild has enough emoji slots
 			if (guildAnimatedEmojis > maxGuildEmojis - allEmojis.length)
 				return await sendEmbed(

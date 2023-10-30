@@ -38,7 +38,7 @@ module.exports = {
 		const getWelcomeMessageData = await WelcomeMessages.findOne(query);
 
 		// If nothing in database return
-		if (!getWelcomeMessageData) return console.log('No data in database');
+		if (!getWelcomeMessageData) return;
 
 		// Deconstructing getWelcomeMessageData
 		const { channel, message, role } = getWelcomeMessageData;

@@ -113,8 +113,7 @@ module.exports = {
 			});
 		}
 
-		if (removedRoles.size < 1 && addedRoles.size < 1)
-			return console.log('No roles were added or removed | Guild Roles');
+		if (removedRoles.size < 1 && addedRoles.size < 1) return;
 
 		RolesLogEmbed.addFields({
 			name: 'ID`s',

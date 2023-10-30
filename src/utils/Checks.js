@@ -62,10 +62,6 @@ const permissionCheck = async (interactionChannel, permissions, member) => {
 	var falsePermissions = [];
 	for (let i = 0; i < permissions.length; i++) {
 		if (!userPermissions.has(permissions[i])) {
-			console.log(
-				`${userOrBot} Missing Permission : \`${permissions[i]}\` in channel : ${channel}`
-			);
-
 			falsePermissions.push(permissions[i]);
 		}
 	}
