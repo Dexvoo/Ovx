@@ -61,5 +61,7 @@ module.exports = {
 			)
 			.setFooter({ text: FooterText, iconURL: FooterImage })
 			.setTimestamp();
+
+		await interaction.editReply({ embeds: [Embed] });
 	},
 };
