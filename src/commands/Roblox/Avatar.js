@@ -56,7 +56,13 @@ module.exports = {
 		// Placeholder Embed
 		await sendEmbed(interaction, `Getting User Information`);
 		// await sleep(2000);
-		const currentUser = await noblox.setCookie(RobloxAPIKey);
+		const currentUser = await noblox
+			.setCookie(RobloxAPIKey)
+			.catch(async (err) => {
+				console.log(err);
+			});
+
+		console.log(currentUser);
 
 		const subcommand = options.getSubcommand();
 

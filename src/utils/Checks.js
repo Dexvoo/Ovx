@@ -4,6 +4,7 @@ const {
 	PermissionFlagsBits,
 	PermissionsBitField,
 	GuildMember,
+	VoiceBasedChannel,
 	GuildChannel,
 	Client,
 	Guild,
@@ -22,13 +23,13 @@ const guildCheck = async (guild) => {
 };
 
 /**
- * @param {CommandInteraction} interactionChannel - Interaction or Channel
+ * @param {CommandInteraction | VoiceBasedChannel } interactionChannel - Interaction or Channel
  * @param {Array} permissions - Array of Permissions to check
  * @param {GuildMember | Client} member - GuildMember or Client
  */
 const permissionCheck = async (interactionChannel, permissions, member) => {
 	// Check for undefined
-	if (!interactionChannel) throw new Error('No user or bot provided.');
+	if (!interactionChannel) throw new Error('No channel/interaction provided.');
 	if (!permissions) throw new Error('No permissions provided.');
 	if (!member) throw new Error('No member provided.');
 
@@ -42,7 +43,10 @@ const permissionCheck = async (interactionChannel, permissions, member) => {
 	if (interactionChannel instanceof CommandInteraction) {
 		channel = interactionChannel.channel;
 		guild = interactionChannel.guild;
-	} else if (interactionChannel instanceof GuildChannel) {
+	} else if (
+		interactionChannel instanceof GuildChannel ||
+		interactionChannel instanceof VoiceBasedChannel
+	) {
 		channel = interactionChannel;
 		guild = channel.guild;
 	}

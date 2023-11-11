@@ -57,8 +57,12 @@ module.exports = {
 				.then(async (audit) => {
 					// Deconstructing audit
 					// const
-					const { executor, target, createdAt, changes, actionType, extra } =
+					var { executor, target, createdAt, changes, actionType, extra } =
 						audit.entries.first();
+
+					if (audit.entries.first() === undefined) {
+						executor = author;
+					}
 
 					// Getting message logs data from database
 					const MessageLogsData = await MessageLogs.findOne({
