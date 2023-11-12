@@ -66,7 +66,9 @@ module.exports = {
 					`${e.position}`.padStart(2, ' ') +
 					`\`. \`@` +
 					`${e.username}`.padEnd(18, ' ') +
-					`\` | Level: \`${e.level}\` | XP: \`${e.xp.toLocaleString()}\``
+					`\` | L: \`${
+						e.level
+					}\` | XP: \`${e.xp.toLocaleString()}\` | M: \`${e.messages.toLocaleString()}\` | V: \`${e.voice.toLocaleString()}\``
 			);
 
 			// Embed
@@ -90,7 +92,7 @@ module.exports = {
 				.setFooter({ text: FooterText, iconURL: FooterImage });
 
 			const pageSize = 5;
-			const maxPages = 5;
+			const maxPages = 3;
 			let currentPage = 1; // Initialize the current page to 1
 
 			for (let i = 0; i < lb.length && currentPage <= maxPages; i += pageSize) {
@@ -148,6 +150,8 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 				userId: key.userId,
 				xp: key.xp,
 				level: key.level,
+				messages: key.messages,
+				voice: key.voice,
 				position:
 					leaderboard.findIndex(
 						(i) => i.guildId === key.guildId && i.userId === key.userId

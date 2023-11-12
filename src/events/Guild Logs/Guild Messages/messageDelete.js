@@ -55,9 +55,8 @@ module.exports = {
 
 		// Checking if the bot has permissions
 		if (!botPermissions[0]) {
-			console.log(botPermissions[1]);
 			if (botPermissions[1].size <= 1) {
-				// await MessageLogs.findOneAndDelete({ guildId: guild.id });
+				await MessageLogs.findOneAndDelete({ guildId: guild.id });
 				cleanConsoleLogData(
 					'Message Deleted',
 					`Guild: ${guild.name} | Message Logs | Incorrect Channel Permissions`,
@@ -68,7 +67,6 @@ module.exports = {
 					`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``
 				);
 			}
-			console.log('Passed');
 			getAuditLog = false;
 		}
 

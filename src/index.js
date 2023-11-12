@@ -268,7 +268,9 @@ client.on(Events.MessageCreate, async (message) => {
 					`${e.position}`.padStart(2, ' ') +
 					`\`. \`@` +
 					`${e.username}`.padEnd(18, ' ') +
-					`\` | Level: \`${e.level}\` | XP: \`${e.xp.toLocaleString()}\``
+					`\` | L: \`${
+						e.level
+					}\` | XP: \`${e.xp.toLocaleString()}\` | M: \`${e.messages.toLocaleString()}\` | V: \`${e.voice.toLocaleString()}\``
 			);
 
 			// Embed
@@ -291,7 +293,7 @@ client.on(Events.MessageCreate, async (message) => {
 				.setColor(EmbedColour)
 				.setFooter({ text: FooterText, iconURL: FooterImage });
 
-			const pageSize = 5;
+			const pageSize = 3;
 			const maxPages = 5;
 			let currentPage = 1; // Initialize the current page to 1
 
@@ -395,6 +397,8 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 				userId: key.userId,
 				xp: key.xp,
 				level: key.level,
+				messages: key.messages,
+				voice: key.voice,
 				position:
 					leaderboard.findIndex(
 						(i) => i.guildId === key.guildId && i.userId === key.userId
