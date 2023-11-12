@@ -73,6 +73,8 @@ module.exports = {
 						`- User: ${target}`,
 						`- Level: **${userData.level}**`,
 						`- XP: **${userData.xp}**`,
+						`- Messages: **${userData.messages}**`,
+						`- Voice Time: **${userData.voice}**  minutes`,
 					].join('\n')
 				)
 				.setTimestamp()

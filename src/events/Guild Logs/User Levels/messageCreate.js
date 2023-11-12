@@ -12,6 +12,7 @@ const {
 	LevelUpChannelID,
 } = process.env;
 const { getRandomXP, calculateLevel } = require('../../../utils/XP.js');
+const { addUserXP } = require('../../../utils/AddXP.js');
 const cooldowns = new Set();
 
 module.exports = {
@@ -27,11 +28,6 @@ module.exports = {
 
 		if (author.bot || !guild || cooldowns.has(author.id)) return;
 
-		if (DeveloperMode == 'true')
-			console.log(
-				`[EVENT] ${this.nickname} | [MEMBER] @${member.user.username} | [Guild] ${guild.name}`
-			);
-
 		// Variables
 		var randomXP = getRandomXP(5, 15);
 		// if (author.id == '387341502134878218') randomXP = getRandomXP(100, 300);
@@ -45,9 +41,10 @@ module.exports = {
 					userId: author.id,
 					guildId: guild.id,
 					xp: randomXP,
+					messages: 1,
 				});
 				await newLevel.save().catch((error) => console.log(error));
-				if (author.id == '387341502134878218') return;
+				// if (author.id == '387341502134878218') return;
 				cooldowns.add(author.id);
 				setTimeout(() => {
 					cooldowns.delete(author.id);
@@ -64,81 +61,10 @@ module.exports = {
 						level.xp = level.xp;
 					}
 
-					const LevelUpEmbed = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setColor(EmbedColour)
-						.setDescription(
-							`• ${member}, you just gained a level! Current Level : **${level.level}** •`
-						);
-
-					const DeveloperLogsEmbed = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setDescription(
-							`• User: ${member} | Guild: ${guild.name} | Level: \`${level.level}\` | XP: \`${level.xp}\` •`
-						);
-
-					const DeveloperLogsChannel =
-						client.channels.cache.get(LevelUpChannelID);
-
-					if (DeveloperLogsChannel) {
-						DeveloperLogsChannel.send({ embeds: [DeveloperLogsEmbed] });
-					}
-
-					const LevelNotificationsData = await LevelNotificationsSchema.findOne(
-						{
-							guild: guild.id,
-						}
-					);
-
-					if (LevelNotificationsData) {
-						// Database information
-						const LevelNotificationsChannel = guild.channels.cache.get(
-							LevelNotificationsData.channel
-						);
-						const LevelNotificationsToggle =
-							LevelNotificationsData.notifications;
-
-						if (LevelNotificationsToggle) {
-							if (LevelNotificationsChannel) {
-								// Bot permissions
-								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
-								const botPermissions = await permissionCheck(
-									LevelNotificationsChannel,
-									botPermissionsArry,
-									client
-								);
-
-								if (!botPermissions[0])
-									return await sendEmbed(
-										await guild.fetchOwner(),
-										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${LevelNotificationsChannel}`
-									);
-
-								await LevelNotificationsChannel.send({
-									embeds: [LevelUpEmbed],
-								});
-							} else {
-								// Bot permissions
-								const botPermissionsArry = ['SendMessages', 'ViewChannel'];
-								const botPermissions = await permissionCheck(
-									channel,
-									botPermissionsArry,
-									client
-								);
-
-								if (!botPermissions[0])
-									return await sendEmbed(
-										await guild.fetchOwner(),
-										`Bot Missing Permissions: \`${botPermissions[1]}\` in ${channel}`
-									);
-
-								await channel.send({
-									embeds: [LevelUpEmbed],
-								});
-							}
-						}
-					}
+					await addUserXP(member, randomXP, channel);
 				}
+
+				level.messages += 1;
 
 				await level.save().catch((err) => {
 					console.log(err);

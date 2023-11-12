@@ -312,9 +312,15 @@ module.exports = {
 					);
 					if (levelNotificationsData) {
 						if (!levelNotificationsToggle) {
-							await levelNotificationsSchema.findOneAndDelete({
-								guild: guild.id,
-							});
+							await levelNotificationsSchema.findOneAndReplace(
+								{
+									guild: guild.id,
+								},
+								{
+									guild: guild.id,
+									notifications: levelNotificationsToggle,
+								}
+							);
 
 							return await sendEmbed(
 								interaction,
@@ -324,9 +330,14 @@ module.exports = {
 					}
 
 					if (!levelNotificationsToggle) {
+						// set in database to false
+						await levelNotificationsSchema.create({
+							guild: guild.id,
+							notifications: levelNotificationsToggle,
+						});
 						return await sendEmbed(
 							interaction,
-							'There was no data found for level notifications'
+							'Level notifications have been disabled'
 						);
 					}
 
@@ -362,6 +373,7 @@ module.exports = {
 							channel: levelNotificationsChannel
 								? levelNotificationsChannel.id
 								: null,
+							notifications: levelNotificationsToggle,
 						},
 						{
 							upsert: true,
@@ -371,10 +383,16 @@ module.exports = {
 					const SuccessEmbed2 = new EmbedBuilder()
 						.setColor(EmbedColour)
 						.setDescription('• Level Notifications Setup Successfully •')
-						.addFields({
-							name: '• Welcome Message Channel •',
-							value: `${levelNotificationsChannel || 'Message channel'} `,
-						})
+						.addFields(
+							{
+								name: '• Level Notifications Channel •',
+								value: `${levelNotificationsChannel || 'Message channel'} `,
+							},
+							{
+								name: '• Toggle •',
+								value: `${levelNotificationsToggle}`,
+							}
+						)
 						.setTimestamp()
 						.setFooter({ text: FooterText, iconURL: FooterImage });
 					await interaction.editReply({ embeds: [SuccessEmbed2] });

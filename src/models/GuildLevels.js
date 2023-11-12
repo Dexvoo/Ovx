@@ -17,6 +17,14 @@ const LevelsSchema = new Schema({
 		type: Number,
 		default: 0,
 	},
+	messages: {
+		type: Number,
+		default: 0,
+	},
+	voice: {
+		type: Number,
+		default: 0,
+	},
 });
 
 module.exports = model('User-Levels', LevelsSchema);

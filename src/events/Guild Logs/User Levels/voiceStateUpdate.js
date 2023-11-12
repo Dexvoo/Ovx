@@ -59,6 +59,16 @@ module.exports = {
 
 		// Check if the user has left the voice channel
 		if (oldState.channel && !newState.channel) {
+			// check if the user is in the map
+			if (!inVoiceChannelMembers.has(user.id)) return;
+
+			const userData = await UserLevels.findOne({
+				userId: user.id,
+				guildId: guild.id,
+			});
+
+			if (!userData) return;
+
 			const timeInVoiceChannel =
 				Date.now() - inVoiceChannelMembers.get(user.id).time;
 
@@ -68,16 +78,22 @@ module.exports = {
 			);
 
 			// give a random amount of xp between 5 and 15 for every minute spent in the voice channel
-			const xp = getRandomXP(100, 150) * timeInVoiceChannelSeconds;
+			const xp = getRandomXP(5, 15) * timeInVoiceChannelMinutes;
 			if (xp !== 0) {
 				cleanConsoleLogData(
-					'User XP',
-					`Gained ${xp} XP | Level : ${await getLevelFromXP(
-						xp
-					)[0]} | XP Left Over : ${await getLevelFromXP(xp)[1]}`,
+					'Voice XP',
+					`User: @${member.user.username} | Added XP: ${xp}`,
 					'debug'
 				);
-				await addUserXP(member, xp, channel);
+
+				// add time spent in voice channel to user
+				userData.voice += timeInVoiceChannelMinutes;
+
+				await userData.save().catch((err) => {
+					console.log(err);
+				});
+
+				await addUserXP(member, xp, oldState.channel);
 			} else {
 				cleanConsoleLogData('Voice Log', 'No XP gained', 'debug');
 			}
