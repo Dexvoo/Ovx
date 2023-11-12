@@ -48,10 +48,7 @@ module.exports = {
 		);
 
 		if (!botPermissions[0]) {
-			return await sendEmbed(
-				await guild.fetchOwner(),
-				`Bot Missing Permissions: \`${botPermissions[1]}\` | Role Logs`
-			);
+			return; // doesnt have permissions
 		}
 
 		try {

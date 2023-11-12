@@ -129,6 +129,9 @@ module.exports = {
 
 					// Sending embed
 					await channelToSend.send({ embeds: [Embed] });
+				})
+				.catch((err) => {
+					console.log(err);
 				});
 		} catch (error) {
 			console.log(error);

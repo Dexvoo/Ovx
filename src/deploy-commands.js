@@ -60,7 +60,7 @@ const init = async () => {
 		const DEVELOPER_GUILD_ID = '1115336808834805780';
 		const ZOO_OF_HUMANS_GUILD_ID = '962342471000535071';
 		rest
-			.put(Routes.applicationGuildCommands(ClientID, DEVELOPER_GUILD_ID), {
+			.put(Routes.applicationGuildCommands(ClientID, '1173402643348078593'), {
 				body: [],
 			})
 			.then(() =>
@@ -69,7 +69,7 @@ const init = async () => {
 			.catch(console.error);
 
 		rest
-			.put(Routes.applicationGuildCommands(ClientID, DEVELOPER_GUILD_ID), {
+			.put(Routes.applicationGuildCommands(ClientID, '1173402643348078593'), {
 				body: cmdFiles,
 			})
 			.then(() =>

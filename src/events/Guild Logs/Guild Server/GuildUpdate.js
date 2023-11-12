@@ -187,10 +187,14 @@ module.exports = {
 			newGuild.vanityURLCode
 		);
 
-		const logs = await newGuild.fetchAuditLogs({
-			limit: 1,
-			type: AuditLogEvent.GuildUpdate,
-		});
+		const logs = await newGuild
+			.fetchAuditLogs({
+				limit: 1,
+				type: AuditLogEvent.GuildUpdate,
+			})
+			.catch((err) => {
+				console.log(err);
+			});
 
 		const logEntry = logs.entries.first();
 

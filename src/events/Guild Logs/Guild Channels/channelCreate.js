@@ -43,10 +43,7 @@ module.exports = {
 		);
 
 		if (!botPermissions[0]) {
-			return await sendEmbed(
-				await guild.fetchOwner(),
-				`Bot Missing Permissions: \`${botPermissions[1]}\``
-			);
+			return; // doesnt have permissions
 		}
 
 		try {
@@ -152,6 +149,9 @@ module.exports = {
 
 					// Sending embed
 					await channelToSend.send({ embeds: [Embed] });
+				})
+				.catch((err) => {
+					console.log(err);
 				});
 		} catch (error) {
 			console.log(error);

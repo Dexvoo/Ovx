@@ -131,7 +131,10 @@ module.exports = {
 		if (botPermissions[0]) {
 			const entry = await guild
 				.fetchAuditLogs({ type: AuditLogEvent.MessageDelete, limit: 1 })
-				.then((audit) => audit.entries.first());
+				.then((audit) => audit.entries.first())
+				.catch((err) => {
+					console.log(err);
+				});
 
 			if (
 				entry.extra.channel.id === message.channel.id &&

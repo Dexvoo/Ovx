@@ -108,7 +108,10 @@ module.exports = {
 		if (botPermissions[0]) {
 			const entry = await guild
 				.fetchAuditLogs({ type: AuditLogEvent.MessageBulkDelete, limit: 1 })
-				.then((audit) => audit.entries.first());
+				.then((audit) => audit.entries.first())
+				.catch((err) => {
+					console.log(err);
+				});
 			console.log(entry);
 
 			Embed.addFields(
