@@ -43,33 +43,6 @@ module.exports = {
 		// Getting guild channel
 		const channelToSend = guild.channels.cache.get(MessageLogsData.channel);
 
-		// Bot permissions
-		const botPermissionsArry = ['SendMessages', 'ViewChannel', 'ViewAuditLog'];
-		const botPermissions = await permissionCheck(
-			channelToSend,
-			botPermissionsArry,
-			client
-		);
-
-		var getAuditLog = true;
-
-		// Checking if the bot has permissions
-		if (!botPermissions[0]) {
-			if (botPermissions[1].size <= 1) {
-				await MessageLogs.findOneAndDelete({ guildId: guild.id });
-				cleanConsoleLogData(
-					'Message Deleted',
-					`Guild: ${guild.name} | Message Logs | Incorrect Channel Permissions`,
-					'warning'
-				);
-				return await sendEmbed(
-					await guild.fetchOwner(),
-					`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``
-				);
-			}
-			getAuditLog = false;
-		}
-
 		// Checking if the channel exists
 		if (!channelToSend) {
 			cleanConsoleLogData(
@@ -79,6 +52,33 @@ module.exports = {
 			);
 			await MessageLogs.findOneAndDelete({ guildId: guild.id });
 			return;
+		}
+
+		// Bot permissions
+		const botPermissionsArry = ['SendMessages', 'ViewChannel', 'ViewAuditLog'];
+		const botPermissions = await permissionCheck(
+			channelToSend,
+			botPermissionsArry,
+			client
+		);
+
+		// Checking if the bot has permissions
+		if (!botPermissions[0]) {
+			for (let i = 0; i < botPermissions[1].length; i++) {
+				if (botPermissions[1][i] !== 'ViewAuditLog') {
+					cleanConsoleLogData(
+						'Message Deleted',
+						`Guild: ${guild.name} | Missing Permissions`,
+						'warning'
+					);
+					await MessageLogs.findOneAndDelete({ guildId: guild.id });
+					await sendEmbed(
+						await guild.fetchOwner(),
+						`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``
+					);
+					return;
+				}
+			}
 		}
 
 		const premiumRole = client.guilds.cache
