@@ -87,11 +87,7 @@ module.exports = {
 					console.error(error);
 
 					console.log(`what permissions does the bot have?`);
-					console.log(
-						`permissions: ${PermissionsBitField.resolve(
-							channel.permissionsFor(client.user)
-						)}`
-					);
+					console.log(`permissions2222: ${botPermissions[1].join(', ')}`);
 					return sendErrorEmbed(interaction, error);
 				});
 
