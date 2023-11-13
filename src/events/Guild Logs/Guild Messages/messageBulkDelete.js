@@ -111,6 +111,13 @@ module.exports = {
 				.then((audit) => audit.entries.first())
 				.catch((err) => {
 					console.log(err);
+					console.log(`what permissions does the bot have?`);
+					console.log(
+						`permissions: ${PermissionsBitField.resolve(
+							channel.permissionsFor(client.user)
+						)}`
+					);
+					return sendErrorEmbed(interaction, err);
 				});
 			console.log(entry);
 
