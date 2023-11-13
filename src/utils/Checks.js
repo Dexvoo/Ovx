@@ -43,10 +43,7 @@ const permissionCheck = async (interactionChannel, permissions, member) => {
 	if (interactionChannel instanceof CommandInteraction) {
 		channel = interactionChannel.channel;
 		guild = interactionChannel.guild;
-	} else if (
-		interactionChannel instanceof GuildChannel ||
-		interactionChannel instanceof VoiceBasedChannel
-	) {
+	} else if (interactionChannel instanceof GuildChannel) {
 		channel = interactionChannel;
 		guild = channel.guild;
 	}

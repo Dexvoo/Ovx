@@ -3,6 +3,8 @@ const {
 	PermissionFlagsBits,
 	EmbedBuilder,
 	CommandInteraction,
+	IntentsBitField,
+	PermissionsBitField,
 } = require('discord.js');
 
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
@@ -81,10 +83,20 @@ module.exports = {
 			// Deleting messages
 			const messagesDeleted = await channel
 				.bulkDelete(amount, true)
-				.catch((error) => {
+				.catch(async (error) => {
 					console.error(error);
+
+					console.log(`what permissions does the bot have?`);
+					console.log(
+						`permissions: ${PermissionsBitField.resolve(
+							channel.permissionsFor(client.user)
+						)}`
+					);
 					return sendErrorEmbed(interaction, error);
 				});
+
+			if (!messagesDeleted)
+				return await sendEmbed(interaction, `No messages were deleted`);
 
 			// Sending embed
 			await sendEmbed(interaction, `Deleted ${messagesDeleted.size} messages`);
