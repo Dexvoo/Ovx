@@ -136,6 +136,10 @@ module.exports = {
 								value: `@${executor.username} (<@${executor.id}>)`,
 							},
 							{
+								name: `Reason`,
+								value: `${audit.entries.first().reason || `No Reason`}`,
+							},
+							{
 								name: 'Created At',
 								value: currentTime,
 							},

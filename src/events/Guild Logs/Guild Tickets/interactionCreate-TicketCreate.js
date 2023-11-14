@@ -94,6 +94,7 @@ module.exports = {
 			await guild.channels
 				.create({
 					name: `${member.user.username}-${ticketId}`,
+					reason: `Ticket Created by ${member.user.username}`,
 					type: ChannelType.GuildText,
 					parent: ticketSetupData.openCategory,
 					permissionOverwrites: [

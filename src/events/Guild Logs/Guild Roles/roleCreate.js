@@ -110,6 +110,10 @@ module.exports = {
 								value: `( Not Found )`,
 							},
 							{
+								name: `Reason`,
+								value: `${audit.entries.first().reason || `No Reason`}`,
+							},
+							{
 								name: 'Created At',
 								value: currentTime,
 							},
