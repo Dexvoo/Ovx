@@ -296,9 +296,9 @@ module.exports = {
 
 					const ticketEmbed = new EmbedBuilder()
 						.setColor(EmbedColour)
-						.setTitle('Ticket')
+						.setTitle(`${guild.name} | Tickets`)
 						.setDescription(
-							'Please press the button below to create a ticket. \n\nIf you have any issues please contact a staff member.'
+							'Click the button below to create a ticket, This will create a channel for you to talk to staff in confidence.'
 						)
 						.setTimestamp()
 						.setFooter({ text: FooterText, iconURL: FooterImage });
