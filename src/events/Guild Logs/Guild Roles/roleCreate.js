@@ -37,7 +37,9 @@ module.exports = {
 		if (!guild) return;
 
 		// get a random channel from the guild
-		const channel = guild.channels.cache.random();
+		const channel = guild.channels.cache.first();
+
+		if (!channel) return;
 
 		// Bot permissions
 		const botPermissionsArry = ['ViewAuditLog'];
