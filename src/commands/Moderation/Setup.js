@@ -9,6 +9,9 @@ const {
 	Guild,
 	Client,
 	CommandInteraction,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
 } = require('discord.js');
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
@@ -24,7 +27,7 @@ const ServerLogs = require('../../models/GuildServerLogs.js');
 const VoiceLogs = require('../../models/GuildVoiceLogs.js');
 const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
 const MessageLogs = require('../../models/GuildMessageLogs.js');
-// const BlacklistedChannels = require('../../models/GuildBlacklistedChannels.js');
+const GuildTicketsSetup = require('../../models/GuildTicketsSetup.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -85,6 +88,45 @@ module.exports = {
 						.setRequired(false)
 				)
 		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('tickets')
+				.setDescription('Setup tickets for the guild.')
+				.addChannelOption((option) =>
+					option
+						.setName('tickets-channel')
+						.setDescription('Channel to send the ticket embed in.')
+						.addChannelTypes(ChannelType.GuildText)
+						.setRequired(true)
+				)
+				.addChannelOption((option) =>
+					option
+						.setName('tickets-category')
+						.setDescription('Category to put the tickets in.')
+						.addChannelTypes(ChannelType.GuildCategory)
+						.setRequired(true)
+				)
+				.addChannelOption((option) =>
+					option
+						.setName('archive-channel')
+						.setDescription('Channel to send transcripts in.')
+						.addChannelTypes(ChannelType.GuildText)
+						.setRequired(true)
+				)
+				.addRoleOption((option) =>
+					option
+						.setName('mod-role')
+						.setDescription('Role so staff can see the tickets.')
+						.setRequired(true)
+				)
+				.addRoleOption((option) =>
+					option
+						.setName('admin-role')
+						.setDescription('Role so admins can see the tickets.')
+						.setRequired(true)
+				)
+		)
+
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('logs')
@@ -153,7 +195,7 @@ module.exports = {
 			if (!(await guildCheck(guild))) return;
 
 			// Bot permissions
-			const botPermissionsArry = ['ManageMessages'];
+			const botPermissionsArry = ['ManageMessages', 'ManageRoles'];
 			const botPermissions = await permissionCheck(
 				interaction,
 				botPermissionsArry,
@@ -184,6 +226,115 @@ module.exports = {
 			await sleep(2000);
 
 			switch (options.getSubcommand()) {
+				case 'tickets':
+					const ticketsChannel = options.getChannel('tickets-channel');
+					const openCategory = options.getChannel('tickets-category');
+					const archiveChannel = options.getChannel('archive-channel');
+					const modRole = options.getRole('mod-role');
+					const adminRole = options.getRole('admin-role');
+
+					// Bot permissions
+					const botPermissionsArrayTicket = [
+						'SendMessages',
+						'ViewChannel',
+						'ManageChannels',
+					];
+					const botPermissionsTicket = await permissionCheck(
+						ticketsChannel,
+						botPermissionsArrayTicket,
+						client
+					);
+
+					if (!botPermissionsTicket[0]) {
+						await sendEmbed(
+							interaction,
+							`Bot Missing Permissions: \`${botPermissionsTicket[1]}\` in ${ticketsChannel}`
+						);
+						return;
+					}
+
+					// Bot permissions
+					const botPermissionsArrayArchive = [
+						'SendMessages',
+						'ViewChannel',
+						'ManageChannels',
+					];
+					const botPermissionsArchive = await permissionCheck(
+						archiveChannel,
+						botPermissionsArrayArchive,
+						client
+					);
+
+					if (!botPermissionsArchive[0]) {
+						await sendEmbed(
+							interaction,
+							`Bot Missing Permissions: \`${botPermissionsArchive[1]}\` in ${archiveChannel}`
+						);
+						return;
+					}
+
+					if (!openCategory) {
+						await sendEmbed(
+							interaction,
+							'Please provide a category for the open and closed tickets'
+						);
+						return;
+					}
+
+					if (
+						modRole.position >= guild.members.me.roles.highest.position ||
+						adminRole.position >= guild.members.me.roles.highest.position
+					) {
+						await sendEmbed(
+							interaction,
+							'Bot Missing Permissions: `RoleHierarchy`'
+						);
+						return;
+					}
+
+					await sendEmbed(interaction, 'Creating tickets channel');
+
+					const ticketEmbed = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setTitle('Ticket')
+						.setDescription(
+							'Please press the button below to create a ticket. \n\nIf you have any issues please contact a staff member.'
+						)
+						.setTimestamp()
+						.setFooter({ text: FooterText, iconURL: FooterImage });
+
+					const LinkButton = new ActionRowBuilder().addComponents(
+						new ButtonBuilder()
+							.setStyle(ButtonStyle.Primary)
+							.setLabel('Create Ticket')
+							.setCustomId('ovx-ticket')
+					);
+
+					await ticketsChannel.send({
+						embeds: [ticketEmbed],
+						components: [LinkButton],
+					});
+
+					// save data to database
+
+					await GuildTicketsSetup.findOneAndUpdate(
+						{ guild: guild.id },
+						{
+							guild: guild.id,
+							ticketChannel: ticketsChannel.id,
+							openCategory: openCategory.id,
+							archiveChannel: archiveChannel.id,
+							modRole: modRole.id,
+							adminRole: adminRole.id,
+						},
+						{
+							upsert: true,
+						}
+					);
+
+					await sendEmbed(interaction, 'Tickets setup successfully');
+
+					break;
 				case 'welcome-messages':
 					const welcomeMessagesChannel = options.getChannel(
 						'welcome-messages-channel'
