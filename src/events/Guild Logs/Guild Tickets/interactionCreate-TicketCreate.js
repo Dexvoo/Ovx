@@ -70,6 +70,23 @@ module.exports = {
 			return;
 		}
 
+		// see if user already has a ticket open
+		const userTicket = await ticketSchema.findOne({
+			guildid: guild.id,
+			memberid: member.id,
+			closed: false,
+		});
+
+		if (userTicket) {
+			const Embed = new EmbedBuilder()
+				.setColor(EmbedColour)
+				.setDescription(`• You already have a ticket open •`)
+				.setTimestamp()
+				.setFooter({ text: FooterText, iconURL: FooterImage });
+			interaction.reply({ embeds: [Embed], ephemeral: true });
+			return;
+		}
+
 		// get @ everyone role
 		const everyoneRole = guild.roles.everyone;
 
