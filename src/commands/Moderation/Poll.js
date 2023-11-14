@@ -10,7 +10,6 @@ const {
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
-const GuildTicketsInfo = require('../../models/GuildTicketsInfo.js');
 const GuildPolls = require('../../models/GuildPolls.js');
 require('dotenv').config();
 const { EmbedColour, FooterImage, FooterText, SuccessEmoji, ErrorEmoji } =
@@ -48,7 +47,7 @@ module.exports = {
 			if (!(await guildCheck(guild))) return;
 
 			// Bot permissions
-			const botPermissionsArry = ['ManageRoles', 'ManageChannels'];
+			const botPermissionsArry = ['ManageRoles'];
 			const botPermissions = await permissionCheck(
 				interaction,
 				botPermissionsArry,
@@ -59,7 +58,7 @@ module.exports = {
 			}
 
 			// User permissions
-			const userPermissionsArry = ['BanMembers'];
+			const userPermissionsArry = ['ManageMessages'];
 			const userPermissions = await permissionCheck(
 				interaction,
 				userPermissionsArry,
@@ -106,14 +105,10 @@ module.exports = {
 				return;
 			}
 
-			const pollChannel = guild.channels.cache.get(pollData.channel);
+			var pollChannel = guild.channels.cache.get(pollData.channel);
 
 			if (!pollChannel) {
-				await sendEmbed(
-					interaction,
-					'The poll channel that was set previously is no longer available, please run the command `/setup polls`'
-				);
-				return;
+				pollChannel = channel;
 			}
 
 			// bot permissions
