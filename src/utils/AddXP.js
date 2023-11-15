@@ -119,68 +119,54 @@ async function sendLevelUpEmbed(member, level, xp, channel) {
 		guild: guild.id,
 	});
 
-	if (!levelNotifications) {
-		// bot permissions
-		const botPermissionsArray = ['SendMessages', 'ViewChannel'];
-		const botPermissions = await permissionCheck(
-			channel,
-			botPermissionsArray,
-			client
-		).catch((error) => console.log(error));
+	if (!levelNotifications) return;
 
-		if (botPermissions[0] == false) {
-			return;
-		}
+	const LevelNotificationsChannel = guild.channels.cache.get(
+		levelNotifications.channel
+	);
+	const LevelNotificationsToggle = levelNotifications.notifications;
 
-		await channel.send({ embeds: [embed] });
-	} else {
-		const LevelNotificationsChannel = guild.channels.cache.get(
-			levelNotifications.channel
-		);
-		const LevelNotificationsToggle = levelNotifications.notifications;
+	if (LevelNotificationsToggle) {
+		if (LevelNotificationsChannel) {
+			// Bot permissions
+			const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+			const botPermissions = await permissionCheck(
+				LevelNotificationsChannel,
+				botPermissionsArry,
+				client
+			);
 
-		if (LevelNotificationsToggle) {
-			if (LevelNotificationsChannel) {
-				// Bot permissions
-				const botPermissionsArry = ['SendMessages', 'ViewChannel'];
-				const botPermissions = await permissionCheck(
-					LevelNotificationsChannel,
-					botPermissionsArry,
-					client
-				);
-
-				if (!botPermissions[0]) {
-					// delete database entry
-					await LevelNotificationsSchema.deleteOne({
-						guildId: guild.id,
-					}).catch((error) => console.log(error));
-					return;
-				}
-
-				await LevelNotificationsChannel.send({
-					embeds: [embed],
-				});
-			} else {
-				// Bot permissions
-				const botPermissionsArry = ['SendMessages', 'ViewChannel'];
-				const botPermissions = await permissionCheck(
-					channel,
-					botPermissionsArry,
-					client
-				);
-
-				if (!botPermissions[0]) {
-					// delete database entry
-					await LevelNotificationsSchema.deleteOne({
-						guildId: guild.id,
-					}).catch((error) => console.log(error));
-					return;
-				}
-
-				await channel.send({
-					embeds: [embed],
-				});
+			if (!botPermissions[0]) {
+				// delete database entry
+				await LevelNotificationsSchema.deleteOne({
+					guildId: guild.id,
+				}).catch((error) => console.log(error));
+				return;
 			}
+
+			await LevelNotificationsChannel.send({
+				embeds: [embed],
+			});
+		} else {
+			// Bot permissions
+			const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+			const botPermissions = await permissionCheck(
+				channel,
+				botPermissionsArry,
+				client
+			);
+
+			if (!botPermissions[0]) {
+				// delete database entry
+				await LevelNotificationsSchema.deleteOne({
+					guildId: guild.id,
+				}).catch((error) => console.log(error));
+				return;
+			}
+
+			await channel.send({
+				embeds: [embed],
+			});
 		}
 	}
 }

@@ -365,10 +365,8 @@ module.exports = {
 						.setColor(EmbedColour)
 						.setTitle(`${guild.name} | Tickets`)
 						.setDescription(
-							'Click the button below to create a ticket, This will create a channel for you to talk to staff in confidence.'
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
+							'Welcome to our ticket channel. If you would like to talk to a staff member for assistance, please click the button below.'
+						);
 
 					const LinkButton = new ActionRowBuilder().addComponents(
 						new ButtonBuilder()
