@@ -28,7 +28,6 @@ const VoiceLogs = require('../../models/GuildVoiceLogs.js');
 const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
 const MessageLogs = require('../../models/GuildMessageLogs.js');
 const GuildTicketsSetup = require('../../models/GuildTicketsSetup.js');
-const GuildPolls = require('../../models/GuildPolls.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -124,19 +123,6 @@ module.exports = {
 					option
 						.setName('admin-role')
 						.setDescription('Role so admins can see the tickets.')
-						.setRequired(true)
-				)
-		)
-
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('poll')
-				.setDescription('Setup a poll channel.')
-				.addChannelOption((option) =>
-					option
-						.setName('poll-channel')
-						.setDescription('Channel to send the poll embed.')
-						.addChannelTypes(ChannelType.GuildText)
 						.setRequired(true)
 				)
 		)
@@ -240,59 +226,6 @@ module.exports = {
 			await sleep(2000);
 
 			switch (options.getSubcommand()) {
-				case 'poll':
-					const pollChannel = options.getChannel('poll-channel');
-
-					if (pollChannel) {
-						// Bot permissions
-						const botPermissionsArry = ['SendMessages', 'ViewChannel'];
-						const botPermissions = await permissionCheck(
-							pollChannel,
-							botPermissionsArry,
-							client
-						);
-
-						if (!botPermissions[0])
-							return await sendEmbed(
-								interaction,
-								`Bot Missing Permissions: \`${botPermissions[1]}\` in ${messageLogsChannel}`
-							);
-
-						await GuildPolls.findOneAndUpdate(
-							{
-								guild: guild.id,
-							},
-							{
-								guild: guild.id,
-								channel: pollChannel.id,
-							},
-							{
-								upsert: true,
-							}
-						);
-
-						const SuccessEmbed = new EmbedBuilder()
-							.setColor(EmbedColour)
-							.setDescription('• Polls Setup Successfully •')
-							.addFields({
-								name: '• Channel •',
-								value: `${pollChannel}`,
-							})
-							.setTimestamp()
-							.setFooter({ text: FooterText, iconURL: FooterImage });
-						await interaction.editReply({ embeds: [SuccessEmbed] });
-					} else {
-						await MessageLogs.deleteOne({
-							guild: guild.id,
-						});
-
-						return await sendEmbed(
-							interaction,
-							'Message logs have been disabled'
-						);
-					}
-
-					break;
 				case 'tickets':
 					const ticketsChannel = options.getChannel('tickets-channel');
 					const openCategory = options.getChannel('tickets-category');
