@@ -102,7 +102,13 @@ module.exports = {
 					const rules = await guild.autoModerationRules.fetch();
 					const existingRule = rules.find((rule) => rule.triggerType === 4);
 					if (existingRule) {
-						await sendEmbed(interaction, 'This rule already exists');
+						await sendEmbed(
+							interaction,
+							'This rule already exists so rule has been removed'
+						);
+
+						// delete the rule
+						await existingRule.delete();
 						return;
 					}
 
