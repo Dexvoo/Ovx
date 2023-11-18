@@ -28,6 +28,8 @@ const VoiceLogs = require('../../models/GuildVoiceLogs.js');
 const JoinLeaveLogs = require('../../models/GuildJoinLeaveLogs.js');
 const MessageLogs = require('../../models/GuildMessageLogs.js');
 const GuildTicketsSetup = require('../../models/GuildTicketsSetup.js');
+const GuildSuggestionsChannels = require('../../models/GuildSuggestionChannels.js');
+const GuildPollChannels = require('../../models/GuildPollChannels.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -179,6 +181,34 @@ module.exports = {
 						.setDescription('Channel to send the channel logs in.')
 						.addChannelTypes(ChannelType.GuildText)
 						.setRequired(false)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('basics')
+				.setDescription('Basic setup for the guild.')
+				.addStringOption((option) =>
+					option
+						.setName('type')
+						.setDescription('What would you like to setup?')
+						.addChoices(
+							{
+								name: 'Suggestions',
+								value: 'suggestions',
+							},
+							{
+								name: 'Polls',
+								value: 'polls',
+							}
+						)
+						.setRequired(true)
+				)
+				.addChannelOption((option) =>
+					option
+						.setName('channel')
+						.setDescription('The target Channel')
+						.addChannelTypes(ChannelType.GuildText)
+						.setRequired(true)
 				)
 		),
 	/**
@@ -546,6 +576,91 @@ module.exports = {
 						.setFooter({ text: FooterText, iconURL: FooterImage });
 					await interaction.editReply({ embeds: [SuccessEmbed2] });
 					break;
+
+				case 'basics':
+					const basicsType = options.getString('type');
+					const basicsChannel = options.getChannel('channel');
+
+					switch (basicsType) {
+						case 'suggestions':
+							let guildConfiguration = await GuildSuggestionsChannels.findOne({
+								guildId: guild.id,
+							});
+
+							if (!guildConfiguration) {
+								guildConfiguration = await GuildSuggestionsChannels.create({
+									guildId: guild.id,
+								});
+							}
+
+							if (
+								guildConfiguration.suggestionChannelIds.includes(
+									basicsChannel.id
+								)
+							) {
+								// Remove channel from array
+								guildConfiguration.suggestionChannelIds.filter(
+									(channel) => channel !== basicsChannel.id
+								);
+								await guildConfiguration.save();
+
+								return await sendEmbed(
+									interaction,
+									`Removed ${basicsChannel} from suggestions channels`
+								);
+							}
+
+							guildConfiguration.suggestionChannelIds.push(basicsChannel.id);
+							await guildConfiguration.save();
+
+							await sendEmbed(
+								interaction,
+								`Added ${basicsChannel} to suggestions channels`
+							);
+
+							break;
+
+						case 'polls':
+							let guildPollConfiguration = await GuildPollChannels.findOne({
+								guildId: guild.id,
+							});
+
+							if (!guildPollConfiguration) {
+								guildPollConfiguration = await GuildPollChannels.create({
+									guildId: guild.id,
+								});
+							}
+
+							if (
+								guildPollConfiguration.pollChannelIds.includes(basicsChannel.id)
+							) {
+								// Remove channel from array
+								guildPollConfiguration.pollChannelIds.filter(
+									(channel) => channel !== basicsChannel.id
+								);
+								await guildPollConfiguration.save();
+
+								return await sendEmbed(
+									interaction,
+									`Removed ${basicsChannel} from poll channels`
+								);
+							}
+
+							guildPollConfiguration.pollChannelIds.push(basicsChannel.id);
+							await guildPollConfiguration.save();
+
+							await sendEmbed(
+								interaction,
+								`Added ${basicsChannel} to poll channels`
+							);
+
+							break;
+						default:
+							break;
+					}
+
+					break;
+
 				case 'logs':
 					const logsType = options.getString('type');
 					const logsToggle = options.getBoolean('logs-toggle');

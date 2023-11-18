@@ -14,8 +14,8 @@ const {
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
-const PollMessages = require('../../models/GuildPollMessages.js');
-const PollChannels = require('../../models/GuildPollChannels.js');
+const SuggestionMessages = require('../../models/GuildSuggestionMessages.js');
+const SuggestionChannels = require('../../models/GuildSuggestionChannels.js');
 const e = require('express');
 const formatResults = require('../../utils/formatSuggestionResults.js');
 const {
@@ -31,8 +31,8 @@ require('dotenv').config();
 module.exports = {
 	cooldown: 5,
 	data: new SlashCommandBuilder()
-		.setName('poll')
-		.setDescription('Create a poll.')
+		.setName('suggest')
+		.setDescription('Create a suggestion.')
 		.setDMPermission(false),
 
 	/**
@@ -48,38 +48,32 @@ module.exports = {
 			// Checking if the user is in a guild
 			if (!(await guildCheck(guild))) return;
 
-			// User permissions
-			const userPermissionsArry = ['ManagesMessages'];
-			const userPermissions = await permissionCheck(
-				interaction,
-				userPermissionsArry,
-				member
-			);
-
-			if (!userPermissions[0])
-				return await sendEmbed(
-					interaction,
-					`User Missing Permissions: \`${userPermissions[1]}\``
-				);
-
 			// Variables
-			const guildConfiguration = await PollChannels.findOne({
+			const guildConfiguration = await SuggestionChannels.findOne({
 				guildId: guild.id,
 			});
 
-			if (!guildConfiguration?.pollChannelIds.length) {
+			if (!guildConfiguration) {
 				await sendEmbed(
 					interaction,
-					'This server does not have a poll channel set up. Please ask a admin to run the command /setup basics poll'
+					'This server does not have a suggestion channel set up. Please ask a admin to run the command /setup basics suggestions'
 				);
 				return;
 			}
 
-			if (!guildConfiguration.pollChannelIds.includes(channel.id)) {
+			if (!guildConfiguration.suggestionChannelIds.length) {
 				await sendEmbed(
 					interaction,
-					'This channel is not a poll channel. Please try one of these channels: ' +
-						guildConfiguration.pollChannelIds
+					'This server does not have a suggestion channel set up. Please ask a admin to run the command /setup basics suggestions'
+				);
+				return;
+			}
+
+			if (!guildConfiguration.suggestionChannelIds.includes(channel.id)) {
+				await sendEmbed(
+					interaction,
+					'This channel is not a suggestion channel. Please try one of these channels: ' +
+						guildConfiguration.suggestionChannelIds
 							.map((channelId) => `<#${channelId}>`)
 							.join(', ')
 				);
@@ -87,12 +81,12 @@ module.exports = {
 			}
 
 			const modal = new ModalBuilder()
-				.setTitle('Create A Poll')
-				.setCustomId(`poll-${user.id}`);
+				.setTitle('Create A Suggestion')
+				.setCustomId(`suggestion-${user.id}`);
 
 			const textInput = new TextInputBuilder()
-				.setCustomId('poll-input')
-				.setLabel('Infomration to start a poll')
+				.setCustomId('suggestion-input')
+				.setLabel('What would you like to suggest?')
 				.setStyle(TextInputStyle.Paragraph)
 				.setRequired(true)
 				.setMaxLength(1000);
@@ -104,19 +98,19 @@ module.exports = {
 			await interaction.showModal(modal, actionRow);
 			// below will only run if the user submits the modal
 
-			const filter = (i) => i.customId === `poll-${user.id}`;
+			const filter = (i) => i.customId === `suggestion-${user.id}`;
 			const modalInteraction = await interaction
 				.awaitModalSubmit({
 					filter,
 					time: 1000 * 60 * 5,
 				})
 				.catch((error) => {
-					console.log(`Poll Has Expired: ${error}`);
+					console.log(`Suggestion Has Expired: ${error}`);
 				});
 
 			if (!modalInteraction) {
 				await interaction.followUp({
-					content: 'Poll has expired.',
+					content: 'Suggestion has expired.',
 					ephemeral: true,
 				});
 				return;
@@ -124,51 +118,58 @@ module.exports = {
 
 			await modalInteraction.deferReply({ ephemeral: true });
 
-			let PollMessage;
+			let SuggestionMessage;
 
 			try {
-				PollMessage = await channel.send('Creating poll, Please wait...');
+				SuggestionMessage = await channel.send(
+					'Creating suggestion, Please wait...'
+				);
 			} catch (error) {
 				modalInteraction.editReply(
-					'There was an error creating your poll, I may not have enough permissions.'
+					'There was an error creating your suggestion, I may not have enough permissions.'
 				);
 				return;
 			}
 
 			// get suggestion text from modal reply
-			const pollText = modalInteraction.fields.getTextInputValue('poll-input');
+			const suggestionText =
+				modalInteraction.fields.getTextInputValue('suggestion-input');
 
-			const newPoll = new PollMessages({
+			const newSuggestion = new SuggestionMessages({
 				authorId: user.id,
 				guildId: guild.id,
-				messageId: PollMessage.id,
-				content: pollText,
+				messageId: SuggestionMessage.id,
+				content: suggestionText,
 			});
 
-			await newPoll.save();
+			await newSuggestion.save();
 
-			modalInteraction.editReply('Poll Created!');
+			modalInteraction.editReply('Suggestion Created!');
 
 			// Suggestion Embed
 
-			const pollEmbed = new EmbedBuilder()
+			const suggestionEmbed = new EmbedBuilder()
 				.setAuthor({
 					name: `@${user.username}`,
 					iconURL: user.displayAvatarURL({ size: 256 }),
 				})
 				.addFields(
 					{
-						name: 'Poll',
-						value: pollText,
+						name: 'Suggestion',
+						value: suggestionText,
+					},
+					{
+						name: 'Status',
+						value: 'Pending',
 					},
 					{
 						name: 'Created',
-						value: `<t:${Math.floor(newPoll.createdAt / 1000)}:R>`,
+						value: `<t:${Math.floor(newSuggestion.createdAt / 1000)}:R>`,
 						inline: true,
 					},
 					{
 						name: 'Last Updated',
-						value: `<t:${Math.floor(newPoll.updatedAt / 1000)}:R>`,
+						value: `<t:${Math.floor(newSuggestion.updatedAt / 1000)}:R>`,
 						inline: true,
 					},
 					{
@@ -176,7 +177,7 @@ module.exports = {
 						value: formatResults(),
 					}
 				)
-				.setColor(EmbedColour);
+				.setColor('Yellow');
 
 			// Buttons
 
@@ -184,13 +185,25 @@ module.exports = {
 				.setEmoji('👍')
 				.setLabel('Upvote')
 				.setStyle(ButtonStyle.Primary)
-				.setCustomId(`poll.${newPoll.pollId}.upvote`);
+				.setCustomId(`suggestion.${newSuggestion.suggestionId}.upvote`);
 
 			const downvoteButton = new ButtonBuilder()
 				.setEmoji('👎')
 				.setLabel('Downvote')
 				.setStyle(ButtonStyle.Primary)
-				.setCustomId(`poll.${newPoll.pollId}.downvote`);
+				.setCustomId(`suggestion.${newSuggestion.suggestionId}.downvote`);
+
+			const approveButton = new ButtonBuilder()
+				.setEmoji('✅')
+				.setLabel('Approve')
+				.setStyle(ButtonStyle.Success)
+				.setCustomId(`suggestion.${newSuggestion.suggestionId}.approve`);
+
+			const denyButton = new ButtonBuilder()
+				.setEmoji('❌')
+				.setLabel('Deny')
+				.setStyle(ButtonStyle.Danger)
+				.setCustomId(`suggestion.${newSuggestion.suggestionId}.deny`);
 
 			// Rows
 
@@ -198,11 +211,15 @@ module.exports = {
 				upvoteButton,
 				downvoteButton
 			);
+			const secondRow = new ActionRowBuilder().addComponents(
+				approveButton,
+				denyButton
+			);
 
-			PollMessage.edit({
+			SuggestionMessage.edit({
 				content: '',
-				embeds: [pollEmbed],
-				components: [firstRow],
+				embeds: [suggestionEmbed],
+				components: [firstRow, secondRow],
 			});
 		} catch (error) {
 			console.log(error);
