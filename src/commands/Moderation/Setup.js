@@ -16,7 +16,13 @@ const {
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
-const { FooterText, FooterImage, EmbedColour, SteamAPIKey } = process.env;
+const {
+	FooterText,
+	FooterImage,
+	EmbedColour,
+	DeveloperGuildID,
+	PremiumUserRoleID,
+} = process.env;
 const welcomeMessagesSchema = require('../../models/WelcomeMessages.js');
 const levelNotificationsSchema = require('../../models/LevelNotifications.js');
 // const inviteTrackerSchema = require('../../models/InviteTracker.js');
@@ -30,6 +36,7 @@ const MessageLogs = require('../../models/GuildMessageLogs.js');
 const GuildTicketsSetup = require('../../models/GuildTicketsSetup.js');
 const GuildSuggestionsChannels = require('../../models/GuildSuggestionChannels.js');
 const GuildPollChannels = require('../../models/GuildPollChannels.js');
+const GuildLevelRewards = require('../../models/GuildLevelRewards.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -67,6 +74,39 @@ module.exports = {
 					option
 						.setName('welcome-messages-message')
 						.setDescription('The message you would like to send.')
+						.setRequired(false)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('level-rewards')
+				.setDescription('Setup level rewards for the guild.')
+				.addStringOption((option) =>
+					option
+						.setName('type')
+						.setDescription('Add or remove a level reward.')
+						.addChoices(
+							{
+								name: 'Add',
+								value: 'add',
+							},
+							{
+								name: 'Remove',
+								value: 'remove',
+							}
+						)
+						.setRequired(true)
+				)
+				.addRoleOption((option) =>
+					option
+						.setName('role')
+						.setDescription('Role to give when a user reaches a level.')
+						.setRequired(true)
+				)
+				.addIntegerOption((option) =>
+					option
+						.setName('level')
+						.setDescription('Level to give the role at.')
 						.setRequired(false)
 				)
 		)
@@ -256,6 +296,125 @@ module.exports = {
 			await sleep(2000);
 
 			switch (options.getSubcommand()) {
+				case 'level-rewards':
+					const levelRewardsRole = options.getRole('role');
+					const levelRewardsLevel = options.getInteger('level');
+					const levelRewardsType = options.getString('type');
+
+					const premiumRole = client.guilds.cache
+						.get(DeveloperGuildID)
+						.roles.cache.get(PremiumUserRoleID);
+
+					const hasPremiumRole = premiumRole.members.has(user.id)
+						? true
+						: false;
+
+					if (levelRewardsType === 'remove') {
+						const data = await GuildLevelRewards.findOne({
+							guildId: guild.id,
+						});
+
+						if (!data)
+							return await sendEmbed(
+								interaction,
+								'There are no level rewards setup for this guild'
+							);
+
+						if (levelRewardsRole) {
+							if (!data.rewards.some((r) => r.role === levelRewardsRole.id)) {
+								return await sendEmbed(
+									interaction,
+									'There are no level rewards setup for this role'
+								);
+							}
+							data.rewards = data.rewards.filter(
+								(r) => r.role !== levelRewardsRole.id
+							);
+						}
+
+						await data.save().catch((error) => console.log(error));
+
+						return await sendEmbed(
+							interaction,
+							`Removed ${levelRewardsRole} from the level rewards`
+						);
+					}
+
+					if (!levelRewardsLevel) {
+						return await sendEmbed(
+							interaction,
+							'Please provide a level between 1 and 100'
+						);
+					}
+
+					if (levelRewardsLevel < 1 || levelRewardsLevel > 100)
+						return await sendEmbed(
+							interaction,
+							'Please provide a level between 1 and 100'
+						);
+
+					const data = await GuildLevelRewards.findOne({
+						guildId: guild.id,
+					});
+
+					if (data) {
+						if (data.rewards.length >= 5 && !hasPremiumRole)
+							return await sendEmbed(
+								interaction,
+								'You can only have 5 level rewards, please remove one to add another or consider becoming a premium user to get double the amount of levels rewards'
+							);
+
+						if (data.rewards.length >= 10 && hasPremiumRole)
+							return await sendEmbed(
+								interaction,
+								'You can have 10 level rewards with user premium, please remove one to add another'
+							);
+
+						if (data.rewards.some((r) => r.level === levelRewardsLevel))
+							return await sendEmbed(
+								interaction,
+								`You already have a level reward for the level : ${levelRewardsLevel}`
+							);
+
+						if (data.rewards.some((r) => r.role === levelRewardsRole.id))
+							return await sendEmbed(
+								interaction,
+								`You already have a level reward for the role : ${levelRewardsRole}`
+							);
+					}
+
+					// Check if role is above the bot
+					if (
+						levelRewardsRole.position >= guild.members.me.roles.highest.position
+					)
+						return await sendEmbed(
+							interaction,
+							'Bot Missing Permissions: `RoleHierarchy`'
+						);
+
+					if (!data) {
+						await GuildLevelRewards.create({
+							guildId: guild.id,
+							rewards: [
+								{
+									role: levelRewardsRole.id,
+									level: levelRewardsLevel,
+								},
+							],
+						}).catch((error) => console.log(error));
+					} else {
+						data.rewards.push({
+							role: levelRewardsRole.id,
+							level: levelRewardsLevel,
+						});
+						await data.save().catch((error) => console.log(error));
+					}
+
+					return await sendEmbed(
+						interaction,
+						`Added ${levelRewardsRole} to the level rewards for level ${levelRewardsLevel}`
+					);
+
 				case 'tickets':
 					const ticketsChannel = options.getChannel('tickets-channel');
 					const openCategory = options.getChannel('tickets-category');
