@@ -12,6 +12,9 @@ const {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
+	RoleSelectMenuBuilder,
+	StringSelectMenuBuilder,
+	StringSelectMenuOptionBuilder,
 } = require('discord.js');
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
@@ -37,6 +40,7 @@ const GuildTicketsSetup = require('../../models/GuildTicketsSetup.js');
 const GuildSuggestionsChannels = require('../../models/GuildSuggestionChannels.js');
 const GuildPollChannels = require('../../models/GuildPollChannels.js');
 const GuildLevelRewards = require('../../models/GuildLevelRewards.js');
+const GuildSelectRoles = require('../../models/GuildSelectRoles.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -107,6 +111,51 @@ module.exports = {
 					option
 						.setName('level')
 						.setDescription('Level to give the role at.')
+						.setRequired(false)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('select-role')
+				.setDescription('Setup select roles for the guild.')
+				.addStringOption((option) =>
+					option
+						.setName('type')
+						.setDescription('Add or remove a role.')
+						.addChoices(
+							{
+								name: 'Add',
+								value: 'add',
+							},
+							{
+								name: 'Remove',
+								value: 'remove',
+							}
+						)
+						.setRequired(true)
+				)
+				.addRoleOption((option) =>
+					option
+						.setName('role')
+						.setDescription('Role to give when a user reaches a level.')
+						.setRequired(true)
+				)
+				.addStringOption((option) =>
+					option
+						.setName('description')
+						.setDescription('Description of the role.')
+						.setRequired(true)
+				)
+				.addStringOption((option) =>
+					option
+						.setName('emoji')
+						.setDescription('Emoji to give the role at.')
+						.setRequired(true)
+				)
+				.addStringOption((option) =>
+					option
+						.setName('messageid')
+						.setDescription('Message ID of the select role message.')
 						.setRequired(false)
 				)
 		)
@@ -296,6 +345,335 @@ module.exports = {
 			await sleep(2000);
 
 			switch (options.getSubcommand()) {
+				case 'select-role':
+					const selectRoleType = options.getString('type');
+					const selectRoleRole = options.getRole('role');
+					const selectRoleDescription = options.getString('description');
+					const selectRoleEmoji = options.getString('emoji');
+					const selectRoleMessageID = options.getString('messageid');
+					var selectRoleMessage;
+					if (selectRoleMessageID) {
+						// search for message
+						selectRoleMessage =
+							await channel.messages.fetch(selectRoleMessageID);
+						if (!selectRoleMessage)
+							return await sendEmbed(
+								interaction,
+								'Please provide a valid message id'
+							);
+					}
+
+					switch (selectRoleType) {
+						case 'add':
+							console.log('running');
+							if (!selectRoleMessageID) {
+								// get guild data
+								const guildData = await GuildSelectRoles.find({
+									guildId: guild.id,
+								});
+
+								// premium check
+								const premiumRole = client.guilds.cache
+									.get(DeveloperGuildID)
+									.roles.cache.get(PremiumUserRoleID);
+
+								const hasPremiumRole = premiumRole.members.has(user.id)
+									? true
+									: false;
+
+								if (!hasPremiumRole && guildData && guildData.length !== 0) {
+									console.log('NO GUILD DATA');
+									// check if the guild has a select menu in the guild
+									const targetChannel = guild.channels.cache.get(
+										guildData[0].channelId
+									);
+
+									console.log(targetChannel.name);
+
+									if (!targetChannel) {
+										// delete old from database
+										console.log('Channel check failed');
+										await GuildSelectRoles.findOneAndDelete({
+											guildId: guild.id,
+											channelId: guildData[0].channelId,
+										});
+									}
+
+									// get message in channel
+									const targetMessage =
+										targetChannel.messages.cache.get(guildData[0].messageId) ||
+										(await targetChannel.messages
+											.fetch(guildData[0].messageId)
+											.catch(async (error) => {}));
+
+									if (!targetMessage) {
+										// delete old from database
+										console.log('Message check failed');
+										await GuildSelectRoles.findOneAndDelete({
+											guildId: guild.id,
+											messageId: guildData[0].messageId,
+										});
+										await sendEmbed(
+											interaction,
+											'Old Select Menu Deleted, you can now setup a new one'
+										);
+										return;
+									}
+
+									if (guildData.length >= 1)
+										return await sendEmbed(
+											interaction,
+											`You can only have 1 select menus per guild, if you would like more consider becoming a premium user! if you would like to create a new one you can delete your old one to start again [Jump to message](https://discord.com/channels/${guild.id}/${guildData[0].channelId}/${guildData[0].messageId})`
+										);
+
+									if (
+										guildData.some((r) => r.messageId === selectRoleMessageID)
+									)
+										return await sendEmbed(
+											interaction,
+											'There is already a select menu setup for this message'
+										);
+								}
+
+								console.log('aaaaaaaaaaaaaaaaaaaaa');
+
+								// send message
+								selectRoleMessage = await channel
+									.send({
+										content: selectRoleDescription,
+										embeds: [
+											new EmbedBuilder()
+												.setColor(EmbedColour)
+												.setDescription(
+													`Starting the setup for the select role ${selectRoleRole}`
+												),
+										],
+									})
+									.catch(async (error) => {
+										console.log(error);
+										return await sendEmbed(
+											interaction,
+											'Please provide a valid message id | i cannot send messages in this channel'
+										);
+									});
+
+								if (!selectRoleMessage)
+									return await sendEmbed(interaction, 'something went wrong');
+
+								console.log('sssssssssssss');
+
+								// add message to database
+								await GuildSelectRoles.create({
+									guildId: guild.id,
+									messageId: selectRoleMessage.id,
+									channelId: channel.id,
+									data: [
+										{
+											roleId: selectRoleRole.id,
+											roleName: selectRoleRole.name,
+											roleDescription: selectRoleDescription,
+											roleEmoji: selectRoleEmoji,
+										},
+									],
+								}).catch((error) => console.log(error));
+
+								// role select menu
+								const roleMenu = new StringSelectMenuBuilder()
+									.setCustomId(`select-role.${selectRoleMessage.id}`)
+									.setPlaceholder('Select a role')
+									.addOptions([
+										{
+											label: selectRoleRole.name,
+											value: selectRoleRole.id,
+											description: selectRoleDescription,
+											emoji: selectRoleEmoji,
+										},
+									]);
+
+								const actionRow = new ActionRowBuilder().addComponents(
+									roleMenu
+								);
+
+								await selectRoleMessage.edit({
+									content: '',
+									components: [actionRow],
+								});
+
+								return await sendEmbed(
+									interaction,
+									`Added ${selectRoleRole} to the select menu`
+								);
+							} else {
+								// get data from database
+								const data = await GuildSelectRoles.findOne({
+									messageId: selectRoleMessageID,
+								});
+
+								if (!data)
+									return await sendEmbed(
+										interaction,
+										'Please provide a valid message id'
+									);
+
+								console.log(data);
+
+								if (data.data.length >= 25)
+									return await sendEmbed(
+										interaction,
+										'You can only have 25 roles in a select menu'
+									);
+
+								if (data.data.some((r) => r.roleId === selectRoleRole.id))
+									return await sendEmbed(
+										interaction,
+										'This role is already in the select menu'
+									);
+
+								// add role to database
+								data.data.push({
+									roleId: selectRoleRole.id,
+									roleName: selectRoleRole.name,
+									roleDescription: selectRoleDescription,
+									roleEmoji: selectRoleEmoji,
+								});
+
+								await data.save().catch((error) => console.log(error));
+
+								const selectRoleMenu = new StringSelectMenuBuilder()
+									.setCustomId(`select-role.${selectRoleMessage.id}`)
+									.setPlaceholder('Select a role')
+									.setMaxValues(data.data.length)
+									.setMinValues(0)
+									.addOptions(
+										data.data.map((r) => {
+											return {
+												label: r.roleName,
+												value: r.roleId,
+												description: r.roleDescription,
+												emoji: r.roleEmoji,
+											};
+										})
+									);
+
+								const actionRow = new ActionRowBuilder().addComponents(
+									selectRoleMenu
+								);
+
+								await selectRoleMessage.edit({
+									embeds: [
+										new EmbedBuilder()
+											.setColor(EmbedColour)
+											.setDescription(
+												`Selectable Roles: \`${data.data.length}\` | Max Roles: \`25\``
+											),
+									],
+									components: [actionRow],
+								});
+
+								return await sendEmbed(
+									interaction,
+									`Added ${selectRoleRole} to the select menu`
+								);
+							}
+							break;
+						case 'remove':
+							if (!selectRoleMessageID) {
+								return await sendEmbed(
+									interaction,
+									'Please provide a message id'
+								);
+							}
+
+							// get data from database
+							const data = await GuildSelectRoles.findOne({
+								messageId: selectRoleMessageID,
+							});
+
+							if (!data)
+								return await sendEmbed(
+									interaction,
+									'Please provide a valid message id'
+								);
+
+							console.log(data);
+
+							if (data.data.length >= 25)
+								return await sendEmbed(
+									interaction,
+									'You can only have 25 roles in a select menu'
+								);
+
+							if (data.data.some((r) => r.roleId !== selectRoleRole.id)) {
+								// delete old message
+								await selectRoleMessage.delete();
+
+								return await sendEmbed(
+									interaction,
+									'This role is not in the select menu'
+								);
+							}
+
+							// remove role from database
+							data.data = data.data.filter(
+								(r) => r.roleId !== selectRoleRole.id
+							);
+
+							await data.save().catch((error) => console.log(error));
+
+							if (data.data.length === 0) {
+								await GuildSelectRoles.findOneAndDelete({
+									messageId: selectRoleMessageID,
+								});
+
+								return await sendEmbed(
+									interaction,
+									'There are no roles left in the select menu'
+								);
+							}
+
+							const selectRoleMenu = new StringSelectMenuBuilder()
+								.setCustomId('select-role')
+								.setPlaceholder('Select a role')
+								.addOptions(
+									data.data.map((r) => {
+										return {
+											label: r.roleName,
+											value: r.roleId,
+											description: r.roleDescription,
+											emoji: r.roleEmoji,
+										};
+									})
+								);
+
+							const actionRow = new ActionRowBuilder().addComponents(
+								selectRoleMenu
+							);
+
+							await selectRoleMessage.edit({
+								embeds: [
+									new EmbedBuilder()
+										.setColor(EmbedColour)
+										.setDescription(
+											`Selectable Roles: \`${data.data.length}\` | Max Roles: \`25\``
+										),
+								],
+								components: [actionRow],
+							});
+
+							return await sendEmbed(
+								interaction,
+								`Added ${selectRoleRole} to the select menu`
+							);
+
+							break;
+						default:
+							return await sendEmbed(
+								interaction,
+								'Please provide a valid type'
+							);
+					}
+					break;
+
 				case 'level-rewards':
 					const levelRewardsRole = options.getRole('role');
 					const levelRewardsLevel = options.getInteger('level');

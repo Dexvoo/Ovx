@@ -30,7 +30,7 @@ module.exports = {
 
 		// Variables
 		var randomXP = getRandomXP(5, 15);
-		if (author.id == '387341502134878218') randomXP = getRandomXP(100, 300);
+		// if (author.id == '387341502134878218') randomXP = getRandomXP(100, 300);
 		const query = { guildId: guild.id, userId: author.id };
 
 		try {
@@ -69,7 +69,7 @@ module.exports = {
 				await level.save().catch((err) => {
 					console.log(err);
 				});
-				if (author.id == '387341502134878218') return;
+				// if (author.id == '387341502134878218') return;
 				cooldowns.add(author.id);
 				setTimeout(() => {
 					cooldowns.delete(author.id);
