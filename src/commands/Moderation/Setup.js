@@ -134,6 +134,12 @@ module.exports = {
 						)
 						.setRequired(true)
 				)
+				.addStringOption((option) =>
+					option
+						.setName('title')
+						.setDescription('Title of the select role message.')
+						.setRequired(true)
+				)
 				.addRoleOption((option) =>
 					option
 						.setName('role')
@@ -351,6 +357,8 @@ module.exports = {
 					const selectRoleDescription = options.getString('description');
 					const selectRoleEmoji = options.getString('emoji');
 					const selectRoleMessageID = options.getString('messageid');
+					const selectRoleTitle = options.getString('title');
+
 					var selectRoleMessage;
 					if (selectRoleMessageID) {
 						// search for message
@@ -365,7 +373,6 @@ module.exports = {
 
 					switch (selectRoleType) {
 						case 'add':
-							console.log('running');
 							if (!selectRoleMessageID) {
 								// get guild data
 								const guildData = await GuildSelectRoles.find({
@@ -381,72 +388,66 @@ module.exports = {
 									? true
 									: false;
 
-								if (!hasPremiumRole && guildData && guildData.length !== 0) {
-									console.log('NO GUILD DATA');
+								if (guildData?.length !== 0) {
 									// check if the guild has a select menu in the guild
-									const targetChannel = guild.channels.cache.get(
-										guildData[0].channelId
-									);
 
-									console.log(targetChannel.name);
+									// loop through guild data
+									for (var i = 0; i < guildData.length; i++) {
+										// get channel
+										const targetChannel =
+											guild.channels.cache.get(guildData[i].channelId) ||
+											(await guild.channels
+												.fetch(guildData[i].channelId)
+												.catch(async (error) => {}));
 
-									if (!targetChannel) {
-										// delete old from database
-										console.log('Channel check failed');
-										await GuildSelectRoles.findOneAndDelete({
-											guildId: guild.id,
-											channelId: guildData[0].channelId,
-										});
+										if (!targetChannel) {
+											// delete old from database
+											console.log('Channel check failed');
+											await GuildSelectRoles.findOneAndDelete({
+												guildId: guild.id,
+												channelId: guildData[i].channelId,
+											});
+										}
+
+										// get message in channel
+										const targetMessage =
+											targetChannel.messages.cache.get(
+												guildData[i].messageId
+											) ||
+											(await targetChannel.messages
+												.fetch(guildData[i].messageId)
+												.catch(async (error) => {}));
+
+										if (!targetMessage) {
+											// delete old from database
+											console.log('Message check failed');
+											await GuildSelectRoles.findOneAndDelete({
+												guildId: guild.id,
+												messageId: guildData[i].messageId,
+											});
+											await sendEmbed(
+												interaction,
+												`Old Select Menu ${
+													i + 1
+												} was not found, it has been removed from the database`
+											);
+										}
 									}
-
-									// get message in channel
-									const targetMessage =
-										targetChannel.messages.cache.get(guildData[0].messageId) ||
-										(await targetChannel.messages
-											.fetch(guildData[0].messageId)
-											.catch(async (error) => {}));
-
-									if (!targetMessage) {
-										// delete old from database
-										console.log('Message check failed');
-										await GuildSelectRoles.findOneAndDelete({
-											guildId: guild.id,
-											messageId: guildData[0].messageId,
-										});
-										await sendEmbed(
-											interaction,
-											'Old Select Menu Deleted, you can now setup a new one'
-										);
-										return;
-									}
-
-									if (guildData.length >= 1)
-										return await sendEmbed(
-											interaction,
-											`You can only have 1 select menus per guild, if you would like more consider becoming a premium user! if you would like to create a new one you can delete your old one to start again [Jump to message](https://discord.com/channels/${guild.id}/${guildData[0].channelId}/${guildData[0].messageId})`
-										);
-
-									if (
-										guildData.some((r) => r.messageId === selectRoleMessageID)
-									)
-										return await sendEmbed(
-											interaction,
-											'There is already a select menu setup for this message'
-										);
 								}
 
-								console.log('aaaaaaaaaaaaaaaaaaaaa');
+								if (guildData.length >= 1 && !hasPremiumRole)
+									return await sendEmbed(
+										interaction,
+										`You can only have 1 select menu per guild, if you would like more consider becoming a premium user! if you would like to create a new one you can delete your old one to start again [Jump to message](https://discord.com/channels/${guild.id}/${guildData[0].channelId}/${guildData[0].messageId})`
+									);
 
 								// send message
 								selectRoleMessage = await channel
 									.send({
-										content: selectRoleDescription,
 										embeds: [
 											new EmbedBuilder()
 												.setColor(EmbedColour)
-												.setDescription(
-													`Starting the setup for the select role ${selectRoleRole}`
-												),
+												.setDescription(`**${selectRoleTitle}**`),
 										],
 									})
 									.catch(async (error) => {
@@ -459,8 +460,6 @@ module.exports = {
 
 								if (!selectRoleMessage)
 									return await sendEmbed(interaction, 'something went wrong');
-
-								console.log('sssssssssssss');
 
 								// add message to database
 								await GuildSelectRoles.create({
@@ -560,13 +559,6 @@ module.exports = {
 								);
 
 								await selectRoleMessage.edit({
-									embeds: [
-										new EmbedBuilder()
-											.setColor(EmbedColour)
-											.setDescription(
-												`Selectable Roles: \`${data.data.length}\` | Max Roles: \`25\``
-											),
-									],
 									components: [actionRow],
 								});
 

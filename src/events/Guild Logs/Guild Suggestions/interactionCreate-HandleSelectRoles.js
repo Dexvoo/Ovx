@@ -71,19 +71,48 @@ module.exports = {
 			}
 
 			const values = interaction.values;
-			console.log(interaction);
 
-			await member.roles.add(values).catch((error) => {
-				console.log('Couldnt Add Role');
-				return;
-			});
+			var addedOrRemoved;
+			var addedRoles = [];
+			var removedRoles = [];
 
-			const currentTime = `<t:${Math.floor(Date.now() / 1000)}:R>`;
+			for (const value of values) {
+				const role =
+					guild.roles.cache.get(value) || (await guild.roles.fetch(value));
 
-			interaction.editReply({
-				content: 'Roles Added',
-				ephemeral: true,
-			});
+				if (!role) {
+					continue;
+				}
+
+				if (member.roles.cache.has(role.id)) {
+					await member.roles.remove(role.id);
+					addedOrRemoved = 'Removed';
+					removedRoles.push(`<@&${role.id}>`);
+				} else {
+					await member.roles.add(role.id);
+					addedOrRemoved = 'Added';
+					addedRoles.push(`<@&${role.id}>`);
+				}
+			}
+
+			const Embed = new EmbedBuilder()
+				.setColor(EmbedColour)
+				.addFields(
+					{
+						name: `Added Roles`,
+						value: `${addedRoles.join(', ') || 'None'}`,
+						inline: true,
+					},
+					{
+						name: `Removed Roles`,
+						value: `${removedRoles.join(', ') || 'None'}`,
+						inline: true,
+					}
+				)
+				.setTimestamp()
+				.setFooter({ text: FooterText, iconURL: FooterImage });
+
+			await interaction.editReply({ embeds: [Embed] });
 		} catch (error) {
 			console.log(error);
 		}
