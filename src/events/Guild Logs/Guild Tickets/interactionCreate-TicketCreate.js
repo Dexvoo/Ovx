@@ -83,7 +83,7 @@ module.exports = {
 				.setDescription(`• You already have a ticket open •`)
 				.setTimestamp()
 				.setFooter({ text: FooterText, iconURL: FooterImage });
-			interaction.reply({ embeds: [Embed], ephemeral: true });
+			interaction.editReply({ embeds: [Embed], ephemeral: true });
 			return;
 		}
 

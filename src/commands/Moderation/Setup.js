@@ -448,7 +448,7 @@ module.exports = {
 											new EmbedBuilder()
 												.setColor(EmbedColour)
 												.setDescription(`**${selectRoleTitle}**`),
-										],
+										],	
 									})
 									.catch(async (error) => {
 										console.log(error);
