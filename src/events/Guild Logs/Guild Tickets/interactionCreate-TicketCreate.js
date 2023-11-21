@@ -71,20 +71,44 @@ module.exports = {
 		}
 
 		// see if user already has a ticket open
-		const userTicket = await ticketSchema.findOne({
+		const userTicket = await ticketSchema.find({
 			guildid: guild.id,
 			memberid: member.id,
 			closed: false,
 		});
 
 		if (userTicket) {
-			const Embed = new EmbedBuilder()
-				.setColor(EmbedColour)
-				.setDescription(`• You already have a ticket open •`)
-				.setTimestamp()
-				.setFooter({ text: FooterText, iconURL: FooterImage });
-			interaction.editReply({ embeds: [Embed], ephemeral: true });
-			return;
+			if (userTicket?.length !== 0) {
+				for (var i = 0; i < userTicket.length; i++) {
+					const ticket = userTicket[i];
+					const channel = guild.channels.cache.get(ticket.channelid);
+
+					if (!channel) {
+						console.log('channel not found');
+						await ticketSchema.findOneAndDelete({
+							guildid: guild.id,
+							memberid: member.id,
+							ticketid: ticket.ticketid,
+							channelid: ticket.channelid,
+							closed: false,
+						});
+						continue;
+					}
+				}
+			}
+
+			if (userTicket.length >= 1) {
+				const embed = new EmbedBuilder()
+					.setColor(EmbedColour)
+					.setDescription(
+						`• You already have a ticket open, please close that one first •`
+					)
+					.setTimestamp()
+					.setFooter({ text: FooterText, iconURL: FooterImage });
+
+				await interaction.editReply({ embeds: [embed], ephemeral: true });
+				return;
+			}
 		}
 
 		// get @ everyone role
