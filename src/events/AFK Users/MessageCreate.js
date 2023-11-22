@@ -51,7 +51,6 @@ module.exports = {
 			// );
 			if (isMentionedUserAFK) {
 				const embed = new EmbedBuilder()
-					.setTitle('AFK')
 					.setDescription(`<@${mentionedUser.id}> is currently afk.`)
 					.setColor(EmbedColour)
 					.setTimestamp()

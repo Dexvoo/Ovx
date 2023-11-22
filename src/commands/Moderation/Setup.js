@@ -41,6 +41,7 @@ const GuildSuggestionsChannels = require('../../models/GuildSuggestionChannels.j
 const GuildPollChannels = require('../../models/GuildPollChannels.js');
 const GuildLevelRewards = require('../../models/GuildLevelRewards.js');
 const GuildSelectRoles = require('../../models/GuildSelectRoles.js');
+const GuildInviteDetection = require('../../models/GuildInviteDetection.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -81,6 +82,18 @@ module.exports = {
 						.setRequired(false)
 				)
 		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('invite-detection')
+				.setDescription('Setup invite detection for the guild.')
+				.addBooleanOption((option) =>
+					option
+						.setName('invite-detection-toggle')
+						.setDescription('Toggle the invite detection.')
+						.setRequired(true)
+				)
+		)
+
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('level-rewards')
@@ -351,6 +364,49 @@ module.exports = {
 			await sleep(2000);
 
 			switch (options.getSubcommand()) {
+				case 'invite-detection':
+					const inviteDetectionToggle = options.getBoolean(
+						'invite-detection-toggle'
+					);
+
+					const inviteDetectionData = await GuildInviteDetection.findOne({
+						guildId: guild.id,
+					});
+					if (inviteDetectionToggle) {
+						if (inviteDetectionData) {
+							return await sendEmbed(
+								interaction,
+								'Invite Detection is already enabled'
+							);
+						}
+
+						await GuildInviteDetection.create({
+							guildId: guild.id,
+						});
+
+						return await sendEmbed(
+							interaction,
+							'Invite Detection has been enabled'
+						);
+					} else {
+						if (!inviteDetectionData) {
+							return await sendEmbed(
+								interaction,
+								'Invite Detection is already disabled'
+							);
+						}
+
+						await GuildInviteDetection.findOneAndDelete({
+							guildId: guild.id,
+						});
+
+						return await sendEmbed(
+							interaction,
+							'Invite Detection has been disabled'
+						);
+					}
+
+					break;
 				case 'select-role':
 					const selectRoleType = options.getString('type');
 					const selectRoleRole = options.getRole('role');
@@ -448,7 +504,7 @@ module.exports = {
 											new EmbedBuilder()
 												.setColor(EmbedColour)
 												.setDescription(`**${selectRoleTitle}**`),
-										],	
+										],
 									})
 									.catch(async (error) => {
 										console.log(error);

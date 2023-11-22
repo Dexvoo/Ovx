@@ -16,10 +16,13 @@ const {
 	FooterText,
 	SuccessEmoji,
 	ErrorEmoji,
+	CloudConvertAPIKey,
 } = process.env;
 require('dotenv').config();
 const http = require('https'); // or 'https' for https:// URLs
 const fs = require('fs');
+const CloudConvert = require('cloudconvert');
+const cloudConvert = new CloudConvert(CloudConvertAPIKey);
 
 module.exports = {
 	cooldown: 5,
@@ -47,57 +50,74 @@ module.exports = {
 				);
 			}
 
-			// const file = options.getAttachment('file');
-			// const contentType = file.contentType;
-			// if (contentType !== 'video/x-ms-wmv') {
-			// 	return console.log('Invalid file type');
-			// }
-			// await interaction.reply({ content: `${file.url}` });
+			const file = options.getAttachment('file');
+			const contentType = file.contentType;
+			if (contentType !== 'video/x-ms-wmv') {
+				return console.log('Invalid file type');
+			}
+			await interaction.reply({ content: `${file.url.split('?', 1)[0]}` });
 
-			// const targetfile = fs.createWriteStream(
-			// 	'C:/Users/Jack/Desktop/Ovx/videos/test.wmv'
-			// );
-			// const request = http.get(file.url, function (response) {
-			// 	response.pipe(targetfile);
+			let job = await cloudConvert.jobs.create({
+				tasks: {
+					'import-1': {
+						operation: 'import/url',
+						url: file.url.split('?', 1)[0],
+						filename: 'test.wmv',
+					},
+					'task-1': {
+						operation: 'convert',
+						input_format: 'wmv',
+						output_format: 'mp4',
+						engine: 'ffmpeg',
+						input: ['import-1'],
+						video_codec: 'x264',
+						crf: 23,
+						preset: 'medium',
+						fit: 'scale',
+						fps: 30,
+						subtitles_mode: 'none',
+						audio_codec: 'aac',
+						audio_bitrate: 128,
+					},
+					'export-1': {
+						operation: 'export/url',
+						input: ['task-1'],
+						inline: false,
+						archive_multiple_files: false,
+					},
+				},
+				tag: 'jobbuilder',
+			});
 
-			// 	// after download completed close filestream
-			// 	targetfile.on('finish', () => {
-			// 		targetfile.close();
+			job = await cloudConvert.jobs.wait(job.id);
 
-			// 		// where does my file save to
-			// 		console.log(targetfile.path);
+			const convertedFile = cloudConvert.jobs.getExportUrls(job)[0];
 
-			// 		console.log('Download Completed');
+			const writeStream = fs.createWriteStream(
+				'./out/' + convertedFile.filename
+			);
 
-			// 		const embed = new EmbedBuilder()
-			// 			.setColor(EmbedColour)
-			// 			.setTitle('Test')
-			// 			.setTimestamp()
-			// 			.setFooter({ text: FooterText, iconURL: FooterImage })
-			// 			.setImage('targetfile.path');
+			http.get(convertedFile.url, function (response) {
+				response.pipe(writeStream);
+			});
 
-			// 		interaction.editReply({ embeds: [embed], attachments: [] });
-			// 	});
-			// });
+			await new Promise((resolve, reject) => {
+				writeStream.on('finish', resolve);
+				writeStream.on('error', reject);
+			});
 
-			// hbjs
-			// 	.spawn({ input: file.url, output: `${targetfile.path}.mp4` })
-			// 	.on('error', (err) => {
-			// 		// invalid user input, no video found etc
-			// 		console.log('errorrrrr');
-			// 	})
-			// 	.on('progress', (progress) => {
-			// 		console.log(
-			// 			'Percent complete: %s, ETA: %s',
-			// 			progress.percentComplete,
-			// 			progress.eta
-			// 		);
-			// 	})
-			// 	.on('complete', () => {
-			// 		console.log('complete');
-			// 	});
+			const embed = new EmbedBuilder()
+				.setTitle('File Converted')
+				.setColor(EmbedColour)
+				.setDescription(`File has been converted.`)
+				.setTimestamp()
+				.setFooter({ text: FooterText, iconURL: FooterImage });
 
-			// add converted file to embe
+			// add file to channel
+			await channel.send({
+				embeds: [embed],
+				files: ['./out/' + convertedFile.filename],
+			});
 		} catch (error) {
 			console.log(error);
 		}
