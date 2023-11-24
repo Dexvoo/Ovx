@@ -88,14 +88,19 @@ module.exports = {
 
 					console.log(`what permissions does the bot have?`);
 					console.log(`permissions2222: ${botPermissions[1].join(', ')}`);
-					return sendErrorEmbed(interaction, error);
+
+					await sendEmbed(interaction, `There was an error deleting messages`);
+					return;
 				});
 
 			if (!messagesDeleted)
 				return await sendEmbed(interaction, `No messages were deleted`);
 
 			// Sending embed
-			await sendEmbed(interaction, `Deleted ${messagesDeleted.size} messages`);
+			await sendEmbed(
+				interaction,
+				`Deleted ${messagesDeleted.size || 0} messages`
+			);
 			await sleep(5000);
 
 			// fetch reply message

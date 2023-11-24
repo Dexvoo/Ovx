@@ -75,6 +75,21 @@ module.exports = {
 				return;
 			}
 
+			// loop through guildConfiguration?.pollChannelIds and make sure the channel exists or fetch it
+			for (const channelId of guildConfiguration?.pollChannelIds) {
+				// fetch channel
+				if (
+					!guild.channels.cache.has(channelId) ||
+					!(await guild.channels.fetch(channelId).catch(() => {}))
+				) {
+					// remove channel from guildConfiguration?.pollChannelIds
+					guildConfiguration.pollChannelIds =
+						guildConfiguration.pollChannelIds.filter((id) => id !== channelId);
+					// save guildConfiguration
+					await guildConfiguration.save();
+				}
+			}
+
 			if (!guildConfiguration.pollChannelIds.includes(channel.id)) {
 				await sendEmbed(
 					interaction,
