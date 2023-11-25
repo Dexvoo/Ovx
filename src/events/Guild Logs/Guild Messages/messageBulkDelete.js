@@ -120,7 +120,7 @@ module.exports = {
 			Embed.addFields(
 				{
 					name: 'Deleted By',
-					value: `${entry.executor}`,
+					value: `${entry.executor || 'Unknown'}`,
 					inline: true,
 				},
 				{
@@ -130,7 +130,11 @@ module.exports = {
 				},
 				{
 					name: "ID's",
-					value: `\`\`\`ansi\n[2;31mUser | ${entry.executor.id}\n[2;36mChannel | ${channel.id}\n[2;34mGuild | ${channel.guild.id}\`\`\``,
+					value: `\`\`\`ansi\n[2;31mUser | ${
+						entry.executor.id || 'Unknown'
+					}\n[2;36mChannel | ${channel.id}\n[2;34mGuild | ${
+						channel.guild.id
+					}\`\`\``,
 				}
 			);
 		} else {
