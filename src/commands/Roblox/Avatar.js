@@ -62,7 +62,12 @@ module.exports = {
 				console.log(err);
 			});
 
-		console.log(currentUser);
+		if (!currentUser) {
+			return await sendEmbed(
+				interaction,
+				`There was an error getting your roblox information.`
+			);
+		}
 
 		const subcommand = options.getSubcommand();
 
