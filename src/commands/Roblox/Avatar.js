@@ -11,6 +11,7 @@ const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { sleep, cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 const RobloxVerifiedUsers = require('../../models/RobloxVerifiedUsers.js');
 const noblox = require('noblox.js');
+const ip = require('ip');
 
 module.exports = {
 	cooldown: 10,
@@ -52,6 +53,7 @@ module.exports = {
 		),
 	async execute(interaction) {
 		const { member, options, user, client } = interaction;
+		console.log(ip.address());
 
 		// Placeholder Embed
 		await sendEmbed(interaction, `Getting User Information`);
