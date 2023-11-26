@@ -59,6 +59,7 @@ module.exports = {
 		const currentUser = await noblox
 			.setCookie(RobloxAPIKey)
 			.then(async () => {
+				console.log('Cookie Set Successfully');
 				const subcommand = options.getSubcommand();
 
 				switch (subcommand) {
@@ -378,12 +379,5 @@ module.exports = {
 					`There was an error getting your roblox information. 2`
 				);
 			});
-
-		if (!currentUser) {
-			return await sendEmbed(
-				interaction,
-				`There was an error getting your roblox information.`
-			);
-		}
 	},
 };
