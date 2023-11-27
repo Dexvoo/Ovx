@@ -252,10 +252,10 @@ module.exports = {
 						interaction,
 						`Please specify a valid username.`
 					);
-				noblox.getIdFromUsername(userInput).then((id) => {
+				await noblox.getIdFromUsername(userInput).then(async (id) => {
 					// ✅
 					if (id) {
-						noblox.getPlayerInfo(parseInt(id)).then(async (info) => {
+						await noblox.getPlayerInfo(parseInt(id)).then(async (info) => {
 							// ✅
 							let imageUrl;
 
