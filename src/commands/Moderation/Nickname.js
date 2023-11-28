@@ -88,11 +88,28 @@ module.exports = {
 			if (targetMember.id === client.user.id)
 				return await sendEmbed(interaction, 'You cannot change my nickname');
 
+			// Checking if the target is the owner
+			if (targetMember.id === guild.ownerId)
+				return await sendEmbed(
+					interaction,
+					'You cannot change the owner`s nickname'
+				);
+
 			// Checking If the interaction member has a higher role than the target member
-			if (member.roles.highest.position <= targetMember.roles.highest.position)
+			if (
+				member.roles.highest.position < targetMember.roles.highest.position &&
+				targetMember.id !== member.id
+			)
 				return await sendEmbed(
 					interaction,
 					'You cannot change a member`s nickname with a higher role than you'
+				);
+
+			// check if the bot has a higher role than the target member
+			if (member.roles.highest.position < targetMember.roles.highest.position)
+				return await sendEmbed(
+					interaction,
+					'I cannot change a member`s nickname with a higher role than me'
 				);
 
 			// Checking if the nickname is less than 32 characters

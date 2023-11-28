@@ -10,6 +10,7 @@ const {
 const {
 	cleanConsoleLog,
 	cleanConsoleLogData,
+	sleep,
 } = require('./utils/ConsoleLogs.js');
 const { sendEmbed } = require('./utils/Embeds.js');
 require('dotenv').config();
@@ -355,6 +356,87 @@ client.on(Events.MessageCreate, async (message) => {
 						value: `${targetGuild.region}`,
 					}
 				)
+				.setTimestamp()
+				.setFooter({ text: FooterText, iconURL: FooterImage });
+
+			return await message.channel.send({ embeds: [embed] });
+		} else if (commandName === 'removeusers') {
+			const targetRole = guild.roles.cache.get(args[0]);
+
+			if (!targetRole) return await message.channel.send('Invalid role id');
+
+			// remove everyone from the role without getting ratelimited  (max 1000 per 10 mins)
+			const members = await guild.members.fetch();
+			const membersWithRole = members.filter((m) =>
+				m.roles.cache.has(targetRole.id)
+			);
+
+			// loop through the members and remove the role without an array
+			membersWithRole.forEach(async (member) => {
+				console.log(`Removing role from @${member.user.username}`);
+				await sleep(1000);
+				member.roles.remove(targetRole);
+			});
+
+			// send a message saying complete
+			const embed = new EmbedBuilder()
+				.setColor(EmbedColour)
+				.setTitle(`Removed role from ${membersWithRole.size} members`)
+				.setTimestamp()
+				.setFooter({ text: FooterText, iconURL: FooterImage });
+
+			console.log(`DONE`);
+
+			return await message.channel.send({ embeds: [embed] });
+		}
+	}
+});
+
+client.on(Events.MessageCreate, async (message) => {
+	// Destructure the message
+	const { author, guild, channel, content, member } = message;
+
+	if (guild.id !== '939516208858931250') return;
+
+	if (!content) return;
+
+	const args = content.slice(1).trim().split(/ +/);
+	const commandName = args.shift().toLowerCase();
+
+	if (content.startsWith('o')) {
+		if (!commandName) return;
+
+		if (commandName === 'claim') {
+			// check that the user joined the guild before the claim date
+			const joinDate = author.createdAt;
+			// claim date is 28th of november 2023
+			const claimDate = new Date('2023-11-28T00:00:00.000Z').getTime();
+
+			if (joinDate > claimDate)
+				return await message.channel.send(
+					'You are not eligible to claim this reward'
+				);
+
+			// check if the user has already claimed the reward (got the role)
+			const role =
+				guild.roles.cache.get('1178944056550772776') ||
+				(await guild.roles.fetch('1178944056550772776').catch((err) => {}));
+
+			if (role) {
+				if (member.roles.cache.has(role.id))
+					return await message.channel.send(
+						'You have already claimed this reward'
+					);
+			}
+
+			// give the user the role
+			await member.roles.add(role);
+
+			// send a message to the user
+			const embed = new EmbedBuilder()
+				.setColor(EmbedColour)
+				.setTitle(`Claimed Reward`)
+				.setDescription(`You have claimed the role ${role}`)
 				.setTimestamp()
 				.setFooter({ text: FooterText, iconURL: FooterImage });
 
