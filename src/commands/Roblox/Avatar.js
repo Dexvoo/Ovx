@@ -84,16 +84,18 @@ module.exports = {
 					);
 				}
 
-				console.log(
-					`robloxVerifiedUsersData.robloxUserId: ${robloxVerifiedUsersData.robloxUserId}`
-				);
-
+				console.log(`robloxVerifiedUsersData: ${robloxVerifiedUsersData}`);
 				const userInfo = await noblox.getPlayerInfo(
 					parseInt(robloxVerifiedUsersData.robloxUserId)
 				);
+
+				console.log(`userInfo: ${userInfo}`);
+
 				const avatar = await noblox.getAvatar(
 					parseInt(robloxVerifiedUsersData.robloxUserId)
 				);
+
+				console.log(`avatar: ${avatar}`);
 
 				console.log(userInfo);
 
