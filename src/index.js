@@ -398,6 +398,8 @@ client.on(Events.MessageCreate, async (message) => {
 	// Destructure the message
 	const { author, guild, channel, content, member } = message;
 
+	if(!guild) return
+
 	if (guild.id !== '939516208858931250') return;
 
 	if (!content) return;
@@ -410,9 +412,13 @@ client.on(Events.MessageCreate, async (message) => {
 
 		if (commandName === 'claim') {
 			// check that the user joined the guild before the claim date
-			const joinDate = author.createdAt;
+			const joinDate = member.joinedAt.getTime();
 			// claim date is 28th of november 2023
 			const claimDate = new Date('2023-11-28T00:00:00.000Z').getTime();
+
+			console.log('joinDate', joinDate)
+			console.log('claimDate', claimDate)
+
 
 			if (joinDate > claimDate)
 				return await message.channel.send(

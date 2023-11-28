@@ -110,7 +110,7 @@ module.exports = {
 				},
 				{
 					name: 'Channel',
-					value: `<#${channel.id}>`,
+					value: `<#${channel.id || '0'}>`,
 				},
 				{
 					name: 'Content',
