@@ -60,8 +60,8 @@ module.exports = {
 		// Placeholder Embed
 		await sendEmbed(interaction, `Getting User Information`);
 		// await sleep(2000);
-		const currentUser = await noblox.setCookie(RobloxAPIKey);
-		console.log(`Logged in as ${currentUser.UserName} [${currentUser.UserID}]`);
+		// const currentUser = await noblox.setCookie(RobloxAPIKey);
+		// console.log(`Logged in as ${currentUser.UserName} [${currentUser.UserID}]`);
 
 		const subcommand = options.getSubcommand();
 
@@ -127,7 +127,7 @@ module.exports = {
 					.setURL(
 						`https://roblox.com/users/${robloxVerifiedUsersData.robloxUserId}/profile`
 					)
-					.setTitle(`@${info.username} Avatar`)
+					.setTitle(`@${userInfo.username} Avatar`)
 					.setImage(imageUrl)
 					.addFields(
 						{
