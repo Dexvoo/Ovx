@@ -84,6 +84,10 @@ module.exports = {
 					);
 				}
 
+				console.log(
+					`robloxVerifiedUsersData.robloxUserId: ${robloxVerifiedUsersData.robloxUserId}`
+				);
+
 				const userInfo = await noblox.getPlayerInfo(
 					parseInt(robloxVerifiedUsersData.robloxUserId)
 				);
