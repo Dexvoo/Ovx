@@ -375,7 +375,9 @@ client.on(Events.MessageCreate, async (message) => {
 			membersWithRole.forEach(async (member) => {
 				console.log(`Removing role from @${member.user.username}`);
 				await sleep(1000);
-				member.roles.remove(targetRole);
+				await member.roles.remove(targetRole).catch((err) => {
+					console.log(err);
+				});
 			});
 
 			// send a message saying complete
