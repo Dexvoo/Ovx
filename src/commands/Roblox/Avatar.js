@@ -92,7 +92,7 @@ module.exports = {
 				console.log(`userInfo: ${userInfo}`);
 
 				const avatar = await noblox.getAvatar(
-					parseInt(robloxVerifiedUsersData.robloxUserId)
+					robloxVerifiedUsersData.robloxUserId
 				);
 
 				console.log(`avatar: ${avatar}`);
