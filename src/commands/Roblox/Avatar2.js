@@ -4,6 +4,7 @@ const {
 	ButtonStyle,
 	ButtonBuilder,
 	ActionRowBuilder,
+	CommandInteraction,
 } = require('discord.js');
 const { FooterText, FooterImage, EmbedColour, RobloxAPIKey } = process.env;
 const translate = require('@iamtraction/google-translate');
@@ -50,6 +51,10 @@ module.exports = {
 						.setRequired(true)
 				)
 		),
+
+	/**
+	 * @param {CommandInteraction} interaction
+	 */
 	async execute(interaction) {
 		const { member, options, user, client } = interaction;
 
