@@ -6,6 +6,7 @@ const {
 	GuildMember,
 	VoiceBasedChannel,
 	GuildChannel,
+	MessageChannel,
 	Client,
 	Guild,
 } = require('discord.js');
@@ -23,7 +24,7 @@ const guildCheck = async (guild) => {
 };
 
 /**
- * @param {CommandInteraction | VoiceBasedChannel } interactionChannel - Interaction or Channel
+ * @param {CommandInteraction | VoiceBasedChannel | MessageChannel } interactionChannel - Interaction or Channel
  * @param {Array} permissions - Array of Permissions to check
  * @param {GuildMember | Client} member - GuildMember or Client
  */
@@ -53,7 +54,7 @@ const permissionCheck = async (interactionChannel, permissions, member) => {
 		userPermissions = member.permissionsIn(channel);
 		userOrBot = 'User';
 	} else if (member instanceof Client) {
-		userPermissions = guild.members.me.permissionsIn(channel);
+		userPermissions = guild.members.me.permissionsIn(channel)
 		userOrBot = 'Bot';
 	} else {
 		throw new Error('Invalid member provided.');

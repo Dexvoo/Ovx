@@ -11,7 +11,6 @@ module.exports = {
 
 	/**
 	 * @param {Message} message
-	 * @param {Client} client
 	 */
 
 	async execute(message) {
