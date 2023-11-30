@@ -1,4 +1,4 @@
-const { ActivityType, Events, EmbedBuilder } = require('discord.js');
+const { ActivityType, Events, EmbedBuilder, Message } = require('discord.js');
 const GuildAFKUsers = require('../../models/GuildAFKUsers.js');
 const { EmbedColour } = process.env;
 const { sendEmbed } = require('../../utils/Embeds.js');
