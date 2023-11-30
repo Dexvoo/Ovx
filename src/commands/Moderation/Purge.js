@@ -101,7 +101,7 @@ module.exports = {
 				interaction,
 				`Deleted ${messagesDeleted.size || 0} messages`
 			);
-			await sleep(5000);
+			await sleep(4000);
 
 			// fetch reply message
 			const reply = await interaction.fetchReply().catch(() => {

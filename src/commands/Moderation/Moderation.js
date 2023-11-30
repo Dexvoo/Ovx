@@ -8,8 +8,8 @@ const {
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
-const { s } = require('@sapphire/shapeshift');
 require('dotenv').config();
+const MessageLogs = require('../../models/GuildMessageLogs.js');
 const { EmbedColour, FooterImage, FooterText } = process.env;
 
 module.exports = {
@@ -115,6 +115,19 @@ module.exports = {
 						.setDescription('Reason for removing timeout')
 						.setRequired(false)
 				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('purge')
+				.setDescription('Purge a specified amount of messages from a channel')
+				.addIntegerOption((option) =>
+					option
+						.setName('amount')
+						.setDescription('Amount of messages to purge')
+						.setMaxValue(100)
+						.setMinValue(1)
+						.setRequired(false)
+				)
 		),
 	/**
 	 *
@@ -153,6 +166,10 @@ module.exports = {
 				case 'removetimeout':
 					botPermissionsArry = ['ModerateMembers'];
 					userPermissionsArry = ['ModerateMembers'];
+					break;
+				case 'purge':
+					botPermissionsArry = ['ManageMessages', 'ViewChannel'];
+					userPermissionsArry = ['ManageMessages'];
 					break;
 			}
 
@@ -730,6 +747,84 @@ module.exports = {
 						.setFooter({ text: FooterText, iconURL: FooterImage });
 
 					await interaction.editReply({ embeds: [EmbedRemoveTimeout2] });
+					break;
+
+				case 'purge':
+					// Variables
+					var amount = options.getInteger('amount');
+					if (!amount) amount = 100;
+					if (amount < 1 || amount > 100)
+						return await sendEmbed(
+							interaction,
+							'Please provide a number between 1 and 100'
+						);
+
+					const messagesDeleted = await channel
+						.bulkDelete(amount, true)
+						.catch(async (error) => {
+							return false;
+						});
+
+					const EmbedPurge = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setDescription(`Deleted ${messagesDeleted.size || 0} messages`)
+						.setTimestamp()
+						.setFooter({ text: FooterText, iconURL: FooterImage });
+
+					const reply = await interaction.followUp({
+						embeds: [EmbedPurge],
+					});
+
+					await sleep(5000);
+					const fetchedMessage = await reply.fetch().catch(() => {
+						return false;
+					});
+
+					if (fetchedMessage) {
+						await reply.delete();
+					}
+
+					const MessageLogsData = await MessageLogs.findOne({
+						guild: guild.id,
+					});
+
+					if (!MessageLogsData) return;
+
+					const channelToSend =
+						guild.channels.cache.get(MessageLogsData.channel) ||
+						guild.channels.fetch(MessageLogsData.channel).catch(() => {
+							return false;
+						});
+
+					if (!channelToSend) {
+						await MessageLogs.findOneAndDelete({ guildId: guild.id });
+						await sendEmbed(
+							await guild.fetchOwner(),
+							`Message Logs channel was deleted or changed | Message Logs is now \`disabled\``
+						);
+						return;
+					}
+
+					const botPermissionsArry2 = ['SendMessages', 'ViewChannel'];
+					const botPermissions2 = await permissionCheck(
+						channelToSend,
+						botPermissionsArry2,
+						client
+					);
+
+					if (!botPermissions2[0]) {
+						await MessageLogs.findOneAndDelete({ guildId: guild.id });
+						return await sendEmbed(
+							await guild.fetchOwner(),
+							`Bot Missing Permissions: \`${botPermissions2[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``
+						);
+					}
+
+					await sendEmbed(
+						channelToSend,
+						`${member} Used the /purge in ${channel}`
+					);
+
 					break;
 
 				default:
