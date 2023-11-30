@@ -51,6 +51,8 @@ const permissionCheck = async (interactionChannel, permissions, member) => {
 	) {
 		channel = interactionChannel;
 		guild = channel.guild;
+	} else {
+		throw new Error('Invalid channel/interaction provided.');
 	}
 
 	// Getting permissions for user or bot

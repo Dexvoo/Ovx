@@ -21,11 +21,6 @@ module.exports = {
 
 		// Bot permissions
 		const botPermissionsArry = ['ViewChannel', 'SendMessages'];
-		cleanConsoleLogData(
-			'AFK EVENT',
-			`Detected a message in ${channel.name} by @${author.username}`,
-			'error'
-		);
 		const botPermissions = await permissionCheck(
 			channel,
 			botPermissionsArry,

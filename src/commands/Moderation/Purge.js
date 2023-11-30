@@ -14,10 +14,10 @@ const MessageLogs = require('../../models/GuildMessageLogs.js');
 require('dotenv').config();
 
 module.exports = {
+	cooldown: 6,
 	data: new SlashCommandBuilder()
 		.setName('purge')
 		.setDescription('Delete a certain amount of messages.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 		.setDMPermission(false)
 		.addIntegerOption((option) =>
 			option
