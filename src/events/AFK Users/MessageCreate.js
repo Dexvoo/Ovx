@@ -3,6 +3,7 @@ const GuildAFKUsers = require('../../models/GuildAFKUsers.js');
 const { EmbedColour } = process.env;
 const { sendEmbed } = require('../../utils/Embeds.js');
 const { permissionCheck } = require('../../utils/Checks.js');
+const { cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 
 module.exports = {
 	name: Events.MessageCreate,
