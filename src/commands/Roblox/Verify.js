@@ -39,6 +39,8 @@ function getRandomReadableWords() {
 
 module.exports = {
 	cooldown: 10,
+	catagory: 'Roblox',
+	helpUsage: 'NA',
 	data: new SlashCommandBuilder()
 		.setName('verify')
 		.setDescription('Roblox verify.'),

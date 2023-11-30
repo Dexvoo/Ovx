@@ -1,6 +1,7 @@
 const {
 	SlashCommandBuilder,
 	EmbedBuilder,
+	CommandInteraction,
 	PermissionFlagsBits,
 } = require('discord.js');
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
@@ -21,8 +22,13 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('help')
 		.setDescription('Bot explanation')
-		.setDMPermission(false),
-
+		.setDMPermission(false)
+		.addStringOption((option) =>
+			option
+				.setName('command')
+				.setDescription('The command you would like to get help for.')
+				.setRequired(false)
+		),
 	/**
 	 * @param {CommandInteraction} interaction
 	 * @returns
@@ -38,29 +44,42 @@ module.exports = {
 		// Checking if the user is in a guild
 		if (!(await guildCheck(guild))) return;
 
-		//
+		// get commands
+		const targetCommand = options.getString('command');
+
+		if (!targetCommand) {
+			const commands = client.commands;
+			const robloxCommandList = commands
+				.filter((command) => command.catagory === 'Roblox')
+				.map((command) => `/${command.data.name} | ${command.helpUsage}`)
+				.join('\n');
+
+			// how would i make the commands be catagorized?
+			// like this:
+			// /roblox
+			// /roblox avatar
+			// /roblox verify
+			// /roblox verify <user>
+
+			// Default help embed
+			sendEmbed(interaction, `Roblox Command List:\n${robloxCommandList}`);
+			return;
+		}
+
+		const command = client.commands.get(targetCommand);
+
+		if (!command) {
+			sendEmbed(interaction, 'Command not found');
+			return;
+		}
+
+		const commandName =
+			command.data.name.charAt(0).toUpperCase() + command.data.name.slice(1);
 
 		const Embed = new EmbedBuilder()
-			.setTitle(`Help`)
-			.setColor(EmbedColour)
-			.addFields(
-				{
-					name: `Commands`,
-					value: `Commands are used to make the bot do things. You can find a list of commands by typing \`/information bot\``,
-				},
-				{
-					name: 'Permissions',
-					value:
-						'Permissions are used to control what users/bot can do. If you or the bot do not have the required permission to use a command, you will be informed.',
-				},
-				{
-					name: 'What to do if you need help',
-					value:
-						'If you need help with the bot, you can join the support server by typing `/invite` and clicking the invite button.',
-				}
-			)
-			.setFooter({ text: FooterText, iconURL: FooterImage })
-			.setTimestamp();
+			.setTitle(`Help: ${commandName}`)
+			.setDescription(command.helpUsage || 'No help usage found')
+			.setColor(EmbedColour);
 
 		await interaction.editReply({ embeds: [Embed] });
 	},

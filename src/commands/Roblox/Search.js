@@ -6,7 +6,9 @@ const { sleep, cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 const noblox = require('noblox.js');
 
 module.exports = {
-	cooldown: 10,
+	cooldown: 5,
+	catagory: 'Roblox',
+	helpUsage: '<user|groupid> <value>',
 	data: new SlashCommandBuilder()
 		.setName('lookup')
 		.setDescription('Roblox Lookup.')

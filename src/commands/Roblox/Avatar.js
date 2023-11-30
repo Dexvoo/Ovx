@@ -15,6 +15,8 @@ const noblox = require('noblox.js');
 
 module.exports = {
 	cooldown: 5,
+	catagory: 'Roblox',
+	helpUsage: '<roblox|discord|search> <user>',
 	data: new SlashCommandBuilder()
 		.setName('avatar')
 		.setDescription('Get a roblox avatar.')
