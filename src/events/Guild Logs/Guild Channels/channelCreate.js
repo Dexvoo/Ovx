@@ -96,6 +96,9 @@ module.exports = {
 						case ChannelType.GuildAnnouncement:
 							TypeText = 'Announcement';
 							break;
+						case ChannelType.GuildForum:
+							TypeText = 'Forum';
+							break;
 						case ChannelType.GuildText:
 							TypeText = 'Text';
 							break;

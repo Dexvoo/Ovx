@@ -196,6 +196,14 @@ module.exports = {
 				});
 			}
 
+			// Checking if the member was timed out
+			if (
+				oldMember.isCommunicationDisabled() !==
+				newMember.isCommunicationDisabled()
+			) {
+				return;
+			}
+
 			// Adding last fields to embed
 			Embed.addFields(
 				{

@@ -1,10 +1,14 @@
 const cleanConsoleLog = (log) => {
 	// making sure the string is not longer than 84 characters
-	console.log(`|${log.padStart(41 + log.length / 2, '-').padEnd(84, '-')}|`);
+	console.log(`|${log.padStart(82 + log.length / 2, '-').padEnd(169, '-')}|`);
 };
 
 const cleanConsoleLogData = (title, description, type) => {
 	if (!description) type = 'error' && (description = 'No description provided');
+
+	// how to make the string of 100 characters
+	title = title.padEnd(15, ' ');
+
 	switch (type) {
 		case 'error':
 			type = '\u001b[1;31m';
@@ -33,7 +37,7 @@ const cleanConsoleLogData = (title, description, type) => {
 	}
 
 	const string = `${title} \u001b[0m| ${type}${description} \u001b[0m`.padEnd(
-		105,
+		190,
 		' '
 	);
 	console.log(`| ${string}|`);
