@@ -9,6 +9,7 @@ const {
 	MessageChannel,
 	Client,
 	Guild,
+	ThreadChannel,
 } = require('discord.js');
 require('dotenv').config();
 const { sendEmbed } = require('./Embeds.js');
@@ -24,7 +25,7 @@ const guildCheck = async (guild) => {
 };
 
 /**
- * @param {CommandInteraction | VoiceBasedChannel | MessageChannel } interactionChannel - Interaction or Channel
+ * @param {CommandInteraction | GuildChannel | ThreadChannel } interactionChannel - Interaction or Channel
  * @param {Array} permissions - Array of Permissions to check
  * @param {GuildMember | Client} member - GuildMember or Client
  */
@@ -44,7 +45,10 @@ const permissionCheck = async (interactionChannel, permissions, member) => {
 	if (interactionChannel instanceof CommandInteraction) {
 		channel = interactionChannel.channel;
 		guild = interactionChannel.guild;
-	} else if (interactionChannel instanceof GuildChannel) {
+	} else if (
+		interactionChannel instanceof GuildChannel ||
+		interactionChannel instanceof ThreadChannel
+	) {
 		channel = interactionChannel;
 		guild = channel.guild;
 	}
@@ -54,7 +58,7 @@ const permissionCheck = async (interactionChannel, permissions, member) => {
 		userPermissions = member.permissionsIn(channel);
 		userOrBot = 'User';
 	} else if (member instanceof Client) {
-		userPermissions = guild.members.me.permissionsIn(channel)
+		userPermissions = guild.members.me.permissionsIn(channel);
 		userOrBot = 'Bot';
 	} else {
 		throw new Error('Invalid member provided.');
