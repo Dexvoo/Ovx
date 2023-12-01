@@ -102,6 +102,8 @@ module.exports = {
 					robloxVerifiedUsersData.robloxUserId
 				);
 
+				console.log(avatar);
+
 				if (!avatar) {
 					return await sendEmbed(
 						interaction,
