@@ -91,22 +91,30 @@ module.exports = {
 					parseInt(robloxVerifiedUsersData.robloxUserId)
 				);
 
-				console.log(`userInfo: ${userInfo}`);
-
-				const avatar = await noblox.getAvatar(
-					robloxVerifiedUsersData.robloxUserId
-				);
-
-				console.log(`avatar: ${avatar}`);
-
-				console.log(userInfo);
-
 				if (!userInfo) {
 					return await sendEmbed(
 						interaction,
 						`The user \`${robloxVerifiedUsersData.robloxUsername}\` does not exist, please reverify 2`
 					);
 				}
+
+				const avatar = await noblox.getAvatar(
+					robloxVerifiedUsersData.robloxUserId
+				);
+
+				if (!avatar) {
+					return await sendEmbed(
+						interaction,
+						`Could not get avatar for \`${robloxVerifiedUsersData.robloxUsername}\``
+					);
+				} else if (avatar === 'Rate Limited') {
+					return await sendEmbed(
+						interaction,
+						`I am currently rate limited, please try again later.`
+					);
+				}
+
+				console.log(`avatar: ${avatar}`);
 
 				let imageUrl;
 
