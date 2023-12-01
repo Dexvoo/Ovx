@@ -1,0 +1,17 @@
+{
+	"script": "src/index.js",
+	"watch": true,
+	"ignore_watch": [
+		"node_modules",
+		"out",
+		"videos",
+		"package.json",
+		"package-lock.json",
+		".git",
+		"Workspace"
+	],
+	"watch_options": {
+		"followSymlinks": false
+	},
+	"name": "Ovx"
+}
