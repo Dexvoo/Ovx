@@ -1,6 +1,6 @@
 const { ActivityType, Events, EmbedBuilder, Message } = require('discord.js');
 const GuildAFKUsers = require('../../models/GuildAFKUsers.js');
-const { EmbedColour } = process.env;
+const { EmbedColour, DeveloperMode } = process.env;
 const { sendEmbed } = require('../../utils/Embeds.js');
 const { permissionCheck } = require('../../utils/Checks.js');
 const { cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
@@ -15,6 +15,7 @@ module.exports = {
 	 */
 
 	async execute(message) {
+		if (DeveloperMode === 'true') return;
 		const { client, guild, member, channel, content, author } = message;
 		// Checking if the command is being used in a guild and if the author is a bot
 		if (!guild || author.bot) return;
