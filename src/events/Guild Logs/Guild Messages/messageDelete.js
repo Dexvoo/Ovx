@@ -166,6 +166,17 @@ module.exports = {
 		if (attachments.size > 0) {
 			Array.from(attachments.values());
 			const data = [...attachments.values()];
+
+			// remove attachments that are over 25mb
+			for (let i = 0; i < data.length; i++) {
+				if (data[i].size > 25000000) {
+					data.splice(i, 1);
+					Embed.addFields({
+						name: 'Attachment Removed',
+						value: `Attachment ${i + 1} was over 25mb`,
+					});
+				}
+			}
 			await channelToSend.send({ embeds: [Embed], files: data });
 			return;
 		}
