@@ -128,6 +128,23 @@ module.exports = {
 						.setMinValue(1)
 						.setRequired(false)
 				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('nickname')
+				.setDescription('Change a specified users nickname')
+				.addUserOption((option) =>
+					option
+						.setName('member')
+						.setDescription('Member to change nickname')
+						.setRequired(true)
+				)
+				.addStringOption((option) =>
+					option
+						.setName('nickname')
+						.setDescription('Nickname to change to')
+						.setRequired(true)
+				)
 		),
 	/**
 	 *
@@ -170,6 +187,10 @@ module.exports = {
 				case 'purge':
 					botPermissionsArry = ['ManageMessages', 'ViewChannel'];
 					userPermissionsArry = ['ManageMessages'];
+					break;
+				case 'nickname':
+					botPermissionsArry = ['ManageNicknames'];
+					userPermissionsArry = ['ManageNicknames'];
 					break;
 			}
 
@@ -824,6 +845,122 @@ module.exports = {
 						channelToSend,
 						`${member} Used the /purge in ${channel}`
 					);
+
+					break;
+
+				case 'nickname':
+					// Variables
+					const targetMemberNickname = options.getMember('member');
+					const nickname = options.getString('nickname');
+					const targetOldNickname =
+						targetMemberNickname.nickname ||
+						`@${targetMemberNickname.user.username}`;
+
+					if (!targetMemberNickname)
+						return await sendEmbed(
+							interaction,
+							'Please specify a valid member'
+						);
+
+					if (!targetMemberNickname.moderatable) {
+						return await sendEmbed(
+							interaction,
+							`Bot Missing Permissions | \`RoleHierarchy\``
+						);
+					}
+
+					if (
+						member.roles.highest.position <
+							targetMemberNickname.roles.highest.position &&
+						targetMemberNickname.id !== member.id
+					)
+						return await sendEmbed(
+							interaction,
+							'You cannot change a member`s nickname with a higher role than you'
+						);
+
+					if (
+						member.roles.highest.position <
+						targetMemberNickname.roles.highest.position
+					)
+						return await sendEmbed(
+							interaction,
+							'I cannot change a member`s nickname with a higher role than me'
+						);
+
+					if (!nickname) {
+						return await sendEmbed(interaction, 'Please specify a nickname');
+					}
+
+					if (nickname.length > 32)
+						return await sendEmbed(
+							interaction,
+							'The nickname must be less than 32 characters'
+						);
+
+					// Checking if the nickname is the same as the old nickname
+					if (nickname === targetOldNickname)
+						return await sendEmbed(
+							interaction,
+							'The nickname must be different from the old nickname'
+						);
+
+					// Change the nickname
+					await targetMemberNickname.setNickname(nickname);
+
+					// DM the target user
+					const NicknameEmbed = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setDescription(
+							`Your nickname has been changed in **${guild.name}**`
+						)
+						.addFields(
+							{ name: 'Old Nickname', value: targetOldNickname, inline: true },
+							{ name: 'New Nickname', value: nickname, inline: true },
+							{
+								name: 'Moderator',
+								value: `@${user.username} | (${member})`,
+								inline: true,
+							}
+						)
+						.setTimestamp()
+						.setFooter({ text: FooterText, iconURL: FooterImage });
+
+					await targetMemberNickname
+						.send({ embeds: [NicknameEmbed] })
+						.catch(async (error) => {
+							// await sendErrorEmbed(interaction, error);
+							const Embed = new EmbedBuilder()
+								.setColor(EmbedColour)
+								.setDescription(
+									`${targetMember} has DMs disabled, unable to send a message`
+								)
+								.setTimestamp()
+								.setFooter({ text: FooterText, iconURL: FooterImage });
+							await interaction.editReply({ embeds: [Embed] });
+							await sleep(5000);
+						});
+
+					// Nickname changed embed
+					const NicknameEmbedFinish = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setTitle('Nickname')
+						.setDescription(
+							`You changed the nickname of ${targetMemberNickname}`
+						)
+						.addFields(
+							{ name: 'Old Nickname', value: targetOldNickname, inline: true },
+							{ name: 'New Nickname', value: nickname, inline: true },
+							{
+								name: 'Moderator',
+								value: `@${user.username} | (${member})`,
+								inline: false,
+							}
+						)
+						.setTimestamp()
+						.setFooter({ text: FooterText, iconURL: FooterImage });
+
+					await interaction.editReply({ embeds: [NicknameEmbedFinish] });
 
 					break;
 

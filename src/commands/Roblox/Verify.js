@@ -11,31 +11,10 @@ const translate = require('@iamtraction/google-translate');
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { sleep, cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 const VerifyInformation = require('../../models/RobloxVerifiedUsers.js');
+const { getRandomReadableWords } = require('../../utils/GetVerifyNames.js');
 const noblox = require('noblox.js');
 
-function getRandomReadableWords() {
-	const words = [
-		'Dexvo',
-		'Voix',
-		'Xen',
-		'Wicked',
-		'Ru',
-		'Omtric',
-		'Keith',
-		'Tune',
-		'Blaze',
-		'Ares',
-		'Echo',
-		'Pablo',
-		'Sage',
-		'Marvy',
-		'Uni',
-		'Obi',
-	]
-		.sort(() => Math.random() - Math.random())
-		.slice(0, 10);
-	return words.join(', ');
-}
+// how would i put words in a seperate file and import it?
 
 module.exports = {
 	cooldown: 10,

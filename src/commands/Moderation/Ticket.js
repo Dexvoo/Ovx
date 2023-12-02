@@ -18,21 +18,28 @@ module.exports = {
 		.setName('ticket')
 		.setDescription('Ticket Actions')
 		.setDMPermission(false)
-		.addStringOption((option) =>
-			option
-				.setName('action')
-				.setDescription('Add or remove a member from a ticket')
-				.setRequired(true)
-				.addChoices(
-					{ name: 'Add', value: 'add' },
-					{ name: 'Remove', value: 'remove' }
+
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('addmember')
+				.setDescription('Add a member to a ticket')
+				.addUserOption((option) =>
+					option
+						.setName('member')
+						.setDescription('The member to add')
+						.setRequired(true)
 				)
 		)
-		.addUserOption((option) =>
-			option
-				.setName('user')
-				.setDescription('The user to add or remove')
-				.setRequired(true)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('removemember')
+				.setDescription('Remove a member from a ticket')
+				.addUserOption((option) =>
+					option
+						.setName('member')
+						.setDescription('The member to remove')
+						.setRequired(true)
+				)
 		),
 	/**
 	 *
@@ -49,7 +56,11 @@ module.exports = {
 			if (!(await guildCheck(guild))) return;
 
 			// Bot permissions
-			const botPermissionsArry = ['ManageRoles', 'ManageChannels'];
+			const botPermissionsArry = [
+				'ViewChannel',
+				'ManageRoles',
+				'ManageChannels',
+			];
 			const botPermissions = await permissionCheck(
 				interaction,
 				botPermissionsArry,
@@ -57,6 +68,10 @@ module.exports = {
 			);
 
 			if (!botPermissions[0]) {
+				return await sendEmbed(
+					interaction,
+					`Bot Missing Permissions: \`${botPermissions[1]}\``
+				);
 			}
 
 			// User permissions
@@ -77,33 +92,44 @@ module.exports = {
 			await sleep(2000);
 
 			// Variables
-			const action = options.getString('action');
-			const targetUser = options.getUser('user');
-			const targetMember = await guild.members.fetch(targetUser);
+			const subcommand = options.getSubcommand();
 
-			if (targetMember.id === client.user.id) {
-				return await sendEmbed(
-					interaction,
-					'You cannot add or remove the bot from a ticket'
-				);
-			}
+			switch (subcommand) {
+				case 'addmember':
+					const targetUserAddMember = options.getUser('member');
+					const targetMemberAddMember = await guild.members
+						.fetch(targetUserAddMember)
+						.catch(() => {
+							return false;
+						});
 
-			if (targetMember.id === interaction.member.id) {
-				return await sendEmbed(
-					interaction,
-					'You cannot add or remove yourself from a ticket'
-				);
-			}
+					if (!targetMemberAddMember) {
+						return await sendEmbed(
+							interaction,
+							'Please provide a valid user to add to the ticket'
+						);
+					}
 
-			if (targetMember.manageable === false) {
-				return await sendEmbed(
-					interaction,
-					'I cannot add or remove this user from a ticket'
-				);
-			}
+					if (targetMemberAddMember.id === client.user.id) {
+						return await sendEmbed(
+							interaction,
+							'You cannot add or remove the bot from a ticket'
+						);
+					}
 
-			switch (action) {
-				case 'add':
+					if (targetMemberAddMember.id === interaction.member.id) {
+						return await sendEmbed(
+							interaction,
+							'You cannot add or remove yourself from a ticket'
+						);
+					}
+
+					if (targetMemberAddMember.manageable === false) {
+						return await sendEmbed(
+							interaction,
+							'I cannot add or remove this user from a ticket'
+						);
+					}
 					const data = GuildTicketsInfo.findOne({
 						guildid: guild.id,
 						channelid: channel.id,
@@ -116,16 +142,53 @@ module.exports = {
 						);
 					}
 
-					channel.permissionOverwrites.create(targetMember.id, {
+					channel.permissionOverwrites.create(targetMemberAddMember.id, {
 						SendMessages: true,
 						ViewChannel: true,
 						ReadMessageHistory: true,
 					});
 
-					await sendEmbed(interaction, `Added ${targetMember} to the ticket`);
+					await sendEmbed(
+						interaction,
+						`Added ${targetMemberAddMember} to the ticket`
+					);
 
 					break;
-				case 'remove':
+				case 'removemember':
+					const targetUserRemoveMember = options.getUser('member');
+					const targetMemberRemoveMember = await guild.members
+						.fetch(targetUserRemoveMember)
+						.catch(() => {
+							return false;
+						});
+
+					if (!targetMemberRemoveMember) {
+						return await sendEmbed(
+							interaction,
+							'Please provide a valid user to add to the ticket'
+						);
+					}
+
+					if (targetMemberRemoveMember.id === client.user.id) {
+						return await sendEmbed(
+							interaction,
+							'You cannot add or remove the bot from a ticket'
+						);
+					}
+
+					if (targetMemberRemoveMember.id === interaction.member.id) {
+						return await sendEmbed(
+							interaction,
+							'You cannot add or remove yourself from a ticket'
+						);
+					}
+
+					if (targetMemberRemoveMember.manageable === false) {
+						return await sendEmbed(
+							interaction,
+							'I cannot add or remove this user from a ticket'
+						);
+					}
 					const data2 = GuildTicketsInfo.findOne({
 						guildid: guild.id,
 						channelid: channel.id,
@@ -138,7 +201,7 @@ module.exports = {
 						);
 					}
 
-					channel.permissionOverwrites.create(targetMember.id, {
+					channel.permissionOverwrites.create(targetMemberRemoveMember.id, {
 						SendMessages: false,
 						ViewChannel: false,
 						ReadMessageHistory: false,
@@ -146,7 +209,7 @@ module.exports = {
 
 					await sendEmbed(
 						interaction,
-						`Removed ${targetMember} from the ticket`
+						`Removed ${targetMemberRemoveMember} from the ticket`
 					);
 
 					break;

@@ -5,9 +5,9 @@ const {
 	CommandInteraction,
 } = require('discord.js');
 
-const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
-const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
-const { sleep } = require('../../utils/ConsoleLogs.js');
+const { sendEmbed, sendErrorEmbed } = require('../utils/Embeds.js');
+const { guildCheck, permissionCheck } = require('../utils/Checks.js');
+const { sleep } = require('../utils/ConsoleLogs.js');
 require('dotenv').config();
 const { EmbedColour, FooterImage, FooterText } = process.env;
 

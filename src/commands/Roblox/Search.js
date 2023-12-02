@@ -49,7 +49,9 @@ module.exports = {
 			case 'user':
 				noblox.getIdFromUsername(userInput).then((id) => {
 					if (id) {
+						console.log(id);
 						noblox.getPlayerInfo(parseInt(id)).then(async (info) => {
+							console.log(info);
 							let joinDate = new Date(info.joinDate); // states join date
 							// get timestamp from Date
 							joinDate = `<t:${Math.floor(joinDate.getTime() / 1000)}:F>`;
@@ -60,7 +62,7 @@ module.exports = {
 
 							// Accessing values within the array
 							var userPresenceType = userPresences[0].userPresenceType;
-							const lastLocation = userPresences[0].lastLocation;
+							const lastLocation = userPresences[0].lastLocation || 'Unknown';
 							// const placeId = userPresences[0].placeId || 'Unknown';
 							const rootPlaceId = userPresences[0].rootPlaceId || 'Unknown';
 							// const gameId = userPresences[0].gameId || 'Unknown';
@@ -155,16 +157,10 @@ module.exports = {
 											value: `${lastOnline}`,
 											inline: true,
 										}
-										// {
-										// 	name: 'Last Seen',
-										// 	value: `${lastLocation}`,
-										// 	inline: false,
-										// }
 									);
 									break;
 								default:
 									userPresenceType = 'Unknown';
-									userPresenceColour = 'Grey';
 							}
 
 							let thumbnail_circHeadshot = await noblox.getPlayerThumbnail(
@@ -211,22 +207,22 @@ module.exports = {
 									},
 									{
 										name: 'Friends',
-										value: `${info.friendCount || '0'}`,
+										value: `${info.friendCount.toLocaleString() || '0'}`,
 										inline: true,
 									},
 									{
 										name: 'Followers',
-										value: `${info.followerCount || '0'}`,
+										value: `${info.followerCount.toLocaleString() || '0'}`,
 										inline: true,
 									},
 									{
 										name: 'Following',
-										value: `${info.followingCount || '0'}`,
+										value: `${info.followingCount.toLocaleString() || '0'}`,
 										inline: true,
 									},
 									{
-										name: 'Blurb',
-										value: `${info.blurb || 'No Blurb Found'}`,
+										name: 'Bio',
+										value: `${info.blurb || 'No Bio Found'}`,
 									},
 									{
 										name: 'Account Age',
