@@ -6,6 +6,7 @@ const {
 	EmbedBuilder,
 	Events,
 	ChannelType,
+	Message,
 } = require('discord.js');
 const {
 	cleanConsoleLog,
@@ -147,6 +148,10 @@ client.on('interactionCreate', async (interaction) => {
 	}
 });
 
+/**
+ * @param {Message} message
+ */
+
 client.on(Events.MessageCreate, async (message) => {
 	// Destructure the message
 	const { author, guild, channel, content } = message;
@@ -156,7 +161,7 @@ client.on(Events.MessageCreate, async (message) => {
 	const args = content.slice(1).trim().split(/ +/);
 	const commandName = args.shift().toLowerCase();
 
-	if (content.startsWith('o')) {
+	if (content.toLowerCase().startsWith('o')) {
 		if (!author.id === '387341502134878218') return;
 
 		if (!commandName) return;
@@ -182,10 +187,15 @@ client.on(Events.MessageCreate, async (message) => {
 					return `${guild.name}`;
 				});
 
+			// get total members
+			const totalMembers = client.guilds.cache.reduce(
+				(a, g) => a + g.memberCount,
+				0
+			);
 			const embed = new EmbedBuilder()
 				.setColor(EmbedColour)
 				.setTitle(
-					`Top 10 Ovx Servers (Total Guilds: ${client.guilds.cache.size}) `
+					`Top 10 Ovx Servers (Guilds: ${client.guilds.cache.size} Members: ${totalMembers}) `
 				)
 				.addFields(
 					{
@@ -208,6 +218,64 @@ client.on(Events.MessageCreate, async (message) => {
 				.setFooter({ text: FooterText, iconURL: FooterImage });
 
 			return await message.channel.send({ embeds: [embed] });
+		} else if (commandName === 'topusers') {
+			const rawLeaderboard = await fetchTotalLeaderboard(15);
+
+			// Checking if the leaderboard is empty
+			if (rawLeaderboard.length < 1) {
+				await message.channel.send('No users have earned xp in this guild');
+				return;
+			}
+
+			const leaderboard = await computeLeaderboard(
+				client,
+				rawLeaderboard,
+				true
+			);
+			const totalGuildLevels2 = leaderboard[1];
+			const lb = leaderboard[0].map(
+				(e) =>
+					`\`` +
+					`${e.position}`.padStart(2, ' ') +
+					`\`. \`@` +
+					`${e.username}`.padEnd(18, ' ') +
+					`\` | L: \`${e.level}\` | XP: \`${e.xp}\` | M: \`${e.messages}\` | V: \`${e.voice}\``
+			);
+
+			// Embed
+			const LeaderboardEmbed = new EmbedBuilder()
+				.setTitle(`@${client.user.username} | Level Leaderboard`)
+				.setThumbnail(client.user.avatarURL())
+				.addFields(
+					{
+						name: 'Total Guild Levels',
+						value: totalGuildLevels2.toLocaleString(),
+						inline: true,
+					},
+					{
+						name: 'Total Guild Users',
+						value: rawLeaderboard.length.toLocaleString(),
+						inline: true,
+					}
+				)
+				.setTimestamp()
+				.setColor(EmbedColour)
+				.setFooter({ text: FooterText, iconURL: FooterImage });
+
+			const pageSize = 3;
+			const maxPages = 5;
+			let currentPage = 1; // Initialize the current page to 1
+
+			for (let i = 0; i < lb.length && currentPage <= maxPages; i += pageSize) {
+				const page = lb.slice(i, i + pageSize);
+				const name = `Top ${i + 1}-${Math.min(i + pageSize, lb.length)}`;
+				const value = page.join('\n');
+				LeaderboardEmbed.addFields({ name, value, inline: false });
+
+				currentPage++; // Increment the current page number
+			}
+
+			return await message.channel.send({ embeds: [LeaderboardEmbed] });
 		} else if (commandName === 'getinvite') {
 			const targetGuild = client.guilds.cache.get(args[0]);
 
@@ -247,9 +315,7 @@ client.on(Events.MessageCreate, async (message) => {
 
 			if (!targetGuild) return await message.channel.send('Invalid guild id');
 
-			// get first channel
-
-			const rawLeaderboard = await fetchLeaderboard(targetGuild.id, 25);
+			const rawLeaderboard = await fetchLeaderboard(targetGuild.id, 15);
 
 			// Checking if the leaderboard is empty
 			if (rawLeaderboard.length < 1) {
@@ -398,7 +464,7 @@ client.on(Events.MessageCreate, async (message) => {
 	// Destructure the message
 	const { author, guild, channel, content, member } = message;
 
-	if(!guild) return
+	if (!guild) return;
 
 	if (guild.id !== '939516208858931250') return;
 
@@ -416,9 +482,8 @@ client.on(Events.MessageCreate, async (message) => {
 			// claim date is 28th of november 2023
 			const claimDate = new Date('2023-11-28T00:00:00.000Z').getTime();
 
-			console.log('joinDate', joinDate)
-			console.log('claimDate', claimDate)
-
+			console.log('joinDate', joinDate);
+			console.log('claimDate', claimDate);
 
 			if (joinDate > claimDate)
 				return await message.channel.send(
@@ -454,6 +519,20 @@ client.on(Events.MessageCreate, async (message) => {
 });
 
 // Functions
+
+async function fetchTotalLeaderboard(limit) {
+	if (!limit) throw new TypeError('A limit was not provided.');
+
+	var users = await Levels.find({})
+		.sort([
+			['level', 'descending'],
+			['xp', 'descending'],
+		])
+		.exec();
+
+	return users;
+}
+
 async function fetchLeaderboard(guildId, limit) {
 	if (!guildId) throw new TypeError('A guild id was not provided.');
 	if (!limit) throw new TypeError('A limit was not provided.');
@@ -464,6 +543,10 @@ async function fetchLeaderboard(guildId, limit) {
 			['xp', 'descending'],
 		])
 		.exec();
+
+	if (limit) {
+		users = users.slice(0, limit);
+	}
 
 	return users;
 }
@@ -477,26 +560,31 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 	const computedArray = [];
 	var totalGuildLevels = 0;
 
-	if (fetchUsers) {
-		for (const key of leaderboard) {
-			const user = await client.users.fetch(key.userId);
-			totalGuildLevels = totalGuildLevels + key.level;
+	console.log('computing leaderboard');
 
-			computedArray.push({
-				guildId: key.guildId,
-				userId: key.userId,
-				xp: key.xp,
-				level: key.level,
-				messages: key.messages,
-				voice: key.voice,
-				position:
-					leaderboard.findIndex(
-						(i) => i.guildId === key.guildId && i.userId === key.userId
-					) + 1,
-				username: user ? user.username : 'Unknown',
-			});
-		}
-	} else {
+	// if (fetchUsers) {
+	// 	console.log('fetchUsers is true');
+	for (const key of leaderboard) {
+		// 		const user = await client.users.fetch(key.userId);
+		// 		console.log('username: @', user.username);
+		// 		totalGuildLevels = totalGuildLevels + key.level;
+
+		// 		computedArray.push({
+		// 			guildId: key.guildId,
+		// 			userId: key.userId,
+		// 			xp: key.xp,
+		// 			level: key.level,
+		// 			messages: key.messages,
+		// 			voice: key.voice,
+		// 			position:
+		// 				leaderboard.findIndex(
+		// 					(i) => i.guildId === key.guildId && i.userId === key.userId
+		// 				) + 1,
+		// 			username: user ? user.username : 'Unknown',
+		// 		});
+		// 	}
+		// } else {
+		console.log('fetchUsers is false');
 		totalGuildLevels = totalGuildLevels + key.level;
 		leaderboard.map((key) =>
 			computedArray.push({
@@ -504,6 +592,8 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 				userID: key.userID,
 				xp: key.xp,
 				level: key.level,
+				messages: key.messages,
+				voice: key.voice,
 				position:
 					leaderboard.findIndex(
 						(i) => i.guildID === key.guildID && i.userID === key.userID
@@ -514,6 +604,8 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 			})
 		);
 	}
+
+	console.log('returning array');
 
 	return [computedArray, totalGuildLevels];
 }
