@@ -239,7 +239,7 @@ client.on(Events.MessageCreate, async (message) => {
 					`${e.position}`.padStart(2, ' ') +
 					`\`. \`@` +
 					`${e.username}`.padEnd(18, ' ') +
-					`\` | L: \`${e.level}\` | XP: \`${e.xp}\` | M: \`${e.messages}\` | V: \`${e.voice}\``
+					`\` | Guild: \`${e.guildName}\` |\n\nLevel: \`${e.level} | XP: \`${e.xp}\` | M: \`${e.messages}\` | V: \`${e.voice}\``
 			);
 
 			// Embed
@@ -573,8 +573,11 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 		console.log('username: @', user.username);
 		totalGuildLevels = totalGuildLevels + key.level;
 
+		const guild = client.guilds.cache.get(key.guildId);
+		const guildName = guild ? guild.name : 'Unknown';
+
 		computedArray.push({
-			guildId: key.guildId,
+			guildName: guildName,
 			userId: key.userId,
 			xp: key.xp,
 			level: key.level,
