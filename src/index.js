@@ -530,6 +530,10 @@ async function fetchTotalLeaderboard(limit) {
 		])
 		.exec();
 
+	if (limit) {
+		users = users.slice(0, limit);
+	}
+
 	return users;
 }
 
@@ -565,44 +569,44 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 	// if (fetchUsers) {
 	// 	console.log('fetchUsers is true');
 	for (const key of leaderboard) {
-		// 		const user = await client.users.fetch(key.userId);
-		// 		console.log('username: @', user.username);
-		// 		totalGuildLevels = totalGuildLevels + key.level;
+		const user = await client.users.fetch(key.userId);
+		console.log('username: @', user.username);
+		totalGuildLevels = totalGuildLevels + key.level;
 
-		// 		computedArray.push({
-		// 			guildId: key.guildId,
-		// 			userId: key.userId,
-		// 			xp: key.xp,
-		// 			level: key.level,
-		// 			messages: key.messages,
-		// 			voice: key.voice,
-		// 			position:
-		// 				leaderboard.findIndex(
-		// 					(i) => i.guildId === key.guildId && i.userId === key.userId
-		// 				) + 1,
-		// 			username: user ? user.username : 'Unknown',
-		// 		});
+		computedArray.push({
+			guildId: key.guildId,
+			userId: key.userId,
+			xp: key.xp,
+			level: key.level,
+			messages: key.messages,
+			voice: key.voice,
+			position:
+				leaderboard.findIndex(
+					(i) => i.guildId === key.guildId && i.userId === key.userId
+				) + 1,
+			username: user ? user.username : 'Unknown',
+		});
 		// 	}
 		// } else {
-		console.log('fetchUsers is false');
-		totalGuildLevels = totalGuildLevels + key.level;
-		leaderboard.map((key) =>
-			computedArray.push({
-				guildID: key.guildID,
-				userID: key.userID,
-				xp: key.xp,
-				level: key.level,
-				messages: key.messages,
-				voice: key.voice,
-				position:
-					leaderboard.findIndex(
-						(i) => i.guildID === key.guildID && i.userID === key.userID
-					) + 1,
-				username: client.users.cache.get(key.userID)
-					? client.users.cache.get(key.userID).username
-					: 'Unknown',
-			})
-		);
+		// console.log('fetchUsers is false');
+		// totalGuildLevels = totalGuildLevels + key.level;
+		// leaderboard.map((key) =>
+		// 	computedArray.push({
+		// 		guildID: key.guildID,
+		// 		userID: key.userID,
+		// 		xp: key.xp,
+		// 		level: key.level,
+		// 		messages: key.messages,
+		// 		voice: key.voice,
+		// 		position:
+		// 			leaderboard.findIndex(
+		// 				(i) => i.guildID === key.guildID && i.userID === key.userID
+		// 			) + 1,
+		// 		username: client.users.cache.get(key.userID)
+		// 			? client.users.cache.get(key.userID).username
+		// 			: 'Unknown',
+		// 	})
+		// );
 	}
 
 	console.log('returning array');
