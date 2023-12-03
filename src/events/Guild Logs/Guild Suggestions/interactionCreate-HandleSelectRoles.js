@@ -85,18 +85,18 @@ module.exports = {
 				}
 
 				if (member.roles.cache.has(role.id)) {
-					removedRoles.push(`<@&${role.id}>`);
+					removedRoles.push(role);
 				} else {
-					addedRoles.push(`<@&${role.id}>`);
+					addedRoles.push(role);
 				}
 			}
 
 			if (addedRoles.length) {
-				await member.roles.add(addedRoles.map((data) => data.role));
+				await member.roles.add(addedRoles);
 			}
 
 			if (removedRoles.length) {
-				await member.roles.remove(removedRoles.map((data) => data.role));
+				await member.roles.remove(removedRoles);
 			}
 
 			const Embed = new EmbedBuilder()
