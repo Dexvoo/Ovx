@@ -29,7 +29,7 @@
 		"@discordjs/rest": "^2.0.1",
 		"@iamtraction/google-translate": "^2.0.1",
 		"@top-gg/sdk": "^3.1.6",
-		"axios": "^1.6.0",
+		"axios": "^1.6.2",
 		"body-parser": "^1.20.2",
 		"cloudconvert": "^2.3.5",
 		"cpu-stat": "^2.0.1",
