@@ -13,6 +13,8 @@ const MessageLogs = require('../../models/GuildMessageLogs.js');
 const { EmbedColour, FooterImage, FooterText } = process.env;
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Moderation',
 	data: new SlashCommandBuilder()
 		.setName('moderation')
 		.setDescription('List of Moderation commands.')

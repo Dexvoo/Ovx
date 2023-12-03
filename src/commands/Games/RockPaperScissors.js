@@ -19,8 +19,10 @@ const choices = [
 ];
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Games',
 	data: new SlashCommandBuilder()
-		.setName('rps')
+		.setName('rockpaperscissors')
 		.setDescription('Play rock, paper, scissors.')
 		.setDMPermission(false)
 		.addUserOption((option) =>

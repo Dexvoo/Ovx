@@ -10,10 +10,11 @@ const { sleep } = require('../../utils/ConsoleLogs.js');
 require('dotenv').config();
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Moderation',
 	data: new SlashCommandBuilder()
 		.setName('takeemoji')
 		.setDescription('Take an emoji from a guild.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuildExpressions)
 		.setDMPermission(false)
 		.addStringOption((option) =>
 			option

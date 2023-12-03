@@ -21,6 +21,8 @@ const {
 require('dotenv').config();
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Levels',
 	data: new SlashCommandBuilder()
 		.setName('levela')
 		.setDescription('Change a users current level and XP in the guild.')

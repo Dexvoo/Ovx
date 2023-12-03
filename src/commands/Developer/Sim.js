@@ -11,10 +11,11 @@ const { sleep } = require('../../utils/ConsoleLogs.js');
 require('dotenv').config();
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Developer',
 	data: new SlashCommandBuilder()
 		.setName('sim')
 		.setDescription('Simulate a joining/leaving a guild.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 		.setDMPermission(false)
 		.addStringOption((option) =>
 			option

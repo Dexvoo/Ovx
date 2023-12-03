@@ -5,6 +5,8 @@ const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Miscellaneous',
 	data: new SlashCommandBuilder()
 		.setName('translate')
 		.setDescription('Translate text to another language.')

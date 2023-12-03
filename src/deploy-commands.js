@@ -56,11 +56,11 @@ const init = async () => {
 	let commandsDirectory = path.join(__dirname, 'commands');
 	await commandsCrawl(commandsDirectory, cmdFiles);
 	if (DeveloperMode == 'true') {
-		const NOTES_GUILD_ID = '717094717392814215';
+		const TEST_SERVER = '1173402643348078593';
 		const DEVELOPER_GUILD_ID = '1115336808834805780';
 		const ZOO_OF_HUMANS_GUILD_ID = '962342471000535071';
 		rest
-			.put(Routes.applicationGuildCommands(ClientID, DEVELOPER_GUILD_ID), {
+			.put(Routes.applicationGuildCommands(ClientID, TEST_SERVER), {
 				body: [],
 			})
 			.then(() =>
@@ -69,7 +69,7 @@ const init = async () => {
 			.catch(console.error);
 
 		rest
-			.put(Routes.applicationGuildCommands(ClientID, DEVELOPER_GUILD_ID), {
+			.put(Routes.applicationGuildCommands(ClientID, TEST_SERVER), {
 				body: cmdFiles,
 			})
 			.then(() =>

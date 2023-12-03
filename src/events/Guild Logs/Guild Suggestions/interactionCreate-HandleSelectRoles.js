@@ -85,14 +85,18 @@ module.exports = {
 				}
 
 				if (member.roles.cache.has(role.id)) {
-					await member.roles.remove(role.id);
-					addedOrRemoved = 'Removed';
 					removedRoles.push(`<@&${role.id}>`);
 				} else {
-					await member.roles.add(role.id);
-					addedOrRemoved = 'Added';
 					addedRoles.push(`<@&${role.id}>`);
 				}
+			}
+
+			if (addedRoles.length) {
+				await member.roles.add(addedRoles.map((data) => data.role));
+			}
+
+			if (removedRoles.length) {
+				await member.roles.remove(removedRoles.map((data) => data.role));
 			}
 
 			const Embed = new EmbedBuilder()

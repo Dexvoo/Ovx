@@ -27,6 +27,8 @@ const {
 require('dotenv').config();
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Miscellaneous',
 	data: new SlashCommandBuilder()
 		.setName('information')
 		.setDescription('Get information about a user, guild, role, or bot')

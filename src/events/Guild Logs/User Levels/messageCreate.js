@@ -44,7 +44,7 @@ module.exports = {
 					messages: 1,
 				});
 				await newLevel.save().catch((error) => console.log(error));
-				// if (author.id == '387341502134878218') return;
+				if (guild.id == '1173402643348078593') return;
 				cooldowns.add(author.id);
 				setTimeout(() => {
 					cooldowns.delete(author.id);
@@ -69,7 +69,7 @@ module.exports = {
 				await level.save().catch((err) => {
 					console.log(err);
 				});
-				// if (author.id == '387341502134878218') return;
+				if (guild.id == '1173402643348078593') return;
 				cooldowns.add(author.id);
 				setTimeout(() => {
 					cooldowns.delete(author.id);

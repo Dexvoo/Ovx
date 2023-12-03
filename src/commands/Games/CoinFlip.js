@@ -37,8 +37,9 @@ const messages = {
 
 module.exports = {
 	cooldown: 5,
+	catagory: 'Games',
 	data: new SlashCommandBuilder()
-		.setName('cf')
+		.setName('coinflip')
 		.setDescription('Play Coinflip.')
 		.setDMPermission(false)
 		.addStringOption((option) =>

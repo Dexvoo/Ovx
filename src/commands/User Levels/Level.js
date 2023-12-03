@@ -19,6 +19,8 @@ const {
 require('dotenv').config();
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Levels',
 	data: new SlashCommandBuilder()
 		.setName('level')
 		.setDescription('Shows your current level and XP in the guild.')

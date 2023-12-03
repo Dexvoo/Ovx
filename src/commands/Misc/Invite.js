@@ -21,6 +21,7 @@ require('dotenv').config();
 
 module.exports = {
 	cooldown: 5,
+	catagory: 'Miscellaneous',
 	data: new SlashCommandBuilder()
 		.setName('invite')
 		.setDescription(

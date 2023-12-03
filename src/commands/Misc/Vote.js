@@ -9,6 +9,8 @@ const {
 const { FooterImage, EmbedColour } = process.env;
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Miscellaneous',
 	data: new SlashCommandBuilder()
 		.setName('vote')
 		.setDescription('Vote for the bot!'),

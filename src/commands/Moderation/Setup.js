@@ -44,6 +44,8 @@ const GuildSelectRoles = require('../../models/GuildSelectRoles.js');
 const GuildInviteDetection = require('../../models/GuildInviteDetection.js');
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Moderation',
 	data: new SlashCommandBuilder()
 		.setName('setup')
 		.setDescription('Setup the bot for your server.')
@@ -93,7 +95,6 @@ module.exports = {
 						.setRequired(true)
 				)
 		)
-
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('level-rewards')
@@ -643,8 +644,6 @@ module.exports = {
 									'Please provide a valid message id'
 								);
 
-							console.log(data);
-
 							if (data.data.length >= 25)
 								return await sendEmbed(
 									interaction,
@@ -672,6 +671,9 @@ module.exports = {
 								await GuildSelectRoles.findOneAndDelete({
 									messageId: selectRoleMessageID,
 								});
+
+								// fetch message and delete
+								await selectRoleMessage.delete();
 
 								return await sendEmbed(
 									interaction,

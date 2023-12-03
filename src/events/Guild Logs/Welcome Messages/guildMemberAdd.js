@@ -85,7 +85,7 @@ module.exports = {
 			}
 
 			// Add role to user
-			await member.roles.add(welcomeMessagesRole).catch(() => {});
+			await member.roles.add(welcomeMessagesRole.map((data) => data.role));
 		}
 
 		// Send embed

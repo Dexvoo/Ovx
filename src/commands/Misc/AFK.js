@@ -20,6 +20,7 @@ require('dotenv').config();
 
 module.exports = {
 	cooldown: 5,
+	catagory: 'Miscellaneous',
 	data: new SlashCommandBuilder()
 		.setName('afk')
 		.setDescription('Sets your AFK status.')

@@ -7,10 +7,10 @@ const {
 	PermissionsBitField,
 } = require('discord.js');
 
-const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
-const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
-const { sleep } = require('../../utils/ConsoleLogs.js');
-const MessageLogs = require('../../models/GuildMessageLogs.js');
+const { sendEmbed, sendErrorEmbed } = require('../utils/Embeds.js');
+const { guildCheck, permissionCheck } = require('../utils/Checks.js');
+const { sleep } = require('../utils/ConsoleLogs.js');
+const MessageLogs = require('../models/GuildMessageLogs.js');
 require('dotenv').config();
 
 module.exports = {

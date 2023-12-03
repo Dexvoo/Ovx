@@ -30,6 +30,7 @@ require('dotenv').config();
 
 module.exports = {
 	cooldown: 5,
+	catagory: 'Moderation',
 	data: new SlashCommandBuilder()
 		.setName('poll')
 		.setDescription('Create a poll.')

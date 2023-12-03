@@ -25,7 +25,8 @@ const CloudConvert = require('cloudconvert');
 const cloudConvert = new CloudConvert(CloudConvertAPIKey);
 
 module.exports = {
-	cooldown: 5,
+	cooldown: 0,
+	catagory: 'Developer',
 	data: new SlashCommandBuilder()
 		.setName('test')
 		.setDescription('developer test command.')

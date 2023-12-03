@@ -12,24 +12,25 @@ require('dotenv').config();
 const { EmbedColour, FooterImage, FooterText } = process.env;
 
 module.exports = {
+	cooldown: 5,
+	catagory: 'Moderation',
 	data: new SlashCommandBuilder()
 		.setName('automod')
 		.setDescription('Add automod rules to your server.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		.setDMPermission(false)
 		.addSubcommand((subcommand) =>
 			subcommand
-				.setName('flagged-words')
+				.setName('flagged_words')
 				.setDescription('Block profanity, sexual content, and slurs.')
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
-				.setName('spam-messages')
+				.setName('spam_messages')
 				.setDescription('Block messages suspected of spam.')
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
-				.setName('spam-mentions')
+				.setName('spam_mentions')
 				.setDescription('Block messages with excessive mentions.')
 				.addIntegerOption((option) =>
 					option
@@ -97,7 +98,7 @@ module.exports = {
 			await sleep(2000);
 
 			switch (subcommand) {
-				case 'flagged-words':
+				case 'flagged_words':
 					// check for rules with the trigger type 4
 					const rules = await guild.autoModerationRules.fetch();
 					const existingRule = rules.find((rule) => rule.triggerType === 4);
@@ -207,7 +208,7 @@ module.exports = {
 
 					break;
 
-				case 'spam-messages':
+				case 'spam_messages':
 					// create the rule
 					const rule3 = await guild.autoModerationRules
 						.create({
@@ -254,7 +255,7 @@ module.exports = {
 					await interaction.editReply({ embeds: [Embed3] });
 
 					break;
-				case 'spam-mentions':
+				case 'spam_mentions':
 					// create the rule
 					const amount = options.getInteger('amount');
 

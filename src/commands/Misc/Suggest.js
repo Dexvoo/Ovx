@@ -30,6 +30,7 @@ require('dotenv').config();
 
 module.exports = {
 	cooldown: 5,
+	catagory: 'Miscellaneous',
 	data: new SlashCommandBuilder()
 		.setName('suggest')
 		.setDescription('Create a suggestion.')

@@ -113,7 +113,7 @@ const giveLevelRewards = async (member, newLevel) => {
 			}
 
 			// get all roles that are below the new level
-			const roles = rewards.filter((role) => role.level <= newLevel);
+			var roles = rewards.filter((role) => role.level <= newLevel);
 
 			// if no roles are below the new level
 			if (!roles.length) return;
@@ -128,6 +128,7 @@ const giveLevelRewards = async (member, newLevel) => {
 						if (!guildRole) {
 							// guild has deleted the role
 							// remove role from database
+							roles.splice(roles.indexOf(data), 1);
 							cleanConsoleLogData(
 								'Level Rewards',
 								'Role no longer exists, deleting data in database',
@@ -137,36 +138,16 @@ const giveLevelRewards = async (member, newLevel) => {
 								{ guildId: guild.id },
 								{ $pull: { rewards: { role: data.role } } }
 							);
-							return;
 						}
-
-						if (member.roles.cache.has(guildRole.id)) return;
-
-						await member.roles
-							.add(guildRole)
-							.then(() => {
-								cleanConsoleLogData(
-									'Level Rewards',
-									`Added Role: ${guildRole.name} to @${member.user.tag}`
-								);
-							})
-							.catch(async (error) => {
-								cleanConsoleLogData(
-									'Level Rewards',
-									`Failed to add Role: ${guildRole.name} to @${member.user.tag}`,
-									'error'
-								);
-								// remove role from database
-								await LevelRewardsSchema.findOneAndUpdate(
-									{ guildId: guild.id },
-									{ $pull: { rewards: { role: data.role } } }
-								).catch((error) => console.log(error));
-							});
 					} catch (error) {
 						console.log(error);
 					}
 				})
 			);
+			// Add all roles to user at once
+			await member.roles.add(roles.map((data) => data.role));
+
+			console.log('Added roles');
 		} catch (error) {}
 	} else {
 		throw new Error('Invalid member provided.');
