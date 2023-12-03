@@ -146,6 +146,7 @@ module.exports = {
 				const joinedOsuDateFormatted = `<t:${Math.floor(
 					new Date(join_date) / 1000
 				)}:d>`;
+				const play_time = (statistics.play_time / 3600).toFixed(0); // Hours
 
 				if (statistics.global_rank === null) statistics.global_rank = 0;
 				if (statistics.country_rank === null) statistics.country_rank = 0;
@@ -179,6 +180,7 @@ module.exports = {
 						`Accuracy: \`${statistics.hit_accuracy.toFixed(
 							2
 						)}\` • Level: \`${FinalLevel}\`
+					Playcount: \`${statistics.play_count.toLocaleString()}\` (\`${play_time} hours\`)
 					${emoji} • Medals: \`${user_achievements.length}\`
 					Peak Rank: \`#${rank_highest.rank.toLocaleString()}\` (${highestRankDate})
 					Joined osu!: ${joinedOsuDateFormatted} (${joinedOsuDate})
