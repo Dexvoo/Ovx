@@ -19,10 +19,14 @@ const { getApiKey } = require('./getApiKey');
 
 const getUser = async (username, targetMode) => {
 	if (!username) throw new Error('No username provided.');
-	if (!targetMode) throw new Error('No mode provided.');
+	if (!targetMode) targetMode = 'osu';
+
+	console.log('Getting User');
 
 	const ApiKey = await getApiKey();
-	const url = `https://osu.ppy.sh/api/v2/users/${username}/${targetMode}?key=atque`;
+	const url = `https://osu.ppy.sh/api/v2/users/${username}/${targetMode}`;
+
+	console.log(ApiKey);
 
 	const osuData = await axios
 		.get(url, {
@@ -35,7 +39,7 @@ const getUser = async (username, targetMode) => {
 			return data;
 		})
 		.catch((error) => {
-			console.log(error);
+			console.log('No user found');
 			return false;
 		});
 

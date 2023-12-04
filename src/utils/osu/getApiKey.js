@@ -17,6 +17,7 @@ const Osu = require('../../models/osuAPI.js');
  */
 
 const getApiKey = async () => {
+	console.log('Getting API Key');
 	const apiUrl = 'https://osu.ppy.sh/oauth/token';
 	// Data to be sent in the POST request body
 	const bodyParameters = {
@@ -46,22 +47,25 @@ const getApiKey = async () => {
 	const hoursDifference = timeDifference / 1000 / 60 / 60;
 
 	if (hoursDifference > 24) {
-		axios.post(apiUrl, bodyParameters, { headers }).then((response) => {
-			// Handle the response data
+		axios
+			.post(apiUrl, bodyParameters, { headers })
+			.then((response) => {
+				// Handle the response data
 
-			const { token_type, expires_in, access_token } = response.data;
+				const { token_type, expires_in, access_token } = response.data;
 
-			// save in database
-			Osu.findOneAndUpdate(
-				{},
-				{
-					access_token: access_token,
-				},
-				{ upsert: true }
-			).catch((error) => console.log(error));
+				// save in database
+				Osu.findOneAndUpdate(
+					{},
+					{
+						access_token: access_token,
+					},
+					{ upsert: true }
+				).catch((error) => console.log(error));
 
-			return access_token;
-		});
+				return access_token;
+			})
+			.catch((error) => console.log(error));
 	} else {
 		// use the current token
 		return access_token;

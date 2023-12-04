@@ -6,11 +6,19 @@ const {
 	ActionRowBuilder,
 	CommandInteraction,
 } = require('discord.js');
-const { FooterText, FooterImage, EmbedColour, RobloxAPIKey } = process.env;
+const {
+	FooterText,
+	FooterImage,
+	EmbedColour,
+	RobloxAPIKey,
+	OsuClientID,
+	OsuRedirectUri,
+} = process.env;
 const translate = require('@iamtraction/google-translate');
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { sleep, cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 const { getUser } = require('../../utils/osu/getUser.js');
+const { getAuth } = require('../../utils/osu/getAuth.js');
 
 module.exports = {
 	cooldown: 5,
@@ -40,6 +48,9 @@ module.exports = {
 							{ name: 'osu!mania', value: 'mania' }
 						)
 				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand.setName('auth').setDescription('Get an auth code for osu!')
 		),
 	/**
 	 * @param {CommandInteraction} interaction
@@ -57,10 +68,7 @@ module.exports = {
 				const targetUsername = options.getString('username');
 				const targetMode = options.getString('mode') || 'osu';
 
-				console.log(targetUsername);
-
 				const osuData = await getUser(targetUsername, targetMode);
-				console.log(osuData);
 
 				const {
 					avatar_url,
@@ -190,6 +198,16 @@ module.exports = {
 					.setThumbnail(avatar_url);
 
 				await interaction.editReply({ embeds: [embed] });
+
+				break;
+
+			case 'auth':
+				interaction.editReply({
+					content: `This command is currently disabled.`,
+				});
+				// interaction.editReply({
+				// 	content: `https://osu.ppy.sh/oauth/authorize?client_id=${OsuClientID}&redirect_uri=${OsuRedirectUri}&response_type=code&scope=public+identify&state=randomval`,
+				// });
 
 				break;
 

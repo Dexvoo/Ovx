@@ -32,7 +32,6 @@ function getRandomReadableWords() {
 		'James',
 		'Lily',
 		'Henry',
-		'Mia',
 		'Samuel',
 		'Ella',
 		'Charlie',
@@ -44,7 +43,6 @@ function getRandomReadableWords() {
 		'Arthur',
 		'Emily',
 		'Alfie',
-		'Scarlett',
 		'Oscar',
 		'Evie',
 		'Leo',
@@ -119,7 +117,7 @@ function getRandomReadableWords() {
 		'Eleanor',
 	]
 		.sort(() => Math.random() - Math.random())
-		.slice(0, 10);
+		.slice(0, 7);
 	return words.join(', ');
 }
 

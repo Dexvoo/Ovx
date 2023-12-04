@@ -1,9 +1,11 @@
 const { Schema, model } = require('mongoose');
 
-const RobloxVerifiedUsers = new Schema({
+const VerificationInformation = new Schema({
 	robloxUserId: {
 		type: String,
-		required: true,
+	},
+	osuUserId: {
+		type: String,
 	},
 	discordUserId: {
 		type: String,
@@ -11,4 +13,4 @@ const RobloxVerifiedUsers = new Schema({
 	},
 });
 
-module.exports = model('Roblox-Verified-Users', RobloxVerifiedUsers);
+module.exports = model('Verified-Users', VerificationInformation);

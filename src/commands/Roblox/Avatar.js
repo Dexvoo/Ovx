@@ -10,7 +10,7 @@ const { FooterText, FooterImage, EmbedColour, RobloxAPIKey } = process.env;
 const translate = require('@iamtraction/google-translate');
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { sleep, cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
-const RobloxVerifiedUsers = require('../../models/RobloxVerifiedUsers.js');
+const RobloxVerifiedUsers = require('../../models/VerifiedUsers.js');
 const noblox = require('noblox.js');
 
 module.exports = {

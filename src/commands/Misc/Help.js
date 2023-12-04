@@ -163,14 +163,14 @@ module.exports = {
 						option.description.slice(1)
 				);
 
+				if (!option.options) {
+					optionsOptionNames.push(`{${option.name}}`);
+				}
+
 				if (option.options) {
 					optionsOptionNames.push(
 						option.options.map((option) => `{${option.name}}`)
 					);
-				}
-
-				if (!option.options) {
-					optionsOptionNames.push('No options found');
 				}
 
 				if (!option.description) {
@@ -188,7 +188,7 @@ module.exports = {
 
 			for (let i = 0; i < optionsNames.length; i++) {
 				string += `**${optionsNames[i]}**:\n\`${optionsDescriptions[i]}\n${
-					optionsOptionNames[i] || 'No Options Found'
+					optionsOptionNames[i] || `{${optionsNames[i]}}`
 				}\`\n\n`;
 			}
 
