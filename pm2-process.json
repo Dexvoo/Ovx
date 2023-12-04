@@ -1,6 +1,9 @@
 {
 	"script": "src/index.js",
 	"watch": true,
+	"env": {
+		"NODE_ENV": "Production"
+	  },
 	"ignore_watch": [
 		"node_modules",
 		"out",
