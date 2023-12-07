@@ -349,7 +349,7 @@ async function handleServerInformation(interaction) {
 			.filter((role) => role.name !== '@everyone')
 			.map((role) => role.toString())
 			.join(', ')
-			.substring(0, 1000) || 'None';
+			.substring(0, 980) || 'None';
 	const guildTotalRolesCount = guild.roles.cache.size - 1;
 
 	let guildUserBadges = [];
@@ -370,6 +370,17 @@ async function handleServerInformation(interaction) {
 		}
 	}
 
+	const test = [
+		`Name: ${guildName}`,
+		`Created: ${guildCreated}`,
+		`Owner: ${guildOwner}`,
+		`Admins: ${guildAdmins}`,
+		`Mods: ${guildMods}`,
+		`Description: ${guildDescription}`,
+	].join('\n').length;
+
+	console.log(test);
+
 	// Embed
 	const Embed = new EmbedBuilder()
 		.setColor(EmbedColour)
@@ -387,7 +398,9 @@ async function handleServerInformation(interaction) {
 					`Admins: ${guildAdmins}`,
 					`Mods: ${guildMods}`,
 					`Description: ${guildDescription}`,
-				].join('\n'),
+				]
+					.join('\n')
+					.substring(0, 1000),
 				inline: false,
 			},
 			{

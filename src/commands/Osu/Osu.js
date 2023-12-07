@@ -17,8 +17,14 @@ const {
 const translate = require('@iamtraction/google-translate');
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { sleep, cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
-const { getUser } = require('../../utils/osu/getUser.js');
+const {
+	getUser,
+	getUserRecentActivity,
+} = require('../../utils/osu/getUser.js');
 const { getAuth } = require('../../utils/osu/getAuth.js');
+const { getApiKey } = require('../../utils/osu/getApiKey.js');
+const VerificationSchema = require('../../models/VerifiedUsers.js');
+const { getRankEmoji } = require('../../utils/osu/getRankEmoji.js');
 
 module.exports = {
 	cooldown: 5,
@@ -51,6 +57,23 @@ module.exports = {
 		)
 		.addSubcommand((subcommand) =>
 			subcommand.setName('auth').setDescription('Get an auth code for osu!')
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('mostrecent')
+				.setDescription('Get the most recent osu! play.')
+				.addStringOption((option) =>
+					option
+						.setName('mode')
+						.setDescription('The mode you would like to look up.')
+						.setRequired(true)
+						.addChoices(
+							{ name: 'osu! Standard', value: 'osu' },
+							{ name: 'Taiko', value: 'taiko' },
+							{ name: 'Catch The Beat', value: 'fruits' },
+							{ name: 'osu!mania', value: 'mania' }
+						)
+				)
 		),
 	/**
 	 * @param {CommandInteraction} interaction
@@ -74,7 +97,6 @@ module.exports = {
 					avatar_url,
 					country_code,
 					default_group,
-					id,
 					is_active,
 					is_bot,
 					is_deleted,
@@ -182,7 +204,7 @@ module.exports = {
 							statistics.global_rank.toLocaleString() || 0
 						} | ${country_code}: #${statistics.country_rank.toLocaleString()})`,
 						iconURL: `https://osuflags.omkserver.nl/${country_code}.png`,
-						url: `https://osu.ppy.sh/users/${id}/${targetMode}`,
+						url: `https://osu.ppy.sh/users/${username}/${targetMode}`,
 					})
 					.setDescription(
 						`Accuracy: \`${statistics.hit_accuracy.toFixed(
@@ -209,6 +231,89 @@ module.exports = {
 				// 	content: `https://osu.ppy.sh/oauth/authorize?client_id=${OsuClientID}&redirect_uri=${OsuRedirectUri}&response_type=code&scope=public+identify&state=randomval`,
 				// });
 
+				break;
+
+			case 'mostrecent':
+				const targetModeRecent = options.getString('mode') || 'osu';
+				console.log('target mode: ', targetModeRecent);
+
+				// get database data
+				const recentData = await VerificationSchema.findOne({
+					discordUserId: member.id,
+				});
+
+				if (!recentData?.osuUserId) {
+					return await sendEmbed(
+						interaction,
+						'Please verify your account first! with `/verify osu`'
+					);
+				}
+
+				const osuRecentData = await getUserRecentActivity(
+					recentData.osuUserId,
+					targetModeRecent
+				);
+
+				if (osuRecentData === false) {
+					return await sendEmbed(interaction, 'That username is invalid!');
+				}
+
+				const {
+					beatmap,
+					beatmapset,
+					created_at,
+					id,
+					max_combo,
+					mod_combination,
+					perfect,
+					pp,
+					rank,
+					score,
+					statistics: {
+						count_100,
+						count_300,
+						count_50,
+						count_geki,
+						count_katu,
+						count_miss,
+						hits,
+					},
+					user,
+				} = osuRecentData[0];
+
+				console.log(osuRecentData[0]);
+				const timeSet = `<t:${Math.floor(
+					new Date(osuRecentData[0].created_at) / 1000
+				)}:R>`;
+
+				const EmbedRecent = new EmbedBuilder()
+					.setColor(EmbedColour)
+					.setFooter({
+						text: `${FooterText}`,
+						iconURL: `${FooterImage}`,
+					})
+					.setAuthor({
+						name: `${user.username}: ${0}pp (🌍: #${0} | ${
+							user.country_code
+						}: #${0})`,
+						iconURL: `https://osuflags.omkserver.nl/${user.country_code}.png`,
+						url: `https://osu.ppy.sh/users/${user.username}/${targetModeRecent}`,
+					})
+					.setDescription(
+						`
+					**[${beatmapset.artist} - ${beatmapset.title} [${beatmap.version}] [${
+						beatmap.difficulty_rating
+					}✩]](${beatmap.url})**
+
+					**${await getRankEmoji(rank)}  •  ${score.toLocaleString()} • (${
+						osuRecentData[0].accuracy.toFixed(2) * 100
+					}%)  •  ${timeSet}**
+				
+					`
+					)
+					.setThumbnail(beatmapset.covers.list);
+
+				interaction.editReply({ embeds: [EmbedRecent] });
 				break;
 
 			default:

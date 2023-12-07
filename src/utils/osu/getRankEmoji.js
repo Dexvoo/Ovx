@@ -49,34 +49,33 @@ const getUser = async (username, targetMode) => {
 
  */
 
-const getUserRecentActivity = async (userId, targetMode) => {
-	if (!userId) throw new Error('No userId provided.');
-	if (!targetMode) targetMode = 'osu';
-	console.log('Getting User Recent Activity');
-	console.log(userId);
+const getRankEmoji = async (rank) => {
+	if (!rank) throw new Error('No rank provided');
 
-	const ApiKey = await getApiKey();
-	const url = `https://osu.ppy.sh/api/v2/users/${userId}/scores/recent?include_fails=0&mode=${targetMode}&limit=1&offset=0`;
-
-	const osuData = await axios
-		.get(url, {
-			headers: {
-				Authorization: `Bearer ${ApiKey}`,
-			},
-		})
-		.then((response) => {
-			const { data } = response;
-			return data;
-		})
-		.catch((error) => {
-			// wait and try again in 5 seconds
-			getUserRecentActivi;
-		});
-
-	return osuData;
+	switch (rank) {
+		case 'XH':
+			return '<:OVX_Rank_XH:1181939267795157093>';
+		case 'X':
+			return '<:OVX_Rank_X:1181939272790573097>';
+		case 'SH':
+			return '<:OVX_Rank_SH:1181939265505071215>';
+		case 'S':
+			return '<:OVX_Rank_S:1181939490923741224>';
+		case 'A':
+			return '<:OVX_Rank_A:1181939495281631273>';
+		case 'B':
+			return '<:OVX_Rank_B:1181939488809811998>';
+		case 'C':
+			return '<:OVX_Rank_C:1181939493285138532>';
+		case 'D':
+			return '<:OVX_Rank_D:1181939270278193202>';
+		case 'F':
+			return '<:OVX_Rank_F:1181939263638622328>';
+		default:
+			return false;
+	}
 };
 
 module.exports = {
-	getUser,
-	getUserRecentActivity,
+	getRankEmoji,
 };
