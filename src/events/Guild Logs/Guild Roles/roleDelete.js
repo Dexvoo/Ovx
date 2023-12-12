@@ -35,25 +35,12 @@ module.exports = {
 
 		if (!guild) return;
 
-		// get a random channel from the guild
-		const channel = guild.channels.cache.random();
+		const clientMember =
+			guild.members.cache.get(client.user.id) ||
+			(await guild.members.fetch(client.user.id));
 
-		// Bot permissions
-		const botPermissionsArry = ['ViewAuditLog'];
-		const botPermissions = await permissionCheck(
-			channel,
-			botPermissionsArry,
-			client
-		);
+		if (!clientMember.permissions.has('ViewAuditLog')) return;
 
-		if (!botPermissions[0]) {
-			return await sendEmbed(
-				await guild.fetchOwner(),
-				`Bot Missing Permissions: \`${botPermissions[1]}\` | Role Logs`
-			);
-		}
-
-		// Bot permissions
 		try {
 			guild
 				.fetchAuditLogs({ type: AuditLogEvent.RoleDelete })

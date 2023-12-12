@@ -57,7 +57,7 @@ module.exports = {
 				`Guild: ${guild.name} | Message Logs Channel Deleted`,
 				'error'
 			);
-			await MessageLogs.findOneAndDelete({ guildId: guild.id });
+			await MessageLogs.findOneAndDelete({ guild: guild.id });
 			return;
 		}
 
@@ -78,7 +78,7 @@ module.exports = {
 						`Guild: ${guild.name} | Missing Permissions`,
 						'warning'
 					);
-					await MessageLogs.findOneAndDelete({ guildId: guild.id });
+					await MessageLogs.findOneAndDelete({ guild: guild.id });
 					await sendEmbed(
 						await guild.fetchOwner(),
 						`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``

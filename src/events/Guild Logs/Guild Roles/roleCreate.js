@@ -41,17 +41,11 @@ module.exports = {
 
 		if (!channel) return;
 
-		// Bot permissions
-		const botPermissionsArry = ['ViewAuditLog'];
-		const botPermissions = await permissionCheck(
-			channel,
-			botPermissionsArry,
-			client
-		);
+		const clientMember =
+			guild.members.cache.get(client.user.id) ||
+			(await guild.members.fetch(client.user.id));
 
-		if (!botPermissions[0]) {
-			return; // doesnt have permissions
-		}
+		if (!clientMember.permissions.has('ViewAuditLog')) return;
 
 		try {
 			guild

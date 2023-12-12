@@ -820,7 +820,7 @@ module.exports = {
 						});
 
 					if (!channelToSend) {
-						await MessageLogs.findOneAndDelete({ guildId: guild.id });
+						await MessageLogs.findOneAndDelete({ guild: guild.id });
 						await sendEmbed(
 							await guild.fetchOwner(),
 							`Message Logs channel was deleted or changed | Message Logs is now \`disabled\``
@@ -836,7 +836,7 @@ module.exports = {
 					);
 
 					if (!botPermissions2[0]) {
-						await MessageLogs.findOneAndDelete({ guildId: guild.id });
+						await MessageLogs.findOneAndDelete({ guild: guild.id });
 						return await sendEmbed(
 							await guild.fetchOwner(),
 							`Bot Missing Permissions: \`${botPermissions2[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``

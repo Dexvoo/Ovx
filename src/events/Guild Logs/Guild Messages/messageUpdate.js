@@ -41,7 +41,7 @@ module.exports = {
 
 		// Checking if the channel exists
 		if (!channelToSend) {
-			await MessageLogs.findOneAndDelete({ guildId: guild.id });
+			await MessageLogs.findOneAndDelete({ guild: guild.id });
 			await sendEmbed(
 				await guild.fetchOwner(),
 				`Message Logs Channel Deleted | Message Logs is now \`disabled\``
@@ -60,7 +60,7 @@ module.exports = {
 
 		// Checking if the bot has permissions
 		if (!botPermissions[0]) {
-			await MessageLogs.findOneAndDelete({ guildId: guild.id });
+			await MessageLogs.findOneAndDelete({ guild: guild.id });
 			return await sendEmbed(
 				await guild.fetchOwner(),
 				`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``
