@@ -23,6 +23,7 @@ const { permissionCheck } = require('../../../utils/Checks.js');
 module.exports = {
 	name: Events.VoiceStateUpdate,
 	nickname: 'Voice Logs',
+	once: false,
 
 	/**
 	 *  @param {VoiceState} oldState

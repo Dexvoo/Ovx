@@ -26,6 +26,7 @@ const {
 module.exports = {
 	name: Events.GuildRoleCreate,
 	nickname: 'Role Logs',
+	once: false,
 
 	/**
 	 *  @param {Role} role

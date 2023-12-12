@@ -21,6 +21,7 @@ const { permissionCheck } = require('../../../utils/Checks.js');
 module.exports = {
 	name: Events.GuildMemberUpdate,
 	nickname: 'Role Logs',
+	once: false,
 
 	/**
 	 *  @param {GuildMember} oldMember

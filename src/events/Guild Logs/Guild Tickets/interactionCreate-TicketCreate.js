@@ -21,6 +21,7 @@ const { permissionCheck } = require('../../../utils/Checks.js');
 module.exports = {
 	name: Events.InteractionCreate,
 	nickname: 'Tickets',
+	once: false,
 
 	/**
 	 * @param {Interaction} interaction

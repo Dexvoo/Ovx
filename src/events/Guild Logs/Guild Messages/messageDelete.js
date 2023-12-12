@@ -17,6 +17,7 @@ const {
 module.exports = {
 	name: Events.MessageDelete,
 	nickname: 'Message Logs',
+	once: false,
 
 	/**
 	 *  @param {Message} message

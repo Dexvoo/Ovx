@@ -29,6 +29,7 @@ const inVoiceChannelMembers = new Map();
 module.exports = {
 	name: Events.VoiceStateUpdate,
 	nickname: 'Voice Level XP',
+	once: false,
 
 	/**
 	 *  @param {VoiceState} oldState

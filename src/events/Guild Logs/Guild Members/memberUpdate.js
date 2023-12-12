@@ -21,6 +21,7 @@ const {
 module.exports = {
 	name: Events.GuildMemberUpdate,
 	nickname: 'Member Logs',
+	once: false,
 
 	/**
 	 * @param {GuildMember} oldMember

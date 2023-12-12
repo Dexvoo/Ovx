@@ -16,6 +16,7 @@ const {
 module.exports = {
 	name: Events.MessageUpdate,
 	nickname: 'Message Logs',
+	once: false,
 
 	/**
 	 *  @param {Message} oldMessage

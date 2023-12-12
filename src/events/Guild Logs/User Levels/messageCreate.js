@@ -18,6 +18,7 @@ const cooldowns = new Set();
 module.exports = {
 	name: Events.MessageCreate,
 	nickname: 'User Levels',
+	once: false,
 
 	/**
 	 *  @param {Message} message

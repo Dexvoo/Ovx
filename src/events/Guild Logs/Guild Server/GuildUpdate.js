@@ -36,6 +36,7 @@ function addFieldIfChanged(embed, fieldName, oldValue, newValue) {
 module.exports = {
 	name: Events.GuildUpdate,
 	nickname: 'Server Logs',
+	once: false,
 
 	/**
 	 * @param {Guild} oldGuild

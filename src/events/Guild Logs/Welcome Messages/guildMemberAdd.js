@@ -8,6 +8,7 @@ const { EmbedColour, FooterImage, FooterText, DeveloperMode } = process.env;
 module.exports = {
 	name: Events.GuildMemberAdd,
 	nickname: 'Welcome Messages',
+	once: false,
 
 	/**
 	 *  @param {GuildMember} member

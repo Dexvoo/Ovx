@@ -116,6 +116,7 @@ async function handleUserUpdate(client, oldUser, newUser, MemberLogsData) {
 module.exports = {
 	name: Events.UserUpdate,
 	nickname: 'User Logs',
+	once: false,
 
 	async execute(oldUser, newUser) {
 		try {

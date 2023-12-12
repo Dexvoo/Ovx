@@ -24,6 +24,7 @@ const {
 module.exports = {
 	name: Events.ChannelCreate,
 	nickname: 'Channel Logs',
+	once: false,
 
 	/**
 	 *  @param {GuildChannel} channel

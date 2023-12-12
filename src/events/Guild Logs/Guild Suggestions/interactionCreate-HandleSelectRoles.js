@@ -22,6 +22,7 @@ const formatResults = require('../../../utils/formatSuggestionResults.js');
 module.exports = {
 	name: Events.InteractionCreate,
 	nickname: 'Suggestions',
+	once: false,
 
 	/**
 	 * @param {Interaction} interaction
