@@ -23,8 +23,7 @@ module.exports = {
 		// Checking if the command is being used in a guild and if the author is a bot
 		if (!guild || author.bot) return;
 
-		if (guild.id !== '980647156962713610' || guild.id !== '1115336808834805780')
-			return;
+		if (guild.id !== '980647156962713610') return;
 
 		// bot permissions
 		const botPermissionsArry = [

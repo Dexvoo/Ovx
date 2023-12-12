@@ -274,19 +274,6 @@ async function handleServerInformation(interaction) {
 			)
 			.map((members) => members.toString())
 			.join(', ') || 'None';
-	var guildMods =
-		guild.members.cache
-			.filter(
-				(members) =>
-					members.permissions.has(PermissionsBitField.Flags.ManageMessages) !==
-						false &&
-					members.user.bot === false &&
-					members.id !== guild.ownerId &&
-					members.permissions.has(PermissionsBitField.Flags.Administrator) ===
-						false
-			)
-			.map((members) => members.toString())
-			.join(', ') || 'None';
 
 	// Guild Member Variables
 	const guildMemberCount = guild.members.cache.filter(
@@ -370,17 +357,6 @@ async function handleServerInformation(interaction) {
 		}
 	}
 
-	const test = [
-		`Name: ${guildName}`,
-		`Created: ${guildCreated}`,
-		`Owner: ${guildOwner}`,
-		`Admins: ${guildAdmins}`,
-		`Mods: ${guildMods}`,
-		`Description: ${guildDescription}`,
-	].join('\n').length;
-
-	console.log(test);
-
 	// Embed
 	const Embed = new EmbedBuilder()
 		.setColor(EmbedColour)
@@ -396,7 +372,6 @@ async function handleServerInformation(interaction) {
 					`Created: ${guildCreated}`,
 					`Owner: ${guildOwner}`,
 					`Admins: ${guildAdmins}`,
-					`Mods: ${guildMods}`,
 					`Description: ${guildDescription}`,
 				]
 					.join('\n')
