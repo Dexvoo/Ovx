@@ -29,7 +29,6 @@ module.exports = {
 
 	async execute(client) {
 		// fetch all guilds
-		const guilds = await client.guilds.fetch();
 
 		var guildsCount;
 		var usersCount;
