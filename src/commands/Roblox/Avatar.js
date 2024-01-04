@@ -215,6 +215,138 @@ module.exports = {
 
 				break;
 
+			case 'search':
+				const username = options.getString('value');
+				let userId = await noblox.getIdFromUsername(username);
+
+				if (!userId) {
+					return await sendEmbed(
+						interaction,
+						`The user \`${username}\` does not exist`
+					);
+				}
+
+				const userInfo2 = await noblox.getPlayerInfo(parseInt(userId));
+
+				if (!userInfo2) {
+					return await sendEmbed(
+						interaction,
+						`The user \`${username}\` does not exist`
+					);
+				}
+
+				const avatar2 = await noblox.getAvatar(userId);
+
+				if (!avatar2) {
+					return await sendEmbed(
+						interaction,
+						`Could not get avatar for \`${username}\``
+					);
+				} else if (avatar2 === 'Rate Limited') {
+					return await sendEmbed(
+						interaction,
+						`I am currently rate limited, please try again later.`
+					);
+				}
+
+				console.log(`avatar2: ${avatar2}`);
+
+				let imageUrl2;
+
+				let thumbnail_circHeadshot2 = await noblox.getPlayerThumbnail(
+					userId,
+					420,
+					'png',
+					true,
+					'Body'
+				);
+
+				if (
+					Array.isArray(thumbnail_circHeadshot2) &&
+					thumbnail_circHeadshot2.length > 0
+				) {
+					imageUrl2 = thumbnail_circHeadshot2[0].imageUrl;
+				}
+
+				const SearchEmbed = new EmbedBuilder()
+					.setURL(`https://roblox.com/users/${userId}/profile`)
+					.setTitle(`@${userInfo2.username} Avatar`)
+					.setImage(imageUrl2)
+					.addFields(
+						{
+							name: 'Scales',
+							value: `Height: ${avatar2.scales.height}\nWidth: ${avatar2.scales.width}\nHead: ${avatar2.scales.head}\nDepth: ${avatar2.scales.depth}\nProportion: ${avatar2.scales.proportion}`,
+							inline: true,
+						},
+						{
+							name: 'Body Colors',
+							value: `Head: ${avatar2.bodyColors.headColorId}\nTorso:${avatar2.bodyColors.torsoColorId}\nRight Arm:${avatar2.bodyColors.rightArmColorId}\nRight Arm:${avatar2.bodyColors.leftArmColorId}\nLeft Leg:${avatar2.bodyColors.rightLegColorId}\nRight Leg:${avatar2.bodyColors.leftLegColorId}`,
+							inline: true,
+						}
+					)
+					.setTimestamp()
+					.setFooter({ text: FooterText, iconURL: FooterImage });
+
+				// List assest from avatar and check for types
+				var assetList = avatar2.assets;
+				const accessoryUrls2 = [];
+				const accessoryNames2 = [];
+				const accessoryTypes2 = [];
+				var shirtName;
+				var shirtUrl;
+				var pantsName;
+				var pantsUrl;
+				assetList.map((asset) => {
+					if (asset.assetType.name === 'Shirt') {
+						shirtName = asset.name;
+						shirtUrl = `https://www.roblox.com/catalog/${asset.id}`;
+					}
+
+					if (asset.assetType.name === 'Pants') {
+						pantsName = asset.name;
+						pantsUrl = `https://www.roblox.com/catalog/${asset.id}`;
+					}
+
+					if (asset.assetType.name.includes('Accessory')) {
+						accessoryNames2.push(asset.name);
+						accessoryTypes2.push(asset.assetType.name);
+						accessoryUrls2.push(`https://www.roblox.com/catalog/${asset.id}`);
+					}
+				});
+
+				// Get Accessories
+				var accessoriesList = '';
+				for (let i = 0; i < accessoryNames2.length; i++) {
+					accessoriesList += `${accessoryTypes2[i].replace(
+						'Accessory',
+						''
+					)}: [${accessoryNames2[i]}](${accessoryUrls2[i]})\n`;
+				}
+
+				if (shirtName === undefined) {
+					shirtName = 'No Shirt';
+					shirtUrl = 'https://www.roblox.com/catalog/0';
+				}
+
+				if (pantsName === undefined) {
+					pantsName = 'No Pants';
+					pantsUrl = 'https://www.roblox.com/catalog/0';
+				}
+
+				// Link Accessories in a string
+
+				SearchEmbed.addFields({
+					name: 'Assets',
+					value: `Shirt: [${shirtName}](${shirtUrl})\nPants: [${pantsName}](${pantsUrl})\n${accessoriesList}`,
+					inline: false,
+				});
+
+				interaction.editReply({
+					embeds: [SearchEmbed],
+				});
+
+				break;
+
 			default:
 				break;
 		}
