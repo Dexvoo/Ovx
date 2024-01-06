@@ -13,8 +13,8 @@ const {
 	PermissionsBitField,
 } = require('discord.js');
 const { FooterText, FooterImage, EmbedColour } = process.env;
-const ticketSchema = require('../../../models/GuildTicketsInfo.js');
-const ticketSetup = require('../../../models/GuildTicketsSetup.js');
+const GuildTicketsInfo = require('../../../models/GuildTicketsInfo.js');
+const GuildTicketsSetup = require('../../../models/GuildTicketsSetup.js');
 const { createTranscript } = require('discord-html-transcripts');
 const { sendEmbed } = require('../../../utils/Embeds.js');
 const { permissionCheck } = require('../../../utils/Checks.js');
@@ -57,7 +57,7 @@ module.exports = {
 			return;
 		}
 
-		const channelTicket = await ticketSchema.findOne({
+		const channelTicket = await GuildTicketsInfo.findOne({
 			channelid: channel.id,
 		});
 
@@ -90,7 +90,7 @@ module.exports = {
 					returnBuffer: false,
 					filename: `${member.user.username}-ticket-${channelTicket.ticketid}.html`,
 				});
-				await ticketSchema.updateOne(
+				await GuildTicketsInfo.updateOne(
 					{
 						channelid: channel.id,
 					},
@@ -114,7 +114,7 @@ module.exports = {
 					.setTimestamp()
 					.setFooter({ text: FooterText, iconURL: FooterImage });
 
-				const ticketData = await ticketSetup.findOne({
+				const ticketData = await GuildTicketsSetup.findOne({
 					guild: guild.id,
 				});
 
@@ -204,7 +204,7 @@ module.exports = {
 					return;
 				}
 
-				await ticketSchema.updateOne(
+				await GuildTicketsInfo.updateOne(
 					{ channelid: channel.id },
 					{ locked: true }
 				);
@@ -264,7 +264,7 @@ module.exports = {
 					return;
 				}
 
-				await ticketSchema.updateOne(
+				await GuildTicketsInfo.updateOne(
 					{ channelid: channel.id },
 					{ locked: false }
 				);

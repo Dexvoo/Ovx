@@ -10,6 +10,8 @@ const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
 const GuildTicketsInfo = require('../../models/GuildTicketsInfo.js');
+const GuildTicketsSetup = require('../../models/GuildTicketsSetup.js');
+const { createTranscript } = require('discord-html-transcripts');
 require('dotenv').config();
 const { EmbedColour, FooterImage, FooterText } = process.env;
 
@@ -42,7 +44,17 @@ module.exports = {
 						.setDescription('The member to remove')
 						.setRequired(true)
 				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand.setName('delete').setDescription('Delete a ticket')
+		)
+		.addSubcommand((subcommand) =>
+			subcommand.setName('lock').setDescription('Lock a ticket')
+		)
+		.addSubcommand((subcommand) =>
+			subcommand.setName('unlock').setDescription('Unlock a ticket')
 		),
+
 	/**
 	 *
 	 * @param {CommandInteraction} interaction
@@ -95,6 +107,16 @@ module.exports = {
 
 			// Variables
 			const subcommand = options.getSubcommand();
+
+			const channelTicket = await GuildTicketsInfo.findOne({
+				channelid: channel.id,
+			});
+
+			if (!channelTicket) {
+				return await sendEmbed(interaction, `Something went wrong :/`);
+			}
+
+			const fetchedMember = await guild.members.fetch(channelTicket.memberid);
 
 			switch (subcommand) {
 				case 'addmember':
@@ -213,7 +235,120 @@ module.exports = {
 						interaction,
 						`Removed ${targetMemberRemoveMember} from the ticket`
 					);
+					break;
+				case 'delete':
+					if (channelTicket.closed == true) {
+						const Embed = new EmbedBuilder()
+							.setColor(EmbedColour)
+							.setDescription('• This ticket is already getting deleted •')
+							.setTimestamp()
+							.setFooter({ text: FooterText, iconURL: FooterImage });
+						interaction.reply({ embeds: [Embed], ephemeral: true });
+						return;
+					}
 
+					const Embed = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setDescription('• Closing ticket •')
+						.setTimestamp()
+						.setFooter({ text: FooterText, iconURL: FooterImage });
+					interaction.reply({ embeds: [Embed] });
+
+					const transcript = await createTranscript(channel, {
+						limit: -1,
+						returnBuffer: false,
+						filename: `${member.user.username}-ticket-${channelTicket.ticketid}.html`,
+					});
+					await GuildTicketsInfo.updateOne(
+						{
+							channelid: channel.id,
+						},
+						{
+							closed: true,
+						}
+					);
+					const transcriptEmbed = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setTitle(
+							`Ticket ID: ${channelTicket.ticketid} - Member: ${fetchedMember.id}`
+						)
+						.setFooter({ text: FooterText, iconURL: FooterImage })
+						.setTimestamp();
+
+					const TranscriptProcess = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setDescription(
+							"• This ticket will be closed in 10 seconds, enable DM's for the ticket transcript •"
+						)
+						.setTimestamp()
+						.setFooter({ text: FooterText, iconURL: FooterImage });
+
+					const ticketData = await GuildTicketsSetup.findOne({
+						guild: guild.id,
+					});
+
+					const targetMember = await guild.members.fetch(
+						channelTicket.memberid
+					);
+
+					if (targetMember) {
+						await targetMember
+							.send({
+								embeds: [transcriptEmbed],
+								files: [transcript],
+							})
+							.catch(async () => {
+								const couldntSendEmbed = new EmbedBuilder()
+									.setColor(EmbedColour)
+									.setDescription('• Could not send the transcript to member •')
+									.setTimestamp()
+									.setFooter({ text: FooterText, iconURL: FooterImage });
+								await channel.send({ embeds: [couldntSendEmbed] });
+							});
+					}
+
+					const TranscriptChannel = guild.channels.cache.get(
+						ticketData.archiveChannel
+					);
+
+					if (TranscriptChannel) {
+						// bot permissions
+						const botPermissionsArry = [
+							'SendMessages',
+							'AttachFiles',
+							'ViewChannel',
+						];
+						const botPermissions = await permissionCheck(
+							TranscriptChannel,
+							botPermissionsArry,
+							client
+						);
+
+						if (botPermissions[0]) {
+							await TranscriptChannel.send({
+								embeds: [transcriptEmbed],
+								files: [transcript],
+							}).catch(async (error) => {
+								console.log(error);
+							});
+						}
+					} else {
+						const couldntSendEmbed = new EmbedBuilder()
+							.setColor(EmbedColour)
+							.setDescription(
+								'• Could not send the transcript to archive channel •'
+							)
+							.setTimestamp()
+							.setFooter({ text: FooterText, iconURL: FooterImage });
+
+						await channel.send({ embeds: [couldntSendEmbed] });
+					}
+
+					interaction.editReply({ embeds: [TranscriptProcess] });
+
+					setTimeout(function () {
+						channel.delete();
+					}, 10000);
 					break;
 			}
 		} catch (error) {

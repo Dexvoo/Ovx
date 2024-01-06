@@ -9,6 +9,7 @@ const {
 	Guild,
 	Client,
 	CommandInteraction,
+	TextChannel,
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
@@ -855,6 +856,7 @@ module.exports = {
 						'SendMessages',
 						'ViewChannel',
 						'ManageChannels',
+						'EmbedLinks',
 					];
 					const botPermissionsTicket = await permissionCheck(
 						ticketsChannel,
@@ -875,6 +877,7 @@ module.exports = {
 						'SendMessages',
 						'ViewChannel',
 						'ManageChannels',
+						'EmbedLinks',
 					];
 					const botPermissionsArchive = await permissionCheck(
 						archiveChannel,
@@ -911,6 +914,8 @@ module.exports = {
 
 					await sendEmbed(interaction, 'Creating tickets channel');
 
+					console.log('Tickets channel created');
+
 					const ticketEmbed = new EmbedBuilder()
 						.setColor(EmbedColour)
 						.setTitle(`${guild.name} | Tickets`)
@@ -918,16 +923,16 @@ module.exports = {
 							'Welcome to our ticket channel. If you would like to talk to a staff member for assistance, please click the button below.'
 						);
 
-					const LinkButton = new ActionRowBuilder().addComponents(
-						new ButtonBuilder()
-							.setStyle(ButtonStyle.Primary)
-							.setLabel('Create Ticket')
-							.setCustomId('ovx-ticket')
-					);
+					const LinkButton = new ButtonBuilder()
+						.setStyle(ButtonStyle.Primary)
+						.setLabel('Create Ticket')
+						.setCustomId('ovx-ticket');
+
+					const row = new ActionRowBuilder().addComponents(LinkButton);
 
 					await ticketsChannel.send({
 						embeds: [ticketEmbed],
-						components: [LinkButton],
+						components: [row],
 					});
 
 					// save data to database
