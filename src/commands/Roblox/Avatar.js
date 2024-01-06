@@ -70,23 +70,19 @@ module.exports = {
 		switch (subcommand) {
 			case 'roblox':
 				var targetUserRoblox = options.getUser('user');
-				if (!targetUserRoblox) {
-					targetUserRoblox = user;
-				}
+				if (!targetUserRoblox) targetUserRoblox = user;
 
 				// get data from database
 				const robloxVerifiedUsersData = await RobloxVerifiedUsers.findOne({
 					discordUserId: targetUserRoblox.id,
 				});
 
-				if (!robloxVerifiedUsersData) {
+				if (!robloxVerifiedUsersData)
 					return await sendEmbed(
 						interaction,
-						`${targetUserRoblox} is not verified, please advise them to use the command \`/verify\``
+						`${targetUserRoblox} is not verified, please advise them to use the command \`/verify osu\``
 					);
-				}
 
-				console.log(`robloxVerifiedUsersData: ${robloxVerifiedUsersData}`);
 				const userInfo = await noblox.getPlayerInfo(
 					parseInt(robloxVerifiedUsersData.robloxUserId)
 				);
@@ -94,15 +90,13 @@ module.exports = {
 				if (!userInfo) {
 					return await sendEmbed(
 						interaction,
-						`The user \`${robloxVerifiedUsersData.robloxUsername}\` does not exist, please reverify 2`
+						`The user \`${robloxVerifiedUsersData.robloxUsername}\` does not exist, please advise them to use the command \`/verify osu\``
 					);
 				}
 
 				const avatar = await noblox.getAvatar(
 					robloxVerifiedUsersData.robloxUserId
 				);
-
-				console.log(avatar);
 
 				if (!avatar) {
 					return await sendEmbed(
@@ -116,10 +110,7 @@ module.exports = {
 					);
 				}
 
-				console.log(`avatar: ${avatar}`);
-
 				let imageUrl;
-
 				let thumbnail_circHeadshot = await noblox.getPlayerThumbnail(
 					robloxVerifiedUsersData.robloxUserId,
 					420,
@@ -213,6 +204,66 @@ module.exports = {
 					embeds: [VerifiedEmbed],
 				});
 
+				break;
+			case 'discord':
+				var targetUserDiscord = options.getMember('user');
+				// Variables
+
+				// Checking If The User Is Valid
+				if (!targetUserDiscord) {
+					targetUserDiscord = member;
+				}
+
+				// Buttons
+				const LinkButton = new ActionRowBuilder().addComponents(
+					new ButtonBuilder()
+						.setStyle(ButtonStyle.Link)
+						.setLabel('PNG')
+						.setURL(
+							targetUserDiscord.user.displayAvatarURL({
+								size: 1024,
+								extension: 'png',
+							})
+						),
+					new ButtonBuilder()
+						.setStyle(ButtonStyle.Link)
+						.setLabel('JPG')
+						.setURL(
+							targetUserDiscord.user.displayAvatarURL({
+								size: 1024,
+								extension: 'jpg',
+							})
+						),
+					new ButtonBuilder()
+						.setStyle(ButtonStyle.Link)
+						.setLabel('GIF')
+						.setURL(
+							targetUserDiscord.user.displayAvatarURL({
+								dynamic: true,
+								size: 1024,
+							})
+						)
+				);
+
+				// sends embed
+				const Embed = new EmbedBuilder()
+					.setColor(EmbedColour)
+					.setAuthor({
+						name: `@${targetUserDiscord.user.username}'s Avatar`,
+						iconURL: targetUserDiscord.user.displayAvatarURL({ dynamic: true }),
+					})
+					.setImage(
+						targetUserDiscord.user.displayAvatarURL({
+							dynamic: true,
+							size: 4096,
+						})
+					)
+					.setTimestamp()
+					.setFooter({ text: FooterText, iconURL: FooterImage });
+				interaction.editReply({
+					embeds: [Embed],
+					components: [LinkButton],
+				});
 				break;
 
 			case 'search':

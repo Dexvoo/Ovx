@@ -1589,16 +1589,10 @@ module.exports = {
 								const SuccessEmbed = new EmbedBuilder()
 									.setColor(EmbedColour)
 									.setDescription('• Server Logs Setup Successfully •')
-									.addFields(
-										{
-											name: '• Channel •',
-											value: `${ServerLogsChannel}`,
-										},
-										{
-											name: '• Server Logs •',
-											value: `This is a work in progress, please be patient for this feature to role out c:`,
-										}
-									)
+									.addFields({
+										name: '• Channel •',
+										value: `${ServerLogsChannel}`,
+									})
 									.setTimestamp()
 									.setFooter({ text: FooterText, iconURL: FooterImage });
 								await interaction.editReply({ embeds: [SuccessEmbed] });
@@ -1655,16 +1649,10 @@ module.exports = {
 								const SuccessEmbed = new EmbedBuilder()
 									.setColor(EmbedColour)
 									.setDescription('• Voice Logs Setup Successfully •')
-									.addFields(
-										{
-											name: '• Channel •',
-											value: `${VoiceLogsChannel}`,
-										},
-										{
-											name: '• Voice Logs •',
-											value: `This is a work in progress, please be patient for this feature to role out c:`,
-										}
-									)
+									.addFields({
+										name: '• Channel •',
+										value: `${VoiceLogsChannel}`,
+									})
 									.setTimestamp()
 									.setFooter({ text: FooterText, iconURL: FooterImage });
 								await interaction.editReply({ embeds: [SuccessEmbed] });

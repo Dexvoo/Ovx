@@ -97,7 +97,7 @@ module.exports = {
 				.join('\n');
 
 			const levelCommandList = commands
-				.filter((command) => command.catagory === 'Level')
+				.filter((command) => command.catagory === 'Levels')
 				.map((command) => `</${command.data.name}:${command.id}>`)
 				.join('\n');
 
