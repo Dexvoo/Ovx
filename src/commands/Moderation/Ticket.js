@@ -4,6 +4,7 @@ const {
 	EmbedBuilder,
 	CommandInteraction,
 	ChannelType,
+	PermissionsBitField,
 } = require('discord.js');
 
 const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
@@ -113,7 +114,7 @@ module.exports = {
 			});
 
 			if (!channelTicket) {
-				return await sendEmbed(interaction, `Something went wrong :/`);
+				return await sendEmbed(interaction, `This is not a ticket channel`);
 			}
 
 			const fetchedMember = await guild.members.fetch(channelTicket.memberid);
@@ -252,7 +253,7 @@ module.exports = {
 						.setDescription('• Closing ticket •')
 						.setTimestamp()
 						.setFooter({ text: FooterText, iconURL: FooterImage });
-					interaction.reply({ embeds: [Embed] });
+					interaction.editReply({ embeds: [Embed] });
 
 					const transcript = await createTranscript(channel, {
 						limit: -1,
@@ -287,12 +288,8 @@ module.exports = {
 						guild: guild.id,
 					});
 
-					const targetMember = await guild.members.fetch(
-						channelTicket.memberid
-					);
-
-					if (targetMember) {
-						await targetMember
+					if (fetchedMember) {
+						await fetchedMember
 							.send({
 								embeds: [transcriptEmbed],
 								files: [transcript],
@@ -349,6 +346,102 @@ module.exports = {
 					setTimeout(function () {
 						channel.delete();
 					}, 10000);
+					break;
+
+				case 'lock':
+					if (
+						!member.permissions.has(PermissionsBitField.Flags.ManageChannels)
+					) {
+						const Embed = new EmbedBuilder()
+							.setColor(EmbedColour)
+							.setDescription(
+								'• You are missing the permission to lock this ticket •'
+							)
+							.setTimestamp()
+							.setFooter({ text: FooterText, iconURL: FooterImage });
+						interaction.editReply({ embeds: [Embed], ephemeral: true });
+						return;
+					}
+
+					if (channelTicket.locked == true) {
+						const Embed = new EmbedBuilder()
+							.setColor(EmbedColour)
+							.setDescription('• This ticket is already locked •')
+							.setTimestamp()
+							.setFooter({ text: FooterText, iconURL: FooterImage });
+						interaction.editReply({ embeds: [Embed], ephemeral: true });
+						return;
+					}
+
+					await GuildTicketsInfo.updateOne(
+						{ channelid: channel.id },
+						{ locked: true }
+					);
+
+					const LockEmbed = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setDescription('• This ticket is now locked 🔐 •')
+						.setTimestamp()
+						.setFooter({ text: FooterText, iconURL: FooterImage });
+
+					await interaction.channel.permissionOverwrites
+						.edit(fetchedMember.user, {
+							SendMessages: false,
+						})
+						.catch(async (error) => {
+							console.log(error);
+						});
+
+					await interaction.editReply({ embeds: [LockEmbed] });
+
+					break;
+
+				case 'unlock':
+					if (
+						!member.permissions.has(PermissionsBitField.Flags.ManageChannels)
+					) {
+						const Embed = new EmbedBuilder()
+							.setColor(EmbedColour)
+							.setDescription(
+								'• You are missing the permission to unlock this ticket •'
+							)
+							.setTimestamp()
+							.setFooter({ text: FooterText, iconURL: FooterImage });
+						interaction.editReply({ embeds: [Embed], ephemeral: true });
+						return;
+					}
+
+					if (channelTicket.locked == false) {
+						const Embed = new EmbedBuilder()
+							.setColor(EmbedColour)
+							.setDescription('• This ticket is already unlocked •')
+							.setTimestamp()
+							.setFooter({ text: FooterText, iconURL: FooterImage });
+						interaction.editReply({ embeds: [Embed], ephemeral: true });
+						return;
+					}
+
+					await GuildTicketsInfo.updateOne(
+						{ channelid: channel.id },
+						{ locked: false }
+					);
+
+					const UnlockEmbed = new EmbedBuilder()
+						.setColor(EmbedColour)
+						.setDescription('• This ticket is now unlocked 🔓 •')
+						.setTimestamp()
+						.setFooter({ text: FooterText, iconURL: FooterImage });
+
+					await interaction.channel.permissionOverwrites
+						.edit(fetchedMember.user, {
+							SendMessages: true,
+						})
+						.catch(async (error) => {
+							console.log(error);
+						});
+
+					// edit permissions of the channel
+					await interaction.editReply({ embeds: [UnlockEmbed] });
 					break;
 			}
 		} catch (error) {
