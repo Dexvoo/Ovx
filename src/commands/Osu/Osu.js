@@ -269,19 +269,11 @@ module.exports = {
 					pp,
 					rank,
 					score,
-					statistics: {
-						count_100,
-						count_300,
-						count_50,
-						count_geki,
-						count_katu,
-						count_miss,
-						hits,
-					},
 					user,
 				} = osuRecentData[0];
 
-				console.log(osuRecentData[0]);
+				const userData = await getUser(recentData.osuUserId, targetModeRecent);
+
 				const timeSet = `<t:${Math.floor(
 					new Date(osuRecentData[0].created_at) / 1000
 				)}:R>`;
@@ -293,9 +285,11 @@ module.exports = {
 						iconURL: `${FooterImage}`,
 					})
 					.setAuthor({
-						name: `${user.username}: ${0}pp (🌍: #${0} | ${
+						name: `${
+							user.username
+						}: ${userData.statistics.pp.toLocaleString()}pp (🌍: #${userData.statistics.global_rank.toLocaleString()} | ${
 							user.country_code
-						}: #${0})`,
+						}: #${userData.statistics.country_rank.toLocaleString()})`,
 						iconURL: `https://osuflags.omkserver.nl/${user.country_code}.png`,
 						url: `https://osu.ppy.sh/users/${user.username}/${targetModeRecent}`,
 					})

@@ -59,6 +59,14 @@ const init = async () => {
 		const TEST_SERVER = '1173402643348078593';
 		const DEVELOPER_GUILD_ID = '1115336808834805780';
 		const ZOO_OF_HUMANS_GUILD_ID = '962342471000535071';
+
+		rest
+			.put(Routes.applicationCommands(ClientID), { body: [] })
+			.then(() =>
+				console.log('Successfully DELETED application commands. GLOBAL')
+			)
+			.catch(console.error);
+
 		rest
 			.put(Routes.applicationGuildCommands(ClientID, TEST_SERVER), {
 				body: [],
@@ -74,12 +82,6 @@ const init = async () => {
 			})
 			.then(() =>
 				console.log('Successfully REGISTERED application commands. GUILD')
-			)
-			.catch(console.error);
-		rest
-			.put(Routes.applicationCommands(ClientID), { body: [] })
-			.then(() =>
-				console.log('Successfully DELETED application commands. GLOBAL')
 			)
 			.catch(console.error);
 	} else {
