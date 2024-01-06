@@ -25,9 +25,11 @@ const path = require('node:path');
 // 	commands.push(command.data.toJSON());
 // }
 
+var ClientID;
+var rest;
 if (DeveloperMode == 'true') {
-	var rest = new REST({ version: '10' }).setToken(PrivateToken);
-	var ClientID = PrivateClientID;
+	rest = new REST({ version: '10' }).setToken(PrivateToken);
+	ClientID = PrivateClientID;
 } else {
 	rest = new REST({ version: '10' }).setToken(PublicToken);
 	ClientID = PublicClientID;

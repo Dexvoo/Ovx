@@ -4,10 +4,10 @@ const {
 	PermissionFlagsBits,
 	parseEmoji,
 } = require('discord.js');
-const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
-const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
-const { sleep } = require('../../utils/ConsoleLogs.js');
-const Levels = require('../../models/GuildLevels.js');
+const { sendEmbed, sendErrorEmbed } = require('../utils/Embeds.js');
+const { guildCheck, permissionCheck } = require('../utils/Checks.js');
+const { sleep } = require('../utils/ConsoleLogs.js');
+const Levels = require('../models/GuildLevels.js');
 const {
 	DeveloperMode,
 	PrivateToken,
