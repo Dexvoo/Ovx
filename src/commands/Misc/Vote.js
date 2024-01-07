@@ -6,7 +6,7 @@ const {
 	Interaction,
 	ButtonStyle,
 } = require('discord.js');
-const { FooterImage, EmbedColour } = process.env;
+const { FooterImage, EmbedColour, PublicClientID } = process.env;
 
 module.exports = {
 	cooldown: 5,
@@ -26,7 +26,7 @@ module.exports = {
 			new ButtonBuilder()
 				.setLabel('Vote')
 				.setStyle(ButtonStyle.Link)
-				.setURL(`https://top.gg/bot/${client.user.id}/vote`)
+				.setURL(`https://top.gg/bot/${PublicClientID}/vote`)
 		);
 
 		const embed = new EmbedBuilder()

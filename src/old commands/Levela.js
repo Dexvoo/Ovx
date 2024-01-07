@@ -5,11 +5,11 @@ const {
 	parseEmoji,
 	PermissionsBitField,
 } = require('discord.js');
-const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
-const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
-const { calculateLevel } = require('../../utils/XP.js');
-const { sleep } = require('../../utils/ConsoleLogs.js');
-const Levels = require('../../models/GuildLevels.js');
+const { sendEmbed, sendErrorEmbed } = require('../utils/Embeds.js');
+const { guildCheck, permissionCheck } = require('../utils/Checks.js');
+const { calculateLevel } = require('../utils/XP.js');
+const { sleep } = require('../utils/ConsoleLogs.js');
+const Levels = require('../models/GuildLevels.js');
 const {
 	DeveloperMode,
 	PrivateToken,

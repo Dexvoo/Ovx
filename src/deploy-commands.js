@@ -11,6 +11,7 @@ const { Routes } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const fsPromises = require('fs').promises;
 const path = require('node:path');
+const { cleanConsoleLogData } = require('./utils/ConsoleLogs');
 
 // const commands = [];
 
@@ -133,6 +134,8 @@ async function commandsCrawl(directory, filesArray) {
 			//if directory commandsCrawl again.
 			await commandsCrawl(newPath, filesArray);
 		} else {
+			if (newPath.includes('Developer') && DeveloperMode == 'false') continue;
+
 			//if it is a file append it to the array
 			if (currentDir.name.endsWith('.js')) {
 				const command = await require(newPath);

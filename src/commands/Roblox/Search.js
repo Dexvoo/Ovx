@@ -258,16 +258,6 @@ module.exports = {
 				});
 				break;
 			case 'groupid':
-				const RobloxSearchEmbed2 = new EmbedBuilder()
-					.setTitle('Roblox Username Lookup')
-					.setDescription('Group Lookup is currently not supported.')
-					.setColor('Red')
-					.setTimestamp()
-					.setFooter({ text: FooterText, iconURL: FooterImage });
-				interaction.editReply({
-					embeds: [RobloxSearchEmbed2],
-				});
-
 				// check if input is a number
 				if (isNaN(userInput)) {
 					const RobloxSearchEmbed = new EmbedBuilder()
