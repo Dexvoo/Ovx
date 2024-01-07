@@ -52,7 +52,7 @@ module.exports = {
 
 		try {
 			guild
-				.fetchAuditLogs({ type: AuditLogEvent.ChannelCreate })
+				.fetchAuditLogs({ type: AuditLogEvent.ChannelDelete })
 				.then(async (audit) => {
 					// Deconstructing audit
 					const { executor, target, createdAt } = audit.entries.first();
