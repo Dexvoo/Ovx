@@ -210,6 +210,21 @@ module.exports = {
 
 				case 'admin':
 					// Variables
+
+					// User permissions
+					const userPermissionsArry = ['Administrator'];
+					const userPermissions = await permissionCheck(
+						interaction,
+						userPermissionsArry,
+						client
+					);
+
+					if (!userPermissions[0])
+						return await sendEmbed(
+							interaction,
+							`User Missing Permissions: \`${userPermissions[1]}\``
+						);
+
 					const type = options.getString('type');
 					const targetUser = options.getUser('user') || user;
 					const query2 = { guildId: guild.id, userId: targetUser.id };
