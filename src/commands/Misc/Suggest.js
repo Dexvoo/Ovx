@@ -277,10 +277,15 @@ module.exports = {
 						return;
 					}
 
-					const suggestionMessage = await channel.messages.fetch(messageId);
+					const suggestionMessage = await channel.messages
+						.fetch(messageId)
+						.catch((error) => {});
 
 					if (!suggestionMessage) {
-						await sendEmbed(interaction, 'That suggestion does not exist.');
+						await sendEmbed(
+							interaction,
+							'Could not find that suggestion, please run the command in the channel the suggestion was created in'
+						);
 						return;
 					}
 
