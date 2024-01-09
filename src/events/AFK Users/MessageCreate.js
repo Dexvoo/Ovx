@@ -21,7 +21,7 @@ module.exports = {
 		if (!guild || author.bot) return;
 
 		// Bot permissions
-		const botPermissionsArry = ['ViewChannel', 'SendMessages'];
+		const botPermissionsArry = ['ViewChannel', 'SendMessages', 'EmbedLinks'];
 		const botPermissions = await permissionCheck(
 			channel,
 			botPermissionsArry,

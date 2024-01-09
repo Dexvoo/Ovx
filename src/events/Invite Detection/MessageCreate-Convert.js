@@ -1,7 +1,5 @@
-const { ActivityType, Events, EmbedBuilder } = require('discord.js');
-const GuildInviteDetection = require('../../models/GuildInviteDetection.js');
-const { EmbedColour, CloudConvertAPIKey } = process.env;
-const { sendEmbed } = require('../../utils/Embeds.js');
+const { Events, Message } = require('discord.js');
+const { CloudConvertAPIKey } = process.env;
 const { permissionCheck } = require('../../utils/Checks.js');
 const http = require('https'); // or 'https' for https:// URLs
 const fs = require('fs');
@@ -15,7 +13,6 @@ module.exports = {
 
 	/**
 	 * @param {Message} message
-	 * @param {Client} client
 	 */
 
 	async execute(message) {
@@ -37,26 +34,19 @@ module.exports = {
 			client
 		);
 
-		if (!botPermissions[0]) {
-			console.log(
-				`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${channel}`
-			);
-			return;
-		}
+		if (!botPermissions[0]) return;
 
-		// get message attachments
+		// Attachments
 		const attachments = message.attachments;
 		if (!attachments.size) return;
 
-		// get attachment
+		// First Attachment
 		const file = attachments.first();
 		if (!file) return;
 
-		// get file type
+		// File Type
 		const contentType = file.contentType;
-		if (contentType !== 'video/x-ms-wmv') {
-			return;
-		}
+		if (contentType !== 'video/x-ms-wmv') return;
 
 		// get file name
 		const fileName = file.name;
