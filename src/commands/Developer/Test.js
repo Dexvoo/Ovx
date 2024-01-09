@@ -19,10 +19,6 @@ const {
 	CloudConvertAPIKey,
 } = process.env;
 require('dotenv').config();
-const http = require('https'); // or 'https' for https:// URLs
-const fs = require('fs');
-const axios = require('axios');
-const { getUser } = require('../../utils/osu/getUser.js');
 
 module.exports = {
 	cooldown: 0,
