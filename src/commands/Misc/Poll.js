@@ -191,15 +191,15 @@ module.exports = {
 
 						if (!botPermissions[0]) {
 							modalInteraction.editReply(
-								`There was an error creating your suggestion, permissions missing : ${botPermissions[1]}`
+								`There was an error creating your poll, permissions missing : ${botPermissions[1]}`
 							);
 							return false;
 						}
 					}
 
-					if (!SuggestionMessage) return;
+					if (!PollMessage) return;
 
-					// get suggestion text from modal reply
+					// get poll text from modal reply
 					const pollText =
 						modalInteraction.fields.getTextInputValue('poll-input');
 
@@ -214,7 +214,7 @@ module.exports = {
 
 					modalInteraction.editReply('Poll Created!');
 
-					// Suggestion Embed
+					// Poll Embed
 
 					const pollEmbed = new EmbedBuilder()
 						.setAuthor({
