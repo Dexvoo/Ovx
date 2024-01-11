@@ -43,7 +43,14 @@ module.exports = {
 		await interaction.reply({ embeds: [embed3], ephemeral: true });
 
 		// bot permissions
-		const botPermissionsArry = ['ManageChannels', 'ManageRoles'];
+		const botPermissionsArry = [
+			'ViewChannel',
+			'SendMessages',
+			'ManageChannels',
+			'ManageRoles',
+			'AttachFiles',
+			'EmbedLinks',
+		];
 		const botPermissions = await permissionCheck(
 			interaction.channel,
 			botPermissionsArry,
@@ -52,7 +59,7 @@ module.exports = {
 
 		if (!botPermissions[0]) {
 			await sendEmbed(
-				interaction.channel,
+				member,
 				`Bot Missing Permissions: \`${botPermissions[1]}\` in channel : ${interaction.channel}`
 			);
 			return;
@@ -129,6 +136,7 @@ module.exports = {
 								PermissionsBitField.Flags.ViewChannel,
 								PermissionsBitField.Flags.SendMessages,
 								PermissionsBitField.Flags.ReadMessageHistory,
+								PermissionsBitField.Flags.EmbedLinks,
 							],
 						},
 						{
