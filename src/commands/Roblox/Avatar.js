@@ -80,7 +80,7 @@ module.exports = {
 				if (!robloxVerifiedUsersData?.robloxUserId)
 					return await sendEmbed(
 						interaction,
-						`${targetUserRoblox} is not verified, please advise them to use the command \`/verify osu\``
+						`${targetUserRoblox} is not verified, please advise them to use the command \`/verify roblox\``
 					);
 
 				const userInfo = await noblox.getPlayerInfo(
