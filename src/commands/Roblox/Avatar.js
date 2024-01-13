@@ -77,7 +77,7 @@ module.exports = {
 					discordUserId: targetUserRoblox.id,
 				});
 
-				if (!robloxVerifiedUsersData)
+				if (!robloxVerifiedUsersData?.robloxUserId)
 					return await sendEmbed(
 						interaction,
 						`${targetUserRoblox} is not verified, please advise them to use the command \`/verify osu\``

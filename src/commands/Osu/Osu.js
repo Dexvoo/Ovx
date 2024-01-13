@@ -55,9 +55,9 @@ module.exports = {
 						)
 				)
 		)
-		.addSubcommand((subcommand) =>
-			subcommand.setName('auth').setDescription('Get an auth code for osu!')
-		)
+		// .addSubcommand((subcommand) =>
+		// 	subcommand.setName('auth').setDescription('Get an auth code for osu!')
+		// )
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('mostrecent')
