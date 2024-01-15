@@ -318,7 +318,11 @@ client.on(Events.MessageCreate, async (message) => {
 			var rawLeaderboard = await fetchLeaderboard(targetGuild.id, 15);
 			var totalGuildUsers = rawLeaderboard.length;
 
-			rawLeaderboard.slice(0, 15);
+			// add the total guild levels
+			var totalGuildLevels = 0;
+			rawLeaderboard.forEach((key) => {
+				totalGuildLevels = totalGuildLevels + key.level;
+			});
 
 			// Checking if the leaderboard is empty
 			if (rawLeaderboard.length < 1) {
@@ -326,13 +330,14 @@ client.on(Events.MessageCreate, async (message) => {
 				return;
 			}
 
+			rawLeaderboard = rawLeaderboard.slice(0, 15);
+
 			const leaderboard = await computeLeaderboard(
 				client,
 				rawLeaderboard,
 				true
 			);
-			const totalGuildLevels2 = leaderboard[1];
-			const lb = leaderboard[0].map(
+			const lb = leaderboard.map(
 				(e) =>
 					`\`` +
 					`${e.position}`.padStart(2, ' ') +
@@ -350,7 +355,7 @@ client.on(Events.MessageCreate, async (message) => {
 				.addFields(
 					{
 						name: 'Total Guild Levels',
-						value: totalGuildLevels2.toLocaleString(),
+						value: totalGuildLevels.toLocaleString(),
 						inline: true,
 					},
 					{
@@ -554,7 +559,11 @@ async function fetchLeaderboard(guildId, limit) {
 	return users;
 }
 
-async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
+/**
+ * @param {Client} client
+ */
+
+async function computeLeaderboard(client, leaderboard) {
 	if (!client) throw new TypeError('A client was not provided.');
 	if (!leaderboard) throw new TypeError('A leaderboard id was not provided.');
 
@@ -565,11 +574,15 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 
 	console.log('computing leaderboard');
 
-	// if (fetchUsers) {
-	// 	console.log('fetchUsers is true');
 	for (const key of leaderboard) {
-		const user = await client.users.fetch(key.userId);
-		console.log('username: @', user.username);
+		var user = client.users.cache.get(key.userId);
+
+		if (!user) {
+			user = await client.users.fetch(key.userId);
+			console.log(`Forced fetched user @${user.username}`);
+		} else {
+			console.log(`Cached user @${user.username}`);
+		}
 		totalGuildLevels = totalGuildLevels + key.level;
 
 		const guild = client.guilds.cache.get(key.guildId);
@@ -613,7 +626,7 @@ async function computeLeaderboard(client, leaderboard, fetchUsers = false) {
 
 	console.log('returning array');
 
-	return [computedArray, totalGuildLevels];
+	return computedArray;
 }
 
 async function commandsCrawl(directory, filesArray) {
