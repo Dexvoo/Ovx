@@ -315,7 +315,10 @@ client.on(Events.MessageCreate, async (message) => {
 
 			if (!targetGuild) return await message.channel.send('Invalid guild id');
 
-			const rawLeaderboard = await fetchLeaderboard(targetGuild.id, 15);
+			var rawLeaderboard = await fetchLeaderboard(targetGuild.id, 15);
+			var totalGuildUsers = rawLeaderboard.length;
+
+			rawLeaderboard.slice(0, 15);
 
 			// Checking if the leaderboard is empty
 			if (rawLeaderboard.length < 1) {
@@ -352,7 +355,7 @@ client.on(Events.MessageCreate, async (message) => {
 					},
 					{
 						name: 'Total Guild Users',
-						value: rawLeaderboard.length.toLocaleString(),
+						value: totalGuildUsers.toLocaleString(),
 						inline: true,
 					}
 				)
@@ -547,10 +550,6 @@ async function fetchLeaderboard(guildId, limit) {
 			['xp', 'descending'],
 		])
 		.exec();
-
-	if (limit) {
-		users = users.slice(0, limit);
-	}
 
 	return users;
 }

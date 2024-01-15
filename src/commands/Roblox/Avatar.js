@@ -90,7 +90,7 @@ module.exports = {
 				if (!userInfo) {
 					return await sendEmbed(
 						interaction,
-						`The user \`${robloxVerifiedUsersData.robloxUsername}\` does not exist, please advise them to use the command \`/verify osu\``
+						`The user \`${robloxVerifiedUsersData.robloxUsername}\` does not exist, please advise them to use the command \`/verify roblox\``
 					);
 				}
 
