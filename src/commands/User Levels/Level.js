@@ -166,6 +166,8 @@ module.exports = {
 						return;
 					}
 
+					rawLeaderboard = rawLeaderboard.slice(0, 15);
+
 					const leaderboard = await computeLeaderboard(
 						client,
 						rawLeaderboard,
