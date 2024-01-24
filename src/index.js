@@ -32,7 +32,7 @@ const Levels = require('./models/GuildLevels.js');
 const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds, // Guild create/update/delete events (roles, channels, threads)
-		GatewayIntentBits.GuildMembers, // Member add/update/remove events
+		// GatewayIntentBits.GuildMembers, // Member add/update/remove events
 		GatewayIntentBits.GuildModeration, // Ban add/remove and Guild audit log events
 		GatewayIntentBits.GuildEmojisAndStickers, // Emoji and sticker create/update/delete events
 		// GatewayIntentBits.GuildIntegrations, // Integration create/update/delete events
