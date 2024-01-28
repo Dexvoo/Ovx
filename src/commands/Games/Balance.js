@@ -26,7 +26,7 @@ const TAILS = 'Tails';
 
 // Messages in a array to be used later
 const messages = {
-	FLIPCOIN: `Dealer is flipping the coin`,
+	SEND_DEFAULT_MESSAGE: `Getting your balance`,
 	NOT_ENOUGH_MONEY: `You do not have enough coins to bet that amount`,
 	INVALID_BET_AMOUNT: `You must bet between ${MIN_BET_AMOUNT} and ${MAX_BET_AMOUNT} coins`,
 	INVALID_SIDE: `You must bet on either ${HEADS} or ${TAILS}`,
@@ -38,31 +38,9 @@ module.exports = {
 	cooldown: 5,
 	catagory: 'Games',
 	data: new SlashCommandBuilder()
-		.setName('coinflip')
-		.setDescription('Play Coinflip.')
-		.setDMPermission(false)
-		.addStringOption((option) =>
-			option
-				.setName('side')
-				.setDescription('The side to bet on.')
-				.setRequired(true)
-				.addChoices(
-					{
-						name: HEADS,
-						value: HEADS,
-					},
-					{
-						name: TAILS,
-						value: TAILS,
-					}
-				)
-		)
-		.addIntegerOption((option) =>
-			option
-				.setName('amount')
-				.setDescription('The amount of coins to bet.')
-				.setRequired(true)
-		),
+		.setName('balance')
+		.setDescription('Check your balance')
+		.setDMPermission(false),
 
 	/**
 	 * @param {CommandInteraction} interaction
@@ -72,7 +50,7 @@ module.exports = {
 			const { options, user, client } = interaction;
 
 			// Placeholder Embed
-			await sendEmbed(interaction, messages.FLIPCOIN);
+			await sendEmbed(interaction, messages.SEND_DEFAULT_MESSAGE);
 			await sleep(2000);
 
 			// Guild Check
@@ -93,39 +71,16 @@ module.exports = {
 				userCurrency = new UserCurrency({
 					userid: user.id,
 				});
+				await userCurrency.save();
 			}
-
-			// Check if the user has enough coins
-			if (userCurrency.currency < amount) {
-				return sendEmbed(interaction, messages.NOT_ENOUGH_MONEY);
-			}
-
-			// Check if the user has bet a valid amount
-			if (amount < MIN_BET_AMOUNT || amount > MAX_BET_AMOUNT) {
-				return sendEmbed(interaction, messages.INVALID_BET_AMOUNT);
-			}
-
-			const randomCoinToss = Math.floor(Math.random() * 2);
-			const result = randomCoinToss === 0 ? HEADS : TAILS;
-			const win = result === side;
-
-			// Update the user's coins
-			userCurrency.currency = win
-				? userCurrency.currency + amount
-				: userCurrency.currency - amount;
-
-			await userCurrency.save();
 
 			const embed = new EmbedBuilder()
 				.setColor(EmbedColour)
-				.setTitle('Coinflip')
+				.setTitle('Balance')
 				.setDescription(
 					[
-						`Bet Amount : \`${amount}\``,
-						`Side Bet : \`${side}\`\n`,
-						`Result : \`${result}\``,
-						`${win ? messages.WIN : messages.LOSE}`,
-						`New Balance : \`${userCurrency.currency.toLocaleString()}\``,
+						`**@${user.username}**`,
+						`Balance : \`${userCurrency.currency.toLocaleString()}\``,
 					].join('\n')
 				)
 				.setTimestamp()

@@ -156,6 +156,7 @@ module.exports = {
 					console.log('total guild levels: ', totalGuildLevels);
 					console.log('total guild users: ', totalGuildUsers);
 					console.log('total guild voice minutes: ', totalGuildVoiceMinutes);
+					console.log('total guild messages: ', totalGuildMessages);
 
 					// Checking if the leaderboard is empty
 					if (rawLeaderboard.length < 1) {

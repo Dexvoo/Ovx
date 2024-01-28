@@ -7,7 +7,7 @@ const UserCurrency = new Schema({
 	},
 	currency: {
 		type: Number,
-		required: true,
+		default: 1000,
 	},
 });
 
