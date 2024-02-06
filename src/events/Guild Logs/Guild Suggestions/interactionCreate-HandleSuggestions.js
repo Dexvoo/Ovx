@@ -69,10 +69,12 @@ module.exports = {
 				await targetSuggestion.save();
 
 				await interaction.editReply({ content: 'Suggestion approved.' });
-				targetMessage.edit({
+				await targetMessage.edit({
 					embeds: [targetMessageEmbed],
 					components: [targetMessage.components[0]],
 				});
+
+				// save suggestion to ticket setup
 				return;
 			}
 
@@ -92,7 +94,7 @@ module.exports = {
 				await targetSuggestion.save();
 
 				await interaction.editReply({ content: 'Suggestion denied.' });
-				targetMessage.edit({
+				await targetMessage.edit({
 					embeds: [targetMessageEmbed],
 					components: [targetMessage.components[0]],
 				});
@@ -122,7 +124,7 @@ module.exports = {
 
 				await targetSuggestion.save();
 				await interaction.editReply({ content: 'Upvoted.' });
-				targetMessage.edit({
+				await targetMessage.edit({
 					embeds: [targetMessageEmbed],
 				});
 				return;
@@ -137,7 +139,7 @@ module.exports = {
 				);
 				await targetSuggestion.save();
 				await interaction.editReply({ content: 'Downvoted.' });
-				targetMessage.edit({
+				await targetMessage.edit({
 					embeds: [targetMessageEmbed],
 				});
 				return;
