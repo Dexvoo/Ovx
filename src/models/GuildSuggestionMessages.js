@@ -1,10 +1,11 @@
 const { Schema, model } = require('mongoose');
+const crypto = require('crypto');
 
 const SuggestionMessages = new Schema(
 	{
 		suggestionId: {
 			type: String,
-			default: crypto.randomUUID(),
+			default: () => crypto.randomUUID(),
 		},
 		authorId: {
 			type: String,

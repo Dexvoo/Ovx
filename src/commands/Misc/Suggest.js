@@ -187,11 +187,13 @@ module.exports = {
 					const newSuggestion = new SuggestionMessages({
 						authorId: user.id,
 						guildId: guild.id,
-						messageId: SuggestionMessage.id,
+						messageId: SuggestionMessage.id, // 1204309838423789618
 						content: suggestionText,
 					});
 
 					await newSuggestion.save();
+
+					console.log('newSuggestion', newSuggestion);
 
 					modalInteraction.editReply('Suggestion Created!');
 

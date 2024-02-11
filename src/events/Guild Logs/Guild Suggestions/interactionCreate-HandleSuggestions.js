@@ -60,13 +60,15 @@ module.exports = {
 					});
 				}
 
+				console.log('Approving suggestion');
 				targetSuggestion.status = 'approved';
 
 				targetMessageEmbed.data.color = 0x84e660;
 				targetMessageEmbed.fields[1].value = 'Approved';
 				targetMessageEmbed.fields[3].value = currentTime;
-
+				console.log('currentTime', currentTime);
 				await targetSuggestion.save();
+				console.log('targetSuggestion saving', targetSuggestion);
 
 				await interaction.editReply({ content: 'Suggestion approved.' });
 				await targetMessage.edit({

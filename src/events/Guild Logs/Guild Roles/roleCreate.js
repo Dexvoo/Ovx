@@ -106,7 +106,7 @@ module.exports = {
 							},
 							{
 								name: `Reason`,
-								value: `${audit.entries.first().reason || `No Reason`}`,
+								value: `${audit.entries.first()?.reason || `No Reason`}`,
 							},
 							{
 								name: 'Created At',
