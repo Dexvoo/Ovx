@@ -90,6 +90,7 @@ module.exports = {
 			pt: 'Portuguese',
 			ru: 'Russian',
 			ar: 'Arabic',
+			lv: 'Latvian',
 		};
 		var LanguageFrom = LanguageList[translation.from.language.iso];
 		var Languageto = LanguageList[language];
