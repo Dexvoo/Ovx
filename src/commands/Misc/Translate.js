@@ -60,6 +60,10 @@ module.exports = {
 					{
 						name: 'Arabic',
 						value: 'ar',
+					},
+					{
+						name: 'Latvian',
+						value: 'lv',
 					}
 				)
 				.setRequired(true)
