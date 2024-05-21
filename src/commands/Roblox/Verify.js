@@ -12,6 +12,7 @@ const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { sleep, cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 const VerifyInformation = require('../../models/VerifiedUsers.js');
 const { getRandomReadableWords } = require('../../utils/GetVerifyNames.js');
+const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const noblox = require('noblox.js');
 const { getUser } = require('../../utils/osu/getUser.js');
 
@@ -53,6 +54,23 @@ module.exports = {
 
 	async execute(interaction) {
 		const { member, options, user, client } = interaction;
+
+
+		// check bot permissions to see channel
+		const botPermissionsArry = ['SendMessages', 'ViewChannel'];
+		const botPermissions = await permissionCheck(
+			interaction.channel,
+			botPermissionsArry,
+			client
+		);
+
+		if (!botPermissions[0]) {
+			interaction.reply(
+				`Bot Missing Permissions: \`${botPermissions[1].join(', ')}\``
+			);
+			return;
+		}
+
 
 		// Placeholder Embed
 		await sendEmbed(interaction, `Starting Verification Process`);

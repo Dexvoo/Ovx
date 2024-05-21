@@ -88,6 +88,13 @@ module.exports = {
 			messageContentNew = 'No content';
 		}
 
+		console.log(`Message Edited | ${author.username} | ${guild.name}`)
+		console.log(`hasPremiumRole | ${hasPremiumRole}`)
+		console.log(`Channel | ${channel.id}`)
+		console.log(`Before | ${messageContentOld}`)
+		console.log(`After | ${messageContentNew}`)
+		console.log(`ID's | User: ${author.id} | Message: ${newMessage.id} | Guild: ${guild.id}`)
+
 		// Creating embed
 		const Embed = new EmbedBuilder()
 			.setTitle('Message Edited')

@@ -356,7 +356,7 @@ module.exports = {
 				member
 			);
 
-			if (!userPermissions[0] || user.id !== '387341502134878218')
+			if (!userPermissions[0])
 				return await sendEmbed(
 					interaction,
 					`User Missing Permissions: \`${userPermissions[1]}\``

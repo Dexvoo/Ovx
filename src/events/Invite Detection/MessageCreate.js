@@ -3,6 +3,7 @@ const GuildInviteDetection = require('../../models/GuildInviteDetection.js');
 const { EmbedColour } = process.env;
 const { sendEmbed } = require('../../utils/Embeds.js');
 const { permissionCheck } = require('../../utils/Checks.js');
+const { cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 
 module.exports = {
 	name: Events.MessageCreate,
@@ -25,7 +26,7 @@ module.exports = {
 
 		if (!guildInviteDetection) return;
 
-		const botPermissionsArry = ['ManageMessages'];
+		const botPermissionsArry = ['ManageMessages', 'SendMessages', 'ViewChannel'];
 		const botPermissions = await permissionCheck(
 			channel,
 			botPermissionsArry,
@@ -46,7 +47,9 @@ module.exports = {
 
 		const invite = await client.fetchInvite(inviteCode).catch(() => false);
 
-		if (!invite) return;
+		if (!invite) {
+			cleanConsoleLogData('Invite Detection', 'Invite not found', 'info');
+		}
 
 		if (!invite.guild) return;
 

@@ -64,6 +64,14 @@ module.exports = {
 					{
 						name: 'Latvian',
 						value: 'lv',
+					},
+					{
+						name: 'Chinese (Simplified)',
+						value: 'zh-cn',
+					},
+					{
+						name: 'Chinese (Traditional)',
+						value: 'zh-tw',
 					}
 				)
 				.setRequired(true)
@@ -91,6 +99,9 @@ module.exports = {
 			ru: 'Russian',
 			ar: 'Arabic',
 			lv: 'Latvian',
+			'zh-cn': 'Chinese (Simplified)',
+			'zh-tw': 'Chinese (Traditional)',
+
 		};
 		var LanguageFrom = LanguageList[translation.from.language.iso];
 		var Languageto = LanguageList[language];
