@@ -1,26 +1,9 @@
-const { Events, EmbedBuilder, Client } = require('discord.js');
-const {
-	cleanConsoleLog,
-	cleanConsoleLogData,
-} = require('../../utils/ConsoleLogs.js');
-
-const BotStats = require('../../models/BotStats.js');
-require('dotenv').config();
-const {
-	FooterImage,
-	FooterText,
-	EmbedColour,
-	DeveloperMode,
-	PremiumUserRoleID,
-	DeveloperGuildID,
-	SuccessEmoji,
-	ErrorEmoji,
-} = process.env;
+const { Events, Client } = require('discord.js');
 
 module.exports = {
 	name: Events.ClientReady,
 	once: true,
-	nickname: 'Bot Stats',
+	nickname: 'Command ID\'s',
 
 	/**
 	 * @param {Client} client
@@ -33,9 +16,7 @@ module.exports = {
 			.then((commands) => {
 				commands.toJSON().forEach((command) => {
 					const rawCommand = client.commands.get(command.name);
-
 					rawCommand.id = command.id;
-
 					client.commands.set(command.name, rawCommand);
 				});
 			});

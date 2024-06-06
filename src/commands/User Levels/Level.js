@@ -44,6 +44,26 @@ module.exports = {
 				.setDescription(
 					'Displays the most active users in a leaderboard (Guild Only).'
 				)
+				.addStringOption((option) =>
+					option
+						.setName('type')
+						.setDescription('The type of leaderboard to show.')
+						.setRequired(true)
+						.addChoices(
+							{
+								name: 'Levels',
+								value: 'levels',
+							},
+							{
+								name: 'Messages',
+								value: 'messages',
+							},
+							{
+								name: 'Voice',
+								value: 'voice',
+							}
+						)
+				)
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
@@ -140,7 +160,11 @@ module.exports = {
 
 				case 'leaderboard':
 					// Variables
-					var rawLeaderboard = await fetchLeaderboard(guild.id, 25);
+
+					const typeLB = options.getString('type')
+						
+					
+					var rawLeaderboard = await fetchLeaderboard(guild.id, 25, typeLB);
 					var totalGuildUsers = rawLeaderboard.length;
 
 					// add the total guild levels
@@ -175,20 +199,59 @@ module.exports = {
 						true
 					);
 
-					const lb = leaderboard.map(
-						(e) =>
-							`\`` +
-							`${e.position}`.padStart(2, ' ') +
-							`\`. \`@` +
-							`${e.username}`.padEnd(18, ' ') +
-							`\` | L: \`${
-								e.level
-							}\` | XP: \`${e.xp.toLocaleString()}\` | M: \`${e.messages.toLocaleString()}\` | V: \`${e.voice.toLocaleString()}\``
-					);
+
+					switch (typeLB) {
+						case 'messages':
+							var lb = leaderboard.map(
+								(e) =>
+									`\`` +
+									`${e.position}`.padStart(2, ' ') +
+									`\`. \`@` +
+									`${e.username}`.padEnd(18, ' ') +
+									`\` | M: \`${
+										e.messages.toLocaleString()
+									}\``
+							);
+							break
+						case 'voice':
+							var lb = leaderboard.map(
+								(e) =>
+									`\`` +
+									`${e.position}`.padStart(2, ' ') +
+									`\`. \`@` +
+									`${e.username}`.padEnd(18, ' ') +
+									`\` | V: \`${
+										e.voice.toLocaleString()
+									}\``
+							);
+
+							break
+						case 'levels':
+							var lb = leaderboard.map(
+								(e) =>
+									`\`` +
+									`${e.position}`.padStart(2, ' ') +
+									`\`. \`@` +
+									`${e.username}`.padEnd(18, ' ') +
+									`\` | L: \`${
+										e.level
+									}\` | XP: \`${e.xp.toLocaleString()}\` | M: \`${e.messages.toLocaleString()}\` | V: \`${e.voice.toLocaleString()}\``
+							);
+							break
+						default:
+							await sendEmbed(
+								interaction,
+								'Please provide a valid type to show the leaderboard for.'
+							);
+							return;
+					}
+
+					
 
 					// Embed
 					const LeaderboardEmbed = new EmbedBuilder()
-						.setTitle(`${guild.name} | Level Leaderboard`)
+					
+						.setTitle(`${guild.name} | ${typeLB.charAt(0).toUpperCase() + typeLB.slice(1)} Leaderboard`)
 						.setThumbnail(guild.iconURL())
 						.addFields(
 							{
@@ -424,16 +487,23 @@ module.exports = {
 };
 
 // Functions
-async function fetchLeaderboard(guildId, limit) {
+async function fetchLeaderboard(guildId, limit, type) {
 	if (!guildId) throw new TypeError('A guild id was not provided.');
 	if (!limit) throw new TypeError('A limit was not provided.');
+	if (!type) throw new TypeError('A type was not provided.');
 
-	var users = await Levels.find({ guildId: guildId })
-		.sort([
-			['level', 'descending'],
-			['xp', 'descending'],
-		])
-		.exec();
+
+
+	if ( type === 'messages') {
+		var users = await Levels.find({ guildId: guildId }).sort({ messages: -1 }).limit(limit).exec();
+	} else if (type === 'voice') {
+		var users = await Levels.find({ guildId: guildId }).sort({ voice: -1 }).limit(limit).exec();
+	} else if (type === 'levels') {
+		var users = await Levels.find({ guildId: guildId }).sort([ ['level', 'descending'], ['xp', 'descending'] ]).exec();
+	}
+
+
+	// Levels
 
 	return users;
 }

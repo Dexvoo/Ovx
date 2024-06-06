@@ -1,124 +1,142 @@
 const {
-	EmbedBuilder,
-	PermissionsBitField,
-	Events,
-	GuildMember,
-	VoiceState,
+    EmbedBuilder,
+    PermissionsBitField,
+    Events,
+    GuildMember,
+    VoiceState,
 } = require('discord.js');
 const {
-	FooterText,
-	FooterImage,
-	EmbedColour,
-	VoiceChannelID,
-	DeveloperGuildID,
-	PremiumUserRoleID,
-	DeveloperMode,
-	SuccessEmoji,
-	ErrorEmoji,
+    FooterText,
+    FooterImage,
+    EmbedColour,
+    VoiceChannelID,
+    DeveloperGuildID,
+    PremiumUserRoleID,
+    DeveloperMode,
+    SuccessEmoji,
+    ErrorEmoji,
 } = process.env;
 const VoiceLogs = require('../../../models/GuildVoiceLogs.js');
-const { sendEmbed } = require('../../../utils/Embeds.js');
-const { permissionCheck } = require('../../../utils/Checks.js');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs.js');
 const UserLevels = require('../../../models/GuildLevels.js');
 const { getRandomXP, getLevelFromXP } = require('../../../utils/XP.js');
 const { addUserXP } = require('../../../utils/AddXP.js');
 
+// Map to store user voice channel data
 const inVoiceChannelMembers = new Map();
 
+// Cache for user data
+const userDataCache = new Map();
+
+// Batch updates queue
+const batchUpdatesQueue = [];
+
 module.exports = {
-	name: Events.VoiceStateUpdate,
-	nickname: 'Voice Level XP',
-	once: false,
+    name: Events.VoiceStateUpdate,
+    nickname: 'Voice Level XP',
+    once: false,
 
-	/**
-	 *  @param {VoiceState} oldState
-	 * @param {VoiceState} newState
-	 */
+    /**
+     *  @param {VoiceState} oldState
+     * @param {VoiceState} newState
+     */
+    async execute(oldState, newState) {
+        const { channel, client, guild, member } = newState;
+        const user = member.user;
 
-	async execute(oldState, newState) {
-		// Deconstructing member
-		const { channel, client, guild, member } = newState;
-		const user = member.user;
+        if (!guild || user.bot) return;
+        if (guild.id !== DeveloperGuildID) return;
 
-		if (!guild || user.bot) return;
+        // Handle user joining voice channel
+        if (!oldState.channel && newState.channel) {
+            inVoiceChannelMembers.set(user.id, {
+                channel: newState.channel,
+                time: Date.now(),
+            });
+            cleanConsoleLogData(
+                'Voice Log',
+                `Joined Voice Channel ${newState.channel.name}`,
+                'debug'
+            );
+            return;
+        }
 
-		if (guild.id !== '1115336808834805780') return;
+        // Handle user leaving voice channel
+        if (oldState.channel && !newState.channel) {
+            if (!inVoiceChannelMembers.has(user.id)) return;
 
-		// Check if the user has joined the voice channel
-		if (!oldState.channel && newState.channel) {
-			inVoiceChannelMembers.set(user.id, {
-				channel: newState.channel,
-				time: Date.now(),
-			});
-			cleanConsoleLogData(
-				'Voice Log',
-				`Joined Voice Channel ${newState.channel.name}`,
-				'debug'
-			);
-		}
+            const joinData = inVoiceChannelMembers.get(user.id);
+            const timeInVoiceChannel = Date.now() - joinData.time;
+            const timeInVoiceChannelMinutes = Math.floor(timeInVoiceChannel / 1000 / 60);
 
-		// Check if the user has left the voice channel
-		if (oldState.channel && !newState.channel) {
-			// check if the user is in the map
-			if (!inVoiceChannelMembers.has(user.id)) return;
+            // If time spent is less than a minute, do not award XP
+            if (timeInVoiceChannelMinutes < 1) {
+				console.log(`User ${user.username} spent less than a minute in voice channel.`);
+                inVoiceChannelMembers.delete(user.id);
+                return;
+            }
 
-			const userData = await UserLevels.findOne({
-				userId: user.id,
-				guildId: guild.id,
-			});
+            let userData = userDataCache.get(user.id);
+            if (!userData) {
+                userData = await UserLevels.findOne({
+                    userId: user.id,
+                    guildId: guild.id,
+                });
+                userDataCache.set(user.id, userData);
+            }
 
-			if (!userData) return;
+            if (!userData) return;
 
-			const timeInVoiceChannel =
-				Date.now() - inVoiceChannelMembers.get(user.id).time;
+            const xp = getRandomXP(5, 15) * timeInVoiceChannelMinutes;
+            if (xp !== 0) {
 
-			const timeInVoiceChannelSeconds = Math.floor(timeInVoiceChannel / 1000);
-			const timeInVoiceChannelMinutes = Math.floor(
-				timeInVoiceChannelSeconds / 60
-			);
+                // Update user data in cache
+                userData.voice += timeInVoiceChannelMinutes;
+                userDataCache.set(user.id, userData);
 
-			// give a random amount of xp between 5 and 15 for every minute spent in the voice channel
-			const xp = getRandomXP(5, 15) * timeInVoiceChannelMinutes;
-			if (xp !== 0) {
-				cleanConsoleLogData(
-					'Voice XP',
-					`User: @${member.user.username} | Added XP: ${xp}`,
-					'debug'
-				);
+                // Queue the update to be batched later
+                batchUpdatesQueue.push({ user: member, xp, channel: oldState.channel });
+            }
 
-				// add time spent in voice channel to user
-				userData.voice += timeInVoiceChannelMinutes;
+            inVoiceChannelMembers.delete(user.id);
+            cleanConsoleLogData(
+                'Voice Log',
+                `Left Voice Channel: ${oldState.channel.name} | Time: ${timeInVoiceChannel} milliseconds`,
+                'debug'
+            );
+            return;
+        }
 
-				await userData.save().catch((err) => {
-					console.log(err);
-				});
-
-				await addUserXP(member, xp, oldState.channel);
-			} else {
-				cleanConsoleLogData('Voice Log', 'No XP gained', 'debug');
-			}
-
-			// add xp to user
-
-			inVoiceChannelMembers.delete(user.id);
-
-			cleanConsoleLogData(
-				'Voice Log',
-				`Left Voice Channel: ${oldState.channel.name} | Time: ${timeInVoiceChannelSeconds} seconds`,
-				'debug'
-			);
-		}
-
-		// Check if the channel has changed, if there is a new channel, it means the user has switched channels, otherwise they disconnected
-		if (oldState.channel !== newState.channel) {
-			if (newState.channel !== null && oldState.channel !== null) {
-				cleanConsoleLogData(
-					'Voice Log',
-					`Switched Voice Channels: #${oldState.channel.name} -> #${newState.channel.name}`,
-					'debug'
-				);
-			}
-		}
-	},
+        // Handle user switching voice channels
+        if (oldState.channel !== newState.channel) {
+            if (newState.channel !== null && oldState.channel !== null) {
+                cleanConsoleLogData(
+                    'Voice Log',
+                    `Switched Voice Channels: #${oldState.channel.name} -> #${newState.channel.name}`,
+                    'debug'
+                );
+            }
+        }
+    },
 };
+
+// Batch process queued updates every 5 minutes
+setInterval(async () => {
+    while (batchUpdatesQueue.length > 0) {
+		console.log(`Processing ${batchUpdatesQueue.length} queued XP updates...`);
+        const { user, xp, channel } = batchUpdatesQueue.shift();
+        const userData = userDataCache.get(user.id);
+        try {
+            await userData.save();
+            await addUserXP(user, xp, channel);
+            userDataCache.delete(user.id);
+			cleanConsoleLogData(
+				'Voice XP',
+				`User: @${user.username} | Added XP: ${xp}`,
+				'debug'
+			);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+}, 5 * 60 * 1000); // 5 minutes
