@@ -131,17 +131,17 @@ module.exports = {
 							.setColor(EmbedColour)
 							.setTitle(`Roblox Verification`)
 							.setDescription(
-								`To prove you own the account please put the following in your profile description.\n\nOnce you have done this, click the button below to verify your account.`
+								`To prove you own the account, copy and paste the profile description into your roblox bio!\n\nOnce you have done this, click the button below to verify your account.`
 							)
 							.addFields(
+								{
+									name: 'Profile Description',
+									value: `\`${string}\``,
+								},
 								{
 									name: 'Profile Link',
 									value: `https://www.roblox.com/users/${userId}/profile`,
 									inline: false,
-								},
-								{
-									name: 'Profile Description',
-									value: `\`${string}\``,
 								}
 							)
 							.setTimestamp()

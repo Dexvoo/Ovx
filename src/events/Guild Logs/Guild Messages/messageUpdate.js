@@ -134,6 +134,20 @@ module.exports = {
 		if (attachments.size > 0) {
 			Array.from(attachments.values());
 			const data = [...attachments.values()];
+
+
+			// check attachments file size
+			const fileSize = data.map((file) => file.size);
+
+			// check if file size is greater than 8mb
+			if (fileSize > 8000000) {
+				Embed.setDescription(
+					`Attachments are too large to be sent in this channel.`
+				);
+				await channelToSend.send({ embeds: [Embed] });
+				return;
+			}
+
 			await channelToSend.send({ embeds: [Embed], files: data });
 			return;
 		}
