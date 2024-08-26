@@ -136,21 +136,21 @@ module.exports = {
 				.catch((err) => {
 					console.log(err);
 				});
-
-			if (
-				entry.extra.channel.id === message.channel.id &&
-				//Then we are checking if the target is the same as the author id
-				entry.target.id === message.author.id &&
-				// We are comparing time as audit logs are sometimes slow.
-				entry.createdTimestamp > Date.now() - 5000 &&
-				// We want to check the count as audit logs stores the amount deleted in a channel
-				entry.extra.count >= 1
-			) {
-				deletedBy = `\`@${entry.executor.username}\` (${entry.executor})`;
-			} else {
-				deletedBy = `\`@${author.username}\` (${author})`;
+			
+			if (entry) {
+				const isSameChannel = entry.extra && entry.extra.channel.id === message.channel.id;
+				const isSameTarget = entry.target && entry.target.id === message.author.id;
+				const isRecent = entry.createdTimestamp > Date.now() - 5000;
+				const hasCount = entry.extra && entry.extra.count >= 1;
+			
+				if (isSameChannel && isSameTarget && isRecent && hasCount) {
+					deletedBy = `\`@${entry.executor.username}\` (${entry.executor})`;
+				} else {
+					deletedBy = `\`@${author.username}\` (${author})`;
+				}
 			}
 		}
+
 
 		Embed.addFields(
 			{
