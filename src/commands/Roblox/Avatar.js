@@ -206,13 +206,15 @@ module.exports = {
 
 				break;
 			case 'discord':
-				var targetUserDiscord = options.getMember('user');
+				var targetUserDiscord = options.getUser('user');
 				// Variables
 
 				// Checking If The User Is Valid
 				if (!targetUserDiscord) {
-					targetUserDiscord = member;
+					targetUserDiscord = user;
 				}
+
+				targetUserDiscord.avatar
 
 				// Buttons
 				const LinkButton = new ActionRowBuilder().addComponents(
@@ -220,7 +222,7 @@ module.exports = {
 						.setStyle(ButtonStyle.Link)
 						.setLabel('PNG')
 						.setURL(
-							targetUserDiscord.user.displayAvatarURL({
+							targetUserDiscord.displayAvatarURL({
 								size: 1024,
 								extension: 'png',
 							})
@@ -229,7 +231,7 @@ module.exports = {
 						.setStyle(ButtonStyle.Link)
 						.setLabel('JPG')
 						.setURL(
-							targetUserDiscord.user.displayAvatarURL({
+							targetUserDiscord.displayAvatarURL({
 								size: 1024,
 								extension: 'jpg',
 							})
@@ -238,7 +240,7 @@ module.exports = {
 						.setStyle(ButtonStyle.Link)
 						.setLabel('GIF')
 						.setURL(
-							targetUserDiscord.user.displayAvatarURL({
+							targetUserDiscord.displayAvatarURL({
 								dynamic: true,
 								size: 1024,
 							})
@@ -249,11 +251,11 @@ module.exports = {
 				const Embed = new EmbedBuilder()
 					.setColor(EmbedColour)
 					.setAuthor({
-						name: `@${targetUserDiscord.user.username}'s Avatar`,
-						iconURL: targetUserDiscord.user.displayAvatarURL({ dynamic: true }),
+						name: `@${targetUserDiscord.username}'s Avatar`,
+						iconURL: targetUserDiscord.displayAvatarURL({ dynamic: true }),
 					})
 					.setImage(
-						targetUserDiscord.user.displayAvatarURL({
+						targetUserDiscord.displayAvatarURL({
 							dynamic: true,
 							size: 4096,
 						})

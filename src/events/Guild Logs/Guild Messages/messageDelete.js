@@ -90,7 +90,7 @@ module.exports = {
 			? `• ${SuccessEmoji} •`
 			: `• ${ErrorEmoji} •`;
 
-		var messageContent = content;
+		var messageContent = content.split('').slice(0, 1020).join('');
 		if (content === '') {
 			messageContent = 'No content';
 		}

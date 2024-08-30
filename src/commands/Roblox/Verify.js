@@ -25,6 +25,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('verify')
 		.setDescription('Verify your accounts')
+		.setDMPermission(false)
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('roblox')
