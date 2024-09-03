@@ -7,7 +7,6 @@ const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
 const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
 const { sleep } = require('../../utils/ConsoleLogs.js');
 const UserCurrency = require('../../models/UserCurrency.js');
-const { xpBoosterPercentage } = require('../../utils/AddXP.js');
 const {
 	DeveloperMode,
 	PrivateToken,
@@ -42,35 +41,27 @@ module.exports = {
 				);
 			}
 
-			if(!guild) return;
+			const listOfGuilds = client.guilds.cache.filter(
+				(guild) => guild.ownerId === '387341502134878218'
+			);
 
-			
-			const xpBoosterPercentageValue = await xpBoosterPercentage(member);
+			const listOfGuildsArray = listOfGuilds.map(
+				(guild) => `${guild.name} | ${guild.id}\n`
+			);
 
-			console.log(`xpBoosterPercentage: ${xpBoosterPercentageValue}`);
-			
-			
-			const roles = guild.roles.cache
-
-		
-			const randomRole = roles.random();
-
-			const members = randomRole.members;
-
-			console.log(members.size);
-			
+			const listOfGuildsString = listOfGuildsArray.join('');
 
 			const embed = new EmbedBuilder()
-				.setTitle(`Members of random role < ${randomRole.name} >`)
-				.setDescription(`Number Of Members: ${members.size}\n${members.map(member => `${member.user.username} | ${member.user.id}`).join('\n')}`)
+				.setTitle('Guilds')
+				.setDescription(listOfGuildsString)
 				.setColor(EmbedColour)
 				.setTimestamp()
 				.setFooter({
 					text: `${client.user.username} | Guilds`,
-					iconURL: FooterImage,
+					iconURL: client.user.displayAvatarURL(),
 				});
 
-			await interaction.reply({ embeds: [embed], ephemeral: true });
+			await interaction.reply({ embeds: [embed] });
 		} catch (error) {
 			console.log(error);
 		}

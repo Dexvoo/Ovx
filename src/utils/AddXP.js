@@ -19,6 +19,7 @@ const LevelRewardsSchema = require('../models/GuildLevelRewards.js');
 const { cleanConsoleLogData } = require('./ConsoleLogs.js');
 const { calculateLevel, getLevelFromXP } = require('./XP.js');
 const { permissionCheck } = require('./Checks.js');
+const XPBoostersSchema = require('../models/GuildXPBoosters.js');
 
 /**
  * @param {GuildMember} member - GuildMember
@@ -26,64 +27,97 @@ const { permissionCheck } = require('./Checks.js');
  * @param {GuildChannel | VoiceBasedChannel } channel - Channel
  */
 const addUserXP = async (member, xp, channel) => {
-	// Check for undefined
 	if (!member) throw new Error('No member provided.');
 
 	if (member instanceof GuildMember) {
 		try {
-			// Variables
 			const { guild, user, client } = member;
 			const query = { guildId: guild.id, userId: user.id };
 
-			// Getting user level
-			const level = await LevelsSchema.findOne(query);
+			let levelData = await LevelsSchema.findOne(query);
 
-			// If user has no level
-			if (!level) {
-				const newUserInformation = getLevelFromXP(xp);
-				if (newUserInformation[0] == 0) {
-					const newUserLevel = new LevelsSchema({
-						userId: user.id,
-						guildId: guild.id,
-						xp: newUserInformation[1],
-						level: newUserInformation[0],
-					});
-					await newUserLevel.save().catch((error) => console.log(error));
-				} else {
-					// Send level up message
-
-					await sendLevelUpEmbed(
-						member,
-						newUserInformation[0],
-						newUserInformation[1],
-						channel
-					);
+			if (!levelData) {
+				const [newLevel, remainingXP] = getLevelFromXP(xp);
+				levelData = new LevelsSchema({
+					userId: user.id,
+					guildId: guild.id,
+					xp: remainingXP,
+					level: newLevel,
+				});
+				await levelData.save();
+				if (newLevel > 0) {
+					await sendLevelUpEmbed(member, newLevel, remainingXP, channel);
 				}
 			} else {
-				level.xp += xp;
+				levelData.xp += xp;
 
-				if (level.xp >= calculateLevel(level.level)) {
-					level.level += 1;
+				let levelUpOccurred = false;
+				while (levelData.xp >= calculateLevel(levelData.level + 1)) {
+					levelUpOccurred = true;
+					levelData.level += 1;
+					levelData.xp -= calculateLevel(levelData.level);
 
-					if (level.level >= 2) {
-						level.xp = level.xp - calculateLevel(level.level) + 100;
-					} else {
-						level.xp = level.xp;
-					}
-					// send level up message
-					await sendLevelUpEmbed(member, level.level, level.xp, channel);
-					await giveLevelRewards(member, level.level);
+					await sendLevelUpEmbed(member, levelData.level, levelData.xp, channel);
+					await giveLevelRewards(member, levelData.level);
 				}
 
-				await level.save().catch((err) => {
-					console.log(err);
-				});
+				if (levelUpOccurred) {
+					await levelData.save();
+				}
 			}
-		} catch (error) {}
+		} catch (error) {
+			console.error(error);
+		}
 	} else {
 		throw new Error('Invalid member provided.');
 	}
 };
+
+
+/**
+ * @param {GuildMember} member - GuildMember
+ */
+
+async function xpBoosterPercentage(member) {
+	if (!member) throw new Error('No member provided.');
+
+	if (member instanceof GuildMember) {
+		try {
+			const { guild } = member;
+			const fetchedMember = await guild.members.fetch({ user: member.id, force: true }).catch((error) => console.log(error));
+			
+			let xp = 0;
+			const query = { guildId: guild.id };
+			const xpBoosterRoles = await XPBoostersSchema.findOne(query);
+
+			if (!xpBoosterRoles) return xp;
+			if (!xpBoosterRoles.guildData.length) return xp;
+
+			for (const data of xpBoosterRoles.guildData) {
+				const role = guild.roles.cache.get(data.roleId);
+				if (!role) {
+					await XPBoostersSchema.findOneAndUpdate(
+						{ guildId: guild.id },
+						{ $pull: { guildData: { roleId: data.roleId } } }
+					);
+					continue;
+				}
+
+				if (fetchedMember.roles.cache.has(data.roleId)) xp += data.percentage;
+			}
+
+			return xp;
+
+		} catch (error) {
+			console.error(error);
+		}
+
+	} else {
+		throw new Error('Invalid member provided.');
+	}
+
+
+}
 
 /**
  * @param {GuildMember} member - GuildMember
@@ -157,6 +191,7 @@ const giveLevelRewards = async (member, newLevel) => {
 module.exports = {
 	addUserXP,
 	giveLevelRewards,
+	xpBoosterPercentage,
 };
 
 /**

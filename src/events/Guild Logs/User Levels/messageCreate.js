@@ -12,7 +12,7 @@ const {
 	LevelUpChannelID,
 } = process.env;
 const { getRandomXP, calculateLevel } = require('../../../utils/XP.js');
-const { addUserXP } = require('../../../utils/AddXP.js');
+const { addUserXP, xpBoosterPercentage } = require('../../../utils/AddXP.js');
 const cooldowns = new Set();
 
 module.exports = {
@@ -29,8 +29,11 @@ module.exports = {
 
 		if (author.bot || !guild || cooldowns.has(author.id)) return;
 
-		// Variables
-		var randomXP = getRandomXP(5, 15);
+		
+
+		const xpBoosterPercentageValue = await xpBoosterPercentage(member); // Get XP booster percentage
+        const xpBooster = xpBoosterPercentageValue / 100 + 1; // Convert to multiplier
+        var randomXP = Math.floor(getRandomXP(15, 45) * xpBooster);
 		// if (author.id == '387341502134878218') randomXP = getRandomXP(100, 300);
 		const query = { guildId: guild.id, userId: author.id };
 
@@ -45,7 +48,6 @@ module.exports = {
 					messages: 1,
 				});
 				await newLevel.save().catch((error) => console.log(error));
-				if (guild.id == '1173402643348078593') return;
 				cooldowns.add(author.id);
 				setTimeout(() => {
 					cooldowns.delete(author.id);
@@ -70,8 +72,15 @@ module.exports = {
 				await level.save().catch((err) => {
 					console.log(err);
 				});
-				if (guild.id == '1173402643348078593') return;
-				cooldowns.add(author.id);
+				if (member.id == '387341502134878218') {
+					console.log(`-------------------------------------------------------------`);
+					console.log(`xpBoosterPercentageValue: ${xpBoosterPercentageValue}`);
+					console.log(`xpBooster: ${xpBooster}`);
+					console.log(`randomXP: ${randomXP}`);
+				} else {
+
+					cooldowns.add(author.id);
+				}
 				setTimeout(() => {
 					cooldowns.delete(author.id);
 				}, 30000);

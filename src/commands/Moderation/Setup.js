@@ -43,6 +43,7 @@ const GuildPollChannels = require('../../models/GuildPollChannels.js');
 const GuildLevelRewards = require('../../models/GuildLevelRewards.js');
 const GuildSelectRoles = require('../../models/GuildSelectRoles.js');
 const GuildInviteDetection = require('../../models/GuildInviteDetection.js');
+const GuildXPBoosters = require('../../models/GuildXPBoosters.js');
 
 module.exports = {
 	cooldown: 5,
@@ -127,6 +128,23 @@ module.exports = {
 						.setName('level')
 						.setDescription('Level to give the role at.')
 						.setRequired(false)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('xp-booster')
+				.setDescription('Setup xp booster roles for the guild.')
+				.addRoleOption((option) =>
+					option
+						.setName('role')
+						.setDescription('Role to give when a user reaches a level.')
+						.setRequired(true)
+				)
+				.addIntegerOption((option) =>
+					option
+						.setName('percentage')
+						.setDescription('Percentage to boost the xp by. (1-100)')
+						.setRequired(true)
 				)
 		)
 		.addSubcommand((subcommand) =>
@@ -1676,6 +1694,49 @@ module.exports = {
 						default:
 							break;
 					}
+					break
+
+				case 'xp-booster':
+					const xpBoosterRole = options.getRole('role');
+					const xpBoosterPercentage = options.getInteger('percentage');
+
+					if (xpBoosterPercentage < 1 || xpBoosterPercentage > 100) return await sendEmbed( interaction, 'Please provide a percentage between 1 and 100');
+					
+					const xpBoosterData = await GuildXPBoosters.findOne({
+						guildId: guild.id,
+					});
+
+					if(xpBoosterData){
+						if(xpBoosterData.guildData.length >= 5) return await sendEmbed(interaction, 'You can only have 5 xp boosters per guild')
+						if(xpBoosterData.guildData.some((r) => r.roleId === xpBoosterRole.id)) {
+
+							xpBoosterData.guildData = xpBoosterData.guildData.filter((r) => r.roleId !== xpBoosterRole.id);
+							await xpBoosterData.save().catch((error) => console.log(error));
+							return await sendEmbed(interaction, `Removed ${xpBoosterRole} from xp boosters`)
+						}
+
+						xpBoosterData.guildData.push({
+							roleId: xpBoosterRole.id,
+							percentage: xpBoosterPercentage,
+						});
+
+						await xpBoosterData.save().catch((error) => console.log(error));
+
+						return await sendEmbed(interaction, `Added ${xpBoosterRole} to the xp boosters`)
+					}  else {
+						await GuildXPBoosters.create({
+							guildId: guild.id,
+							guildData: [
+								{
+									roleId: xpBoosterRole.id,
+									percentage: xpBoosterPercentage,
+								},
+							],
+						}).catch((error) => console.log(error));
+					}
+				
+					break;
+
 
 				default:
 					break;

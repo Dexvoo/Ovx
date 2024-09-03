@@ -4,18 +4,19 @@ function getRandomXP(min, max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-// single line function
-const calculateLevel = (level) => 100 * level || 1;
+// Single line function to calculate the XP required for a certain level
+const calculateLevel = (level) => level > 0 ? 100 * level : 0;
 
 const getLevelFromXP = (xp) => {
-	// every level adds 100 xp to the next level, and a variable with the amount of xp that the user has
+	// Calculate the level and leftover XP based on the total XP
 	let level = 0;
 	let xpLeftOver = xp;
-	while (xpLeftOver >= calculateLevel(level)) {
-		xpLeftOver -= calculateLevel(level);
+
+	while (xpLeftOver >= calculateLevel(level + 1)) {
 		level++;
+		xpLeftOver -= calculateLevel(level);
 	}
-	return [level - 1, xpLeftOver];
+	return [level, xpLeftOver];
 };
 
 module.exports = { getRandomXP, calculateLevel, getLevelFromXP };
