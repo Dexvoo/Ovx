@@ -1,0 +1,24 @@
+const { Events, Client } = require('discord.js');
+const { TopggAPIKey } = process.env;
+
+const { AutoPoster } = require('topgg-autoposter');
+module.exports = {
+	name: Events.ClientReady,
+	nickname: 'Top GG Stats',
+	once: true,
+
+	/**
+	 * @param {Client} client
+	 */
+
+	async execute(client) {
+		const ap = AutoPoster(TopggAPIKey, client);
+
+		ap.on('posted', () => {
+			console.log('Posted stats to Top.gg!');
+		});
+		ap.on('error', (e) => {
+			console.log(`Error posting stats to Top.gg: ${e}`);
+		});
+	},
+};

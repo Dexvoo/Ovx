@@ -1,91 +1,56 @@
-const {
-	SlashCommandBuilder,
-	EmbedBuilder,
-	PermissionFlagsBits,
-	parseEmoji,
-	ButtonBuilder,
-	ButtonStyle,
-	ActionRowBuilder,
-} = require('discord.js');
-const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
-const { sleep } = require('../../utils/ConsoleLogs.js');
-const {
-	DeveloperMode,
-	PrivateToken,
-	PublicToken,
-	EmbedColour,
-	FooterImage,
-	FooterText,
-} = process.env;
-require('dotenv').config();
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType } = require('discord.js');
+const { ClientID } = process.env;
 
 module.exports = {
-	cooldown: 5,
-	catagory: 'Miscellaneous',
-	data: new SlashCommandBuilder()
-		.setName('invite')
-		.setDescription(
-			'Generate a invite to the support server or the bot to your server.'
-		)
-		.setDMPermission(true),
+    cooldown: 5,
+    category: 'Miscellaneous',
+    userpermissions: [],
+    botpermissions: [],
+    data: new SlashCommandBuilder()
+        .setName('invite')
+        .setDescription('Generate an invite link for the bot/support server')
+        .setContexts( InteractionContextType.PrivateChannel, InteractionContextType.BotDM , InteractionContextType.Guild ),
 
-	/**
-	 * @param {CommandInteraction} interaction
-	 * @returns
-	 */
+    /**
+     * @param {CommandInteraction} interaction
+     */
 
-	async execute(interaction) {
-		// Deconstructing interaction
-		const { client } = interaction;
-		const { id: ClientID } = client.user;
+    async execute(interaction) {
+        const { client } = interaction;
+        const supportServer = 'https://discord.gg/uPGkcXyNZ3';
+        var buttons
 
-		await sendEmbed(interaction, 'Generating Invite');
-		await sleep(2000);
+        if(client.user.id === ClientID) {
+            buttons = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel('Support Server')
+                .setURL(supportServer),
+                new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel('Invite Bot')
+                .setURL(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot%20applications.commands`)
+            )
+        } else {
+            buttons = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setStyle(ButtonStyle.Link)
+                    .setLabel('Support Server')
+                    .setURL(supportServer),
+                new ButtonBuilder()
+                    .setStyle(ButtonStyle.Link)
+                    .setLabel('Invite Bot')
+                    .setURL(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot%20applications.commands`)
+                    .setDisabled(true)
+            )
+        }
 
-		// Variables
+        const inviteEmbed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setDescription('Click the buttons below to join the support server or invite the bot to your server!')
 
-		// Buttons
-		var LinkButton;
-		if (DeveloperMode == 'true') {
-			LinkButton = new ActionRowBuilder().addComponents(
-				new ButtonBuilder()
-					.setStyle(ButtonStyle.Link)
-					.setLabel('Support Server')
-					.setURL('https://discord.gg/uPGkcXyNZ3'),
-				new ButtonBuilder()
-					.setStyle(ButtonStyle.Link)
-					.setLabel('Invite Bot')
-					.setURL(
-						`https://discord.com/api/oauth2/authorize?client_id=${ClientID}&permissions=9898960465063&scope=bot`
-					)
-					.setDisabled(true)
-			);
-		} else {
-			LinkButton = new ActionRowBuilder().addComponents(
-				new ButtonBuilder()
-					.setStyle(ButtonStyle.Link)
-					.setLabel('Support Server')
-					.setURL('https://discord.gg/uPGkcXyNZ3'),
-				new ButtonBuilder()
-					.setStyle(ButtonStyle.Link)
-					.setLabel('Invite Bot')
-					.setURL(
-						`https://discord.com/api/oauth2/authorize?client_id=${ClientID}&permissions=9898960465063&scope=bot`
-					)
-			);
-		}
+        await interaction.reply({ embeds: [inviteEmbed], components: [buttons] });
+        
+    }
 
-		// Embed
-		const InviteEmbed = new EmbedBuilder()
-			.setColor(EmbedColour)
-			.setDescription(
-				'• Click the buttons below to join the support server or invite the bot to your server! •'
-			)
-			.setTimestamp()
-			.setFooter({ text: FooterText, iconURL: FooterImage });
-		interaction.editReply({
-			embeds: [InviteEmbed],
-			components: [LinkButton],
-		});
-	},
 };

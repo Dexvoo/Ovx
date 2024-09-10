@@ -1,124 +1,58 @@
-// Getting Classes
 require('dotenv').config();
-const {
-	DeveloperMode,
-	PrivateToken,
-	PublicToken,
-	PrivateClientID,
-	PublicClientID,
-} = process.env;
-const { Routes } = require('discord.js');
+const { Token, ClientID } = process.env;
 const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord.js');
 const fsPromises = require('fs').promises;
 const path = require('node:path');
-const { cleanConsoleLogData } = require('./utils/ConsoleLogs');
+const { cleanConsoleLogData, cleanConsoleLog } = require('./utils/ConsoleLogs');
 
-// const commands = [];
 
-// const commandsPath = path.join(__dirname, 'commands');
-// const commandFiles = fs
-// 	.readdirSync(commandsPath)
-// 	.filter((file) => file.endsWith('.js'));
 
-// for (const file of commandFiles) {
-// 	const commandFilePath = path.join(commandsPath, file);
-// 	const command = require(commandFilePath);
-// 	commands.push(command.data.toJSON());
-// }
-
-var ClientID;
-var rest;
-if (DeveloperMode == 'true') {
-	rest = new REST({ version: '10' }).setToken(PrivateToken);
-	ClientID = PrivateClientID;
-} else {
-	rest = new REST({ version: '10' }).setToken(PublicToken);
-	ClientID = PublicClientID;
-}
-
-// // register commands for a guild
-
-// rest
-// 	.put(Routes.applicationGuildCommands(ClientID, '1115336808834805780'), {
-// 		body: [],
-// 	})
-// 	.then(() => console.log('Successfully DELETED application commands. GUILD'))
-// 	.catch(console.error);
-
-// rest
-// 	.put(Routes.applicationGuildCommands(ClientID, '1115336808834805780'), {
-// 		body: commands,
-// 	})
-// 	.then(() =>
-// 		console.log('Successfully REGISTERED application commands. GUILD')
-// 	)
-// 	.catch(console.error);
+const rest = new REST({ version: '10' }).setToken(Token);
 
 const init = async () => {
-	let cmdFiles = [];
+	cleanConsoleLog('Starting Command Refresh');
+
+	let commandFiles = [];
 	let commandsDirectory = path.join(__dirname, 'commands');
-	await commandsCrawl(commandsDirectory, cmdFiles);
-	if (DeveloperMode == 'true') {
-		const TEST_SERVER = '1173402643348078593';
-		const DEVELOPER_GUILD_ID = '1115336808834805780';
-		const ZOO_OF_HUMANS_GUILD_ID = '962342471000535071';
+	await commandsCrawl(commandsDirectory, commandFiles);
 
-		rest
-			.put(Routes.applicationCommands(ClientID), { body: [] })
-			.then(() =>
-				console.log('Successfully DELETED application commands. GLOBAL')
-			)
-			.catch(console.error);
+	rest.put(Routes.applicationCommands(ClientID), { body: [] })
+	.then(() =>
+		cleanConsoleLogData('Commands', 'Deleted application commands', 'success')
+	).catch(console.error);
 
-		rest
-			.put(Routes.applicationGuildCommands(ClientID, TEST_SERVER), {
-				body: [],
-			})
-			.then(() =>
-				console.log('Successfully DELETED application commands. GUILD')
-			)
-			.catch(console.error);
 
-		rest
-			.put(Routes.applicationGuildCommands(ClientID, TEST_SERVER), {
-				body: cmdFiles,
-			})
-			.then(() =>
-				console.log('Successfully REGISTERED application commands. GUILD')
-			)
-			.catch(console.error);
-	} else {
-		rest
-			.put(Routes.applicationCommands(ClientID), { body: [] })
-			.then(() =>
-				console.log('Successfully DELETED application commands. GLOBAL')
-			)
-			.catch(console.error);
+	// delete guild commands
+	rest.put(Routes.applicationGuildCommands(ClientID, '1115336808834805780'), { body: [] }).then(() =>
+		cleanConsoleLogData('Commands', 'Deleted guild commands', 'success')
+	).catch(console.error);
 
-		rest
-			.put(Routes.applicationCommands(ClientID), { body: cmdFiles })
-			.then(() =>
-				console.log('Successfully REGISTERED application commands. GLOBAL')
-			)
-			.catch(console.error);
-		rest
-			.put(Routes.applicationGuildCommands(ClientID, '1115336808834805780'), {
-				body: [],
-			})
-			.then(() =>
-				console.log('Successfully DELETED application commands. GUILD')
-			)
-			.catch(console.error);
-	}
-	console.log(
-		'----------------------------------- Commands Refreshed -------------------------------'
-	);
+	rest.put(Routes.applicationCommands(ClientID), { body: commandFiles })
+	.then(( ) => {
+		cleanConsoleLogData('Commands', 'Registered application commands', 'success');
+		cleanConsoleLog('Finished Command Refresh');
+	}).catch(console.error);
 };
-
-console.log(
-	'------------------------------ Starting Command Refresh ------------------------------'
-);
 init();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 async function commandsCrawl(directory, filesArray) {
 	const dirs = await fsPromises.readdir(directory, {
@@ -134,7 +68,7 @@ async function commandsCrawl(directory, filesArray) {
 			//if directory commandsCrawl again.
 			await commandsCrawl(newPath, filesArray);
 		} else {
-			if (newPath.includes('Developer') && DeveloperMode == 'false') continue;
+			// if (newPath.includes('Developer')) continue;
 
 			//if it is a file append it to the array
 			if (currentDir.name.endsWith('.js')) {

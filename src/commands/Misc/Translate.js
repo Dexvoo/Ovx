@@ -1,8 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { FooterText, FooterImage, EmbedColour } = process.env;
+const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require('discord.js');
 const translate = require('@iamtraction/google-translate');
-const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
-const { sleep } = require('../../utils/ConsoleLogs.js');
 
 module.exports = {
 	cooldown: 5,
@@ -10,78 +7,35 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('translate')
 		.setDescription('Translate text to another language.')
-		.addStringOption((option) =>
-			option
-				.setName('text')
-				.setDescription('Text to translate')
-				.setRequired(true)
+        .setContexts( InteractionContextType.PrivateChannel, InteractionContextType.BotDM , InteractionContextType.Guild )
+		.addStringOption((option) => option
+			.setName('text')
+			.setDescription('Text to translate')
+			.setRequired(true)
 		)
-		.addStringOption((option) =>
-			option
-				.setName('language')
-				.setDescription('Language to translate to')
-				.addChoices(
-					{
-						name: 'English',
-						value: 'en',
-					},
-					{
-						name: 'Spanish',
-						value: 'es',
-					},
-					{
-						name: 'French',
-						value: 'fr',
-					},
-					{
-						name: 'German',
-						value: 'de',
-					},
-					{
-						name: 'Italian',
-						value: 'it',
-					},
-					{
-						name: 'Japanese',
-						value: 'ja',
-					},
-					{
-						name: 'Korean',
-						value: 'ko',
-					},
-					{
-						name: 'Portuguese',
-						value: 'pt',
-					},
-					{
-						name: 'Russian',
-						value: 'ru',
-					},
-					{
-						name: 'Arabic',
-						value: 'ar',
-					},
-					{
-						name: 'Latvian',
-						value: 'lv',
-					},
-					{
-						name: 'Chinese (Simplified)',
-						value: 'zh-cn',
-					},
-					{
-						name: 'Chinese (Traditional)',
-						value: 'zh-tw',
-					}
+		.addStringOption((option) => option
+			.setName('language')
+			.setDescription('Language to translate to')
+			.addChoices(
+                    { name: 'English', value: 'en' },
+                    { name: 'Spanish', value: 'es' },
+                    { name: 'French', value: 'fr' },
+                    { name: 'German', value: 'de' },
+                    { name: 'Italian', value: 'it' },
+                    { name: 'Japanese', value: 'ja' },
+                    { name: 'Korean', value: 'ko' },
+                    { name: 'Portuguese', value: 'pt' },
+                    { name: 'Russian', value: 'ru' },
+                    { name: 'Arabic', value: 'ar' },
+                    { name: 'Latvian', value: 'lv' },
+                    { name: 'Chinese (Simplified)', value: 'zh-cn' },
+                    { name: 'Chinese (Traditional)', value: 'zh-tw' },
 				)
 				.setRequired(true)
 		),
 	async execute(interaction) {
 		const { member, options, user, client } = interaction;
-
-		// Placeholder Embed
-		await sendEmbed(interaction, `Translating Text`);
-		await sleep(2000);
+        await interaction.deferReply();
 
 		// Variables
 		const text = options.getString('text');
@@ -101,30 +55,23 @@ module.exports = {
 			lv: 'Latvian',
 			'zh-cn': 'Chinese (Simplified)',
 			'zh-tw': 'Chinese (Traditional)',
-
 		};
 		var LanguageFrom = LanguageList[translation.from.language.iso];
 		var Languageto = LanguageList[language];
 
 		const TranslationEmbed = new EmbedBuilder()
-			.setColor(EmbedColour)
-			.setTitle('Translate')
+			.setColor('Blurple')
+			.setTitle(`Translation requested by @${user.username}`)
 			.addFields(
 				{
-					name: 'Author',
-					value: `@${user.username} (${user})`,
-				},
-				{
 					name: `Original Text : ${LanguageFrom}`,
-					value: text,
+					value: text.substring(0, 1024),
 				},
 				{
 					name: `Translated Text : ${Languageto}`,
-					value: translation.text,
+					value: translation.text.substring(0, 1024),
 				}
-			)
-			.setTimestamp()
-			.setFooter({ text: FooterText, iconURL: FooterImage });
+			);
 
 		interaction.editReply({ embeds: [TranslationEmbed] });
 	},

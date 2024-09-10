@@ -7,28 +7,26 @@ const BotStats = new Schema({
 	},
 	guilds: {
 		type: Number,
-		required: true,
+		default: 0,
 	},
 	users: {
 		type: Number,
-		required: true,
+		default: 0,
 	},
 	channels: {
 		type: Number,
-		required: true,
+		default: 0,
 	},
 	uptime: {
 		type: Number,
-		required: true,
+		default: 0,
 	},
 	emojis: {
 		type: Number,
-		required: true,
 		default: 0,
 	},
 	roles: {
 		type: Number,
-		required: true,
 		default: 0,
 	},
 });

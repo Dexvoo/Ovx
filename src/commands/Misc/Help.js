@@ -1,219 +1,107 @@
-const {
-	SlashCommandBuilder,
-	EmbedBuilder,
-	CommandInteraction,
-	PermissionFlagsBits,
-} = require('discord.js');
-const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
-const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
-const { sleep } = require('../../utils/ConsoleLogs.js');
-const { data } = require('./AFK.js');
-const {
-	DeveloperMode,
-	PrivateToken,
-	PublicToken,
-	EmbedColour,
-	FooterImage,
-	FooterText,
-} = process.env;
-require('dotenv').config();
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, AutocompleteInteraction, InteractionContextType } = require('discord.js');
 
 module.exports = {
-	cooldown: 5,
-	catagory: 'Miscellaneous',
-	data: new SlashCommandBuilder()
-		.setName('help')
-		.setDescription('Bot explanation')
-		.setDMPermission(false)
-		.addStringOption((option) =>
-			option
-				.setName('command')
-				.setDescription('The command you would like to get help for.')
-				.setAutocomplete(true)
-				.setRequired(false)
-		),
-	/**
-	 * @param {CommandInteraction} interaction
-	 */
+    cooldown: 5,
+    category: 'Miscellaneous',
+    userpermissions: [],
+    botpermissions: [],
+    data: new SlashCommandBuilder()
+        .setName('help')
+        .setDescription('List all of my commands or info about a specific command')
+        .setContexts( InteractionContextType.BotDM, InteractionContextType.Guild )
+        .addStringOption(option => option
+            .setName('command')
+            .setDescription('Name of the command')
+            .setAutocomplete(true)
+            .setRequired(false)
+        ),
 
-	async autocomplete(interaction) {
-		const value = interaction.options.getFocused();
-		const commands = interaction.client.commands;
+    /**
+     * @param {AutocompleteInteraction} interaction
+     */
+    async autocomplete(interaction) {
+        const { options, client } = interaction;
+        const value = options.getFocused()
+        const commands = client.commands;
 
-		let choices = [];
-		await commands.forEach((command) => {
-			if (command.catagory !== 'Developer') {
-				choices.push(command.data.name);
-			}
-		});
+        const choices = commands.filter(command => command.category !== 'Developer').map(command => command.data.name);
+        const filteredChoices = choices.filter(choice => choice.toLowerCase().includes(value)).slice(0, 25);
 
-		const filteredChoices = choices
-			.filter((choice) => choice.toLowerCase().includes(value))
-			.slice(0, 25);
+        if(!interaction) return;
 
-		if (!interaction) return;
+        await interaction.respond(filteredChoices.map((choice) => ({ name: choice, value: choice })));
+    },
 
-		await interaction.respond(
-			filteredChoices.map((choice) => ({
-				name: choice,
-				value: choice,
-			}))
-		);
-	},
-	async execute(interaction) {
-		// Deconstructing interaction
-		const { guild, member, options, user, client, channel } = interaction;
+    /**
+     * @param {CommandInteraction} interaction
+     */
 
-		await sendEmbed(interaction, 'Getting help');
-		await sleep(2000);
+    async execute(interaction) {
+        const { options, client, member, guild, user, channel } = interaction;
 
-		// Checking if the user is in a guild
-		if (!(await guildCheck(guild))) return;
+        const targetCommand = options.getString('command');
 
-		// get commands
-		const targetCommand = options.getString('command');
+        if(!targetCommand) {
+            const commands = client.commands;
+            const categories = [...new Set(commands.map(command => command.category))];
 
-		if (!targetCommand) {
-			const commands = client.commands;
+            const fields = categories.map(category => {
+                const commandList = commands
+                    .filter(command => command.category === category && command.data.name !== 'Developer')
+                    .map(command => `${command.commandTags.join('\n')}`)
+                    .join('\n');
+            
+                return {
+                    name: category,
+                    value: commandList || 'No commands found',
+                    inline: false,
+                };
+            });
 
-			const gamesCommandList = commands
-				.filter((command) => command.catagory === 'Games')
-				.map((command) => `</${command.data.name}:${command.id}>`)
-				.join('\n');
+            const helpEmbed = new EmbedBuilder()
+                .setColor(Colors.Blurple)
+                .setTitle('Help')
+                .setDescription('Welcome to the help menu, here you can find all the commands for the bot.\n\nTo get help with a specific command, use \`/help <command>\`')
+                .addFields(fields);
 
-			const miscellaneousCommandList = commands
-				.filter((command) => command.catagory === 'Miscellaneous')
-				.map((command) => `</${command.data.name}:${command.id}>`)
-				.join('\n');
+            return await interaction.reply({ embeds: [helpEmbed] });
 
-			const moderationCommandList = commands
-				.filter((command) => command.catagory === 'Moderation')
-				.map((command) => `</${command.data.name}:${command.id}>`)
-				.join('\n');
+        }
 
-			const robloxCommandList = commands
-				.filter((command) => command.catagory === 'Roblox')
-				.map((command) => `</${command.data.name}:${command.id}>`)
-				.join('\n');
+        const command = client.commands.get(targetCommand);
 
-			const levelCommandList = commands
-				.filter((command) => command.catagory === 'Levels')
-				.map((command) => `</${command.data.name}:${command.id}>`)
-				.join('\n');
+        if(!command) {
+            const invalidEmbed = new EmbedBuilder()
+                .setColor(Colors.Red)
+                .setDescription('That command does not exist');
+            return await interaction.reply({ embeds: [invalidEmbed], ephemeral: true });
+        }
 
-			const embed = new EmbedBuilder()
-				.setTitle('Help')
-				.setDescription(
-					`Welcome to the help menu, here you can find all the commands for the bot.\n\nTo get help with a specific command, use \`/help <command>\``
-				)
-				.addFields(
-					{
-						name: 'Games',
-						value: gamesCommandList || 'No commands found',
-						inline: false,
-					},
-					{
-						name: 'Miscellaneous',
-						value: miscellaneousCommandList || 'No commands found',
-						inline: false,
-					},
-					{
-						name: 'Moderation',
-						value: moderationCommandList || 'No commands found',
-						inline: false,
-					},
-					{
-						name: 'Roblox',
-						value: robloxCommandList || 'No commands found',
-						inline: false,
-					},
-					{
-						name: 'Level',
-						value: levelCommandList || 'No commands found',
-						inline: false,
-					}
-				)
-				.setColor(EmbedColour);
+        const commandName = command.data.name ? command.data.name.charAt(0).toUpperCase() + command.data.name.slice(1) : 'No name found';
 
-			// Default help embed
-			await interaction.editReply({ embeds: [embed] });
-			return;
-		}
+        const commandDescription = command.data.description ? command.data.description : 'No description found';
+        const commandTest = command.commandTags ? command.commandTags.join('\n') : 'No command found';
+        let embedDescription = commandDescription
 
-		const command = client.commands.get(targetCommand);
+        if(command.data.options && command.data.options.length > 0) {
+            const optionsDetails = command.data.options.map(option => {
+            const optionName = option.name ? option.name.charAt(0).toUpperCase() + option.name.slice(1) : 'No name found';
+            const optionDescription = option.description ? option.description.charAt(0).toUpperCase() + option.description.slice(1) : 'No description found';
+            const optionNames = option.options ? option.options.map(opt => `{${opt.name}}`).join(', ') : `{${option.name}}`;
 
-		if (!command) {
-			sendEmbed(interaction, 'Command not found');
-			return;
-		}
+            return `**Name:** ${optionName}\n**Description:** ${optionDescription}\n**Options:** ${optionNames}\n\n`;
+            }).join('');
 
-		if (command.data.options.length > 1) {
-			const options = command.data.options;
+            embedDescription += `\n### Commands\n${commandTest}\n\n**Options:**\n${optionsDetails}`;
+        }
+        
+        const helpEmbed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setTitle(`Help: ${commandName}`)
+            .setDescription(embedDescription);
 
-			var optionsNames = [];
-			var optionsDescriptions = [];
-			var optionsOptionNames = [];
-			// loop through options
-			for (const option of options) {
-				optionsNames.push(
-					option.name.charAt(0).toUpperCase() + option.name.slice(1)
-				);
-				optionsDescriptions.push(
-					option.description.charAt(0).toUpperCase() +
-						option.description.slice(1)
-				);
+        return await interaction.reply({ embeds: [helpEmbed] });
+        
+    }
 
-				if (!option.options) {
-					optionsOptionNames.push(`{${option.name}}`);
-				}
-
-				if (option.options) {
-					optionsOptionNames.push(
-						option.options.map((option) => `{${option.name}}`)
-					);
-				}
-
-				if (!option.description) {
-					optionsDescriptions.push('No description found');
-				}
-
-				if (!option.name) {
-					optionsNames.push('No name found');
-				}
-			}
-
-			// loop through optionsNames with index
-
-			var string = '';
-
-			for (let i = 0; i < optionsNames.length; i++) {
-				string += `**${optionsNames[i]}**:\n\`${optionsDescriptions[i]}\n${
-					optionsOptionNames[i] || `{${optionsNames[i]}}`
-				}\`\n\n`;
-			}
-
-			const embed = new EmbedBuilder()
-				.setTitle(
-					`Help: ${
-						command.data.name.charAt(0).toUpperCase() +
-						command.data.name.slice(1)
-					}`
-				)
-				.setDescription(`${command.data.description} \n\n${string}`)
-				.setColor(EmbedColour);
-
-			await interaction.editReply({ embeds: [embed] });
-			return;
-		}
-
-		const commandName =
-			command.data.name.charAt(0).toUpperCase() + command.data.name.slice(1);
-
-		const Embed = new EmbedBuilder()
-			.setTitle(`Help: ${commandName}`)
-			.setDescription(command.data.description || 'No help usage found')
-			.setColor(EmbedColour);
-
-		await interaction.editReply({ embeds: [Embed] });
-	},
 };

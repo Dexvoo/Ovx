@@ -1,73 +1,59 @@
-const {
-	SlashCommandBuilder,
-	EmbedBuilder,
-	PermissionFlagsBits,
-	parseEmoji,
-} = require('discord.js');
-const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
-const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
-const { sleep } = require('../../utils/ConsoleLogs.js');
-const AFKUsers = require('../../models/GuildAFKUsers.js');
-const {
-	DeveloperMode,
-	PrivateToken,
-	PublicToken,
-	EmbedColour,
-	FooterImage,
-	FooterText,
-} = process.env;
-require('dotenv').config();
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType } = require('discord.js');
+const { AFKUsers } = require('../../models/GuildSetups.js');
 
 module.exports = {
-	cooldown: 5,
-	catagory: 'Miscellaneous',
-	data: new SlashCommandBuilder()
-		.setName('afk')
-		.setDescription('Sets your AFK status.')
-		.setDMPermission(false),
+    cooldown: 5,
+    category: 'Miscellaneous',
+    userpermissions: [],
+    botpermissions: [],
+    data: new SlashCommandBuilder()
+        .setName('afk')
+        .setDescription('set your status to AFK')
+        .setContexts( InteractionContextType.Guild )
+        .addStringOption(option => option
+            .setName('status')
+            .setDescription('Set your AFK status')
+            .setRequired(true)
+        ),
 
-	/**
-	 * @param {CommandInteraction} interaction
-	 * @returns
-	 */
+    /**
+     * @param {CommandInteraction} interaction
+     */
 
-	async execute(interaction) {
-		// Deconstructing interaction
-		const { guild, member, options, user, client, channel } = interaction;
+    async execute(interaction) {
+        const { options, client, member, guild, user, channel } = interaction;
+        const status = options.getString('status');
+        const guildAFKUser = await AFKUsers.findOne({ guildId: guild.id });
 
-		await sendEmbed(interaction, 'Setting AFK status');
-		await sleep(2000);
+        if(guildAFKUser) {
+            // User is already AFK
+            const AlreadyAFKEmbed = new EmbedBuilder()
+                .setColor('Red')
+                .setDescription(`${member}, you are already AFK with status: ${guildAFKUser.status}\nIf you want to remove your AFK status please type in a channel`);
+            return await interaction.reply({ embeds: [AlreadyAFKEmbed], ephemeral: true });                
+        }
 
-		// Checking if the user is in a guild
-		if (!(await guildCheck(guild))) return;
+        if(status.length > 100) {
+            const Embed = new EmbedBuilder()
+                .setColor('Red')
+                .setDescription('Status must be less than 100 characters');
+            return await interaction.reply({ embeds: [Embed], ephemeral: true });
+        }
 
-		// Variables
-		const query = { guild: guild.id };
-		const afkUsers = await AFKUsers.exists(query);
 
-		// Check if user exists in database
-		if (!afkUsers) {
-			const newAFKUser = new AFKUsers({
-				guild: guild.id,
-				users: [user.id],
-			});
-			await newAFKUser.save().catch((error) => console.log(error));
-			await sendEmbed(interaction, 'You are now AFK');
-			return;
-		}
+        const newGuildAFKUser = new AFKUsers({
+            userId: user.id,
+            guildId: guild.id,
+            reason: status,
+        });
 
-		const afkUsersData = await AFKUsers.findOne(query);
-		// checks database data and checks if user is already afk
-		if (afkUsersData.users.includes(user.id)) {
-			await sendEmbed(interaction, 'You are already AFK');
-			return;
-		}
+        await newGuildAFKUser.save();
 
-		// adds user to database
-		afkUsersData.users.push(user.id);
-		await afkUsersData.save().catch((error) => console.log(error));
+        const AFKEmbed = new EmbedBuilder()
+            .setColor('Green')
+            .setDescription(`${member} is now AFK: ${status}`);
+        await interaction.reply({ embeds: [AFKEmbed] });
+        
+    }
 
-		// sends embed
-		await sendEmbed(interaction, 'You are now AFK');
-	},
 };

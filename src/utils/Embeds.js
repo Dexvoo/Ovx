@@ -1,152 +1,36 @@
-const {
-	EmbedBuilder,
-	CommandInteraction,
-	PermissionFlagsBits,
-	PermissionsBitField,
-	GuildMember,
-	GuildChannel,
-	Client,
-} = require('discord.js');
-require('dotenv').config();
-const { FooterText, FooterImage, EmbedColour, ErrorChannelID } = process.env;
-const { permissionCheck } = require('./Checks.js');
+const { EmbedBuilder, Client, GuildMember } = require('discord.js');
+const { DevGuildID, DisabledFeaturesChannelID } = process.env;
+
 
 /**
- * @param {CommandInteraction | GuildChannel | GuildMember} interactionChannelMember - Interaction / Channel / Member
- * @param {String} description - GuildMember or Client
+ * @param {Client} client - The client object
+ * @param {GuildMember} targetMember - The member to disable the feature for
+ * @param {string} feature - The feature to disable
+ * @param {string} reason - The reason for disabling the feature
+ * @returns
  */
-const sendEmbed = async (interactionChannelMember, description) => {
-	if (!interactionChannelMember) throw new Error('No interaction provided.');
-	if (!description) throw new Error('No description provided.');
-	if (interactionChannelMember instanceof CommandInteraction) {
-		const { replied, deferred } = interactionChannelMember;
-		if (replied) {
-			const Embed = new EmbedBuilder()
-				.setColor(EmbedColour)
-				.setDescription(`• ${description} •`)
-				.setTimestamp()
-				.setFooter({ text: FooterText, iconURL: FooterImage });
-			await interactionChannelMember.editReply({
-				embeds: [Embed],
-				ephemeral: false,
-			});
-			return true;
-		} else if (deferred) {
-			const Embed = new EmbedBuilder()
-				.setColor(EmbedColour)
-				.setDescription(`• ${description} •`)
-				.setTimestamp()
-				.setFooter({ text: FooterText, iconURL: FooterImage });
-			await interactionChannelMember.followUp({
-				embeds: [Embed],
-				ephemeral: false,
-			});
-			return true;
-		} else {
-			const Embed = new EmbedBuilder()
-				.setColor(EmbedColour)
-				.setDescription(`• ${description} •`)
-				.setTimestamp()
-				.setFooter({ text: FooterText, iconURL: FooterImage });
-			await interactionChannelMember.reply({
-				embeds: [Embed],
-				ephemeral: false,
-			});
-			return true;
-		}
-	} else if (interactionChannelMember instanceof GuildChannel) {
-		// check channel permissions
-		const botPermissions = ['ViewChannel', 'SendMessages'];
-		if (
-			!(await permissionCheck(
-				interactionChannelMember,
-				botPermissions,
-				interactionChannelMember.client
-			))
-		) {
-			return false;
-		}
+function DisabledFeatures(client, targetMember, feature, reason) {
+    if(!client) throw new Error('No client provided.');
+    if(!targetMember) throw new Error('No member provided.');
+    if(!feature) throw new Error('No feature provided.');
+    if(!reason) throw new Error('No reason provided.');
 
-		const Embed = new EmbedBuilder()
-			.setColor(EmbedColour)
-			.setDescription(`• ${description} •`)
-			.setTimestamp()
-			.setFooter({ text: FooterText, iconURL: FooterImage });
-		await interactionChannelMember.send({ embeds: [Embed], ephemeral: false });
-		return true;
-	} else if (interactionChannelMember instanceof GuildMember) {
-		const Embed = new EmbedBuilder()
-			.setColor(EmbedColour)
-			.setDescription(`• ${description} •`)
-			.setTimestamp()
-			.setFooter({ text: FooterText, iconURL: FooterImage });
-		const message = await interactionChannelMember
-			.send({ embeds: [Embed] })
-			.catch((error) => {
-				console.log(`${interactionChannelMember.user.username} | ${error}`);
-			});
+    if(targetMember instanceof GuildMember) throw new Error('Invalid member provided.');
 
-		if (!message) return false;
-		return true;
-		// member.send the embed
-	} else {
-		throw new Error('Invalid interaction/channel/guildmember provided.');
-	}
-};
+    const DisabledFeaturesChannel = client.guilds.cache.get(DevGuildID).channels.cache.get(DisabledFeaturesChannelID);
+    if (!DisabledFeaturesChannel) return;
 
-const sendErrorEmbed = async (interaction, error) => {
-	if (!interaction) throw new Error('No interaction provided.');
-	if (!error) throw new Error('No error provided.');
+    const Embed = new EmbedBuilder()
+        .setColor('Red')
+        .setDescription(`${targetMember.guild.name} | ${feature} | ${reason}`);
+    DisabledFeaturesChannel.send({ embeds: [Embed] });
 
-	var { client, guild, user } = interaction;
 
-	if (!client) throw new Error('No client found.');
-	if (!guild) {
-		guild = { name: `${user.username}'s DM ` };
-	}
+    const DMEmbed = new EmbedBuilder()
+        .setColor('Red')
+        .setDescription(`${feature} is now disabled | Guild: ${targetMember.guild.name} | Reason: ${reason}`);
+    targetMember.send({ embeds: [DMEmbed] }).catch(() => { });
+}
 
-	const errorChannel = client.channels.cache.get(ErrorChannelID);
-	if (!errorChannel) throw new Error('No error channel found.');
 
-	const ErrorEmbed = new EmbedBuilder()
-		.setColor('#FF0000')
-		.setDescription(`• Error has been found in **${guild.name}** •`)
-		.addFields(
-			{
-				name: 'Error Message',
-				value: `${error.rawError.message}`,
-				inline: false,
-			},
-			{
-				name: 'Error Code',
-				value: `${error.code}`,
-				inline: false,
-			},
-			{
-				name: 'Error Status',
-				value: `${error.status}`,
-				inline: false,
-			},
-			{
-				name: 'Error Method',
-				value: `${error.method}`,
-				inline: false,
-			},
-			{
-				name: 'Error URL',
-				value: `${error.url}`,
-				inline: false,
-			}
-		)
-		.setTimestamp()
-		.setFooter({ text: FooterText, iconURL: FooterImage });
-	errorChannel.send({
-		content: '<@387341502134878218>',
-		embeds: [ErrorEmbed],
-	});
-};
-
-module.exports = {
-	sendEmbed,
-	sendErrorEmbed,
-};
+module.exports = { DisabledFeatures };

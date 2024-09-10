@@ -1,44 +1,33 @@
-const {
-	SlashCommandBuilder,
-	EmbedBuilder,
-	ActionRowBuilder,
-	ButtonBuilder,
-	Interaction,
-	ButtonStyle,
-} = require('discord.js');
-const { FooterImage, EmbedColour, PublicClientID } = process.env;
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType } = require('discord.js');
+const { ClientID } = process.env;
 
 module.exports = {
-	cooldown: 5,
-	catagory: 'Miscellaneous',
-	data: new SlashCommandBuilder()
-		.setName('vote')
-		.setDescription('Vote for the bot!'),
+    cooldown: 5,
+    category: 'Miscellaneous',
+    userpermissions: [],
+    botpermissions: [],
+    data: new SlashCommandBuilder()
+        .setName('vote')
+        .setDescription('Vote for the bot on top.gg')
+        .setContexts( InteractionContextType.PrivateChannel, InteractionContextType.BotDM , InteractionContextType.Guild ),
 
-	/**
-	 *  @param {Interaction} interaction
-	 */
-	async execute(interaction) {
-		const { client } = interaction;
+    /**
+     * @param {CommandInteraction} interaction
+     */
 
-		// button
-		const button = new ActionRowBuilder().addComponents(
-			new ButtonBuilder()
-				.setLabel('Vote')
-				.setStyle(ButtonStyle.Link)
-				.setURL(`https://top.gg/bot/${PublicClientID}/vote`)
-		);
+    async execute(interaction) {
+        
+        const button = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+            .setStyle(ButtonStyle.Link)
+            .setLabel('Vote')
+            .setURL(`https://top.gg/bot/${ClientID}/vote`)
+        );
 
-		const embed = new EmbedBuilder()
-			.setTitle('Vote for the bot!')
-			.setDescription('You can vote for the bot on top.gg!')
-			.setColor(EmbedColour)
-			.setTimestamp()
-			.setFooter({ text: 'Made with ❤️ by @dexvo', iconURL: FooterImage });
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setDescription('Click the button below to vote for the bot on top.gg')
 
-		await interaction.reply({
-			embeds: [embed],
-			components: [button],
-		});
-	},
+        await interaction.reply({ embeds: [Embed], components: [button] });
+    }
 };

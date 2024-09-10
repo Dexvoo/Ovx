@@ -4,10 +4,12 @@ const cleanConsoleLog = (log) => {
 };
 
 const cleanConsoleLogData = (title, description, type) => {
+	// making sure the string is not longer than 84 characters
+	if (!title) throw new Error('No title provided');
 	if (!description) type = 'error' && (description = 'No description provided');
 
 	// how to make the string of 100 characters
-	title = title.padEnd(15, ' ');
+	title = title.padEnd(18, ' ');
 
 	switch (type) {
 		case 'error':

@@ -1,956 +1,527 @@
-const {
-	SlashCommandBuilder,
-	PermissionFlagsBits,
-	EmbedBuilder,
-	CommandInteraction,
-} = require('discord.js');
-
-const { sendEmbed, sendErrorEmbed } = require('../../utils/Embeds.js');
-const { guildCheck, permissionCheck } = require('../../utils/Checks.js');
-const { sleep } = require('../../utils/ConsoleLogs.js');
-require('dotenv').config();
-const MessageLogs = require('../../models/GuildMessageLogs.js');
-const { EmbedColour, FooterImage, FooterText } = process.env;
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType } = require('discord.js');
 
 module.exports = {
-	cooldown: 5,
-	catagory: 'Moderation',
-	data: new SlashCommandBuilder()
-		.setName('moderation')
-		.setDescription('List of Moderation commands.')
-		.setDMPermission(false)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('ban')
-				.setDescription('Banish a specified user from a guild.')
-				.addUserOption((option) =>
-					option
-						.setName('user-id')
-						.setDescription('Member to ban')
-						.setRequired(true)
-				)
-				.addStringOption((option) =>
-					option
-						.setName('reason')
-						.setDescription('Reason for ban')
-						.setRequired(false)
-				)
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('unban')
-				.setDescription('Unban a specified user from a guild')
-				.addStringOption((option) =>
-					option
-						.setName('userid')
-						.setDescription('The specified userid to unban')
-						.setRequired(true)
-				)
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('kick')
-				.setDescription('Kick a specified user from a guild')
-				.addUserOption((option) =>
-					option
-						.setName('member')
-						.setDescription('Member to kick')
-						.setRequired(true)
-				)
-				.addStringOption((option) =>
-					option
-						.setName('reason')
-						.setDescription('Reason for kick')
-						.setRequired(false)
-				)
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('timeout')
-				.setDescription('Timeout a specified user from a guild')
-				.addUserOption((option) =>
-					option
-						.setName('member')
-						.setDescription('Member to timeout')
-						.setRequired(true)
-				)
-				.addStringOption((option) =>
-					option
-						.setName('duration')
-						.setDescription('How long do you want to timeout this user for?')
-						.setRequired(true)
-						.addChoices(
-							{ name: '60 Seconds', value: '60Sec' },
-							{ name: '5 Minutes', value: '5Min' },
-							{ name: '10 Minutes', value: '10Min' },
-							{ name: '1 Hour', value: '1Hour' },
-							{ name: '1 Day', value: '1Day' },
-							{ name: '1 Week', value: '1Week' }
-						)
-				)
-				.addStringOption((option) =>
-					option
-						.setName('reason')
-						.setDescription('Reason for the timeout.')
-						.setRequired(false)
-				)
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('removetimeout')
-				.setDescription('Remove a timeout from a specified user from a guild')
-				.addUserOption((option) =>
-					option
-						.setName('member')
-						.setDescription('Member to remove timeout')
-						.setRequired(true)
-				)
-				.addStringOption((option) =>
-					option
-						.setName('reason')
-						.setDescription('Reason for removing timeout')
-						.setRequired(false)
-				)
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('purge')
-				.setDescription('Purge a specified amount of messages from a channel')
-				.addIntegerOption((option) =>
-					option
-						.setName('amount')
-						.setDescription('Amount of messages to purge')
-						.setMaxValue(100)
-						.setMinValue(1)
-						.setRequired(false)
-				)
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('nickname')
-				.setDescription('Change a specified users nickname')
-				.addUserOption((option) =>
-					option
-						.setName('member')
-						.setDescription('Member to change nickname')
-						.setRequired(true)
-				)
-				.addStringOption((option) =>
-					option
-						.setName('nickname')
-						.setDescription('Nickname to change to')
-						.setRequired(true)
-				)
-		),
-	/**
-	 *
-	 * @param {CommandInteraction} interaction
-	 * @returns
-	 */
+    cooldown: 5,
+    category: 'Moderation',
+    userpermissions: [PermissionFlagsBits.ManageMessages],
+    botpermissions: [PermissionFlagsBits.BanMembers, PermissionFlagsBits.KickMembers, PermissionFlagsBits.ModerateMembers, PermissionFlagsBits.ManageMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ManageNicknames],
+    data: new SlashCommandBuilder()
+        .setName('moderation')
+        .setDescription('Ban, unban, kick, timeout, remove timeout, purge messages, or change the nickname of a user')
+        .setContexts( InteractionContextType.Guild )
+        .addSubcommand(subcommand => subcommand
+            .setName('ban')
+            .setDescription('Ban a user')
+            .addUserOption(option => option
+                .setName('user-id')
+                .setDescription('The user to ban')
+                .setRequired(true)
+            )
+            .addStringOption(option => option
+                .setName('reason')
+                .setDescription('The reason for the ban')
+                .setRequired(false)
+            )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('unban')
+            .setDescription('Unban a user')
+            .addUserOption(option => option
+                .setName('user-id')
+                .setDescription('The user to unban')
+                .setRequired(true)
+            )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('kick')
+            .setDescription('Kick a user')
+            .addUserOption(option => option
+                .setName('user-id')
+                .setDescription('The user to kick')
+                .setRequired(true)
+            )
+            .addStringOption(option => option
+                .setName('reason')
+                .setDescription('The reason for the kick')
+                .setRequired(false)
+            )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('timeout')
+            .setDescription('Timeout a user')
+            .addUserOption(option => option
+                .setName('user-id')
+                .setDescription('The user to timeout')
+                .setRequired(true)
+            )
+            .addNumberOption((option) =>
+                option
+                    .setName('duration')
+                    .setDescription('How long do you want to timeout this user for?')
+                    .setRequired(true)
+                    .addChoices(
+                        { name: '60 Seconds', value: 60000 },
+                        { name: '5 Minutes', value: 60000 * 5 },
+                        { name: '10 Minutes', value: 60000 * 10 },
+                        { name: '1 Hour', value: 60000 * 60 },
+                        { name: '1 Day', value: 60000 * 60 * 24 },
+                        { name: '1 Week', value: 60000 * 60 * 24 * 7 },
+                    )
+            )
+            .addStringOption(option => option
+                .setName('reason')
+                .setDescription('The reason for the timeout')
+                .setRequired(false)
+            )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('remove-timeout')
+            .setDescription('Remove a timeout from a user')
+            .addUserOption(option => option
+                .setName('user-id')
+                .setDescription('The user to remove the timeout from')
+                .setRequired(true)
+            )
+            .addStringOption(option => option
+                .setName('reason')
+                .setDescription('The reason for removing the timeout')
+                .setRequired(false)
+            )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('purge')
+            .setDescription('Purge messages')
+            .addIntegerOption(option => option
+                .setName('amount')
+                .setDescription('The amount of messages to purge')
+                .setMaxValue(100)
+				.setMinValue(1)
+                .setRequired(true)
+            )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('nickname')
+            .setDescription('Change the nickname of a user')
+            .addUserOption(option => option
+                .setName('user-id')
+                .setDescription('The user to change the nickname of')
+                .setRequired(true)
+            )
+            .addStringOption(option => option
+                .setName('nickname')
+                .setDescription('The new nickname')
+                .setRequired(false)
+            )
+        ),
+    /**
+     * @param {CommandInteraction} interaction
+     */
 
-	async execute(interaction) {
-		try {
-			// Deconstructing interaction
-			const { guild, member, options, user, client, channel } = interaction;
+    async execute(interaction) {
+        const { options, client, member, guild, user, channel } = interaction;
+        const subcommand = options.getSubcommand();
+        const targetUser = options.getUser('user-id')
+        const targetMember = interaction.guild.members.cache.get(targetUser?.id);
+        const reason = options.getString('reason') || 'No reason provided';
+        const duration = options.getNumber('duration');
+        const nickname = options.getString('nickname');
+        var amount = options.getInteger('amount');
+        
+        switch (subcommand) {
+            case 'ban':
+                const auditLogReason = `Banned by @${interaction.user.tag} for: ${reason}`;
 
-			// Checking if the user is in a guild
-			if (!(await guildCheck(guild))) return;
+                if(targetUser.id === client.user.id) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('I cannot ban myself!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
 
-			var botPermissionsArry;
-			var userPermissionsArry;
-			console.log(options.getSubcommand());
-			switch (options.getSubcommand()) {
-				case 'ban':
-					botPermissionsArry = ['BanMembers'];
-					userPermissionsArry = ['BanMembers'];
-					break;
-				case 'unban':
-					botPermissionsArry = ['BanMembers'];
-					userPermissionsArry = ['BanMembers'];
-					break;
-				case 'kick':
-					botPermissionsArry = ['KickMembers'];
-					userPermissionsArry = ['KickMembers'];
-					break;
-				case 'timeout':
-					botPermissionsArry = ['ModerateMembers'];
-					userPermissionsArry = ['ModerateMembers'];
-					break;
-				case 'removetimeout':
-					botPermissionsArry = ['ModerateMembers'];
-					userPermissionsArry = ['ModerateMembers'];
-					break;
-				case 'purge':
-					botPermissionsArry = ['ManageMessages', 'ViewChannel'];
-					userPermissionsArry = ['ManageMessages'];
-					break;
-				case 'nickname':
-					botPermissionsArry = ['ManageNicknames'];
-					userPermissionsArry = ['ManageNicknames'];
-					break;
-			}
+                if(targetUser.id === interaction.user.id) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('You cannot ban yourself!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
 
-			const botPermissions = await permissionCheck(
-				interaction,
-				botPermissionsArry,
-				client
-			);
+                if(targetMember) {
+                    if(targetMember.bannable === false) {
+                        const Embed = new EmbedBuilder()
+                            .setColor(Colors.Red)
+                            .setDescription(`Bot Missing Permissions | \`RoleHierarchy\``);
+                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                    }
 
-			if (!botPermissions[0])
-				return await sendEmbed(
-					interaction,
-					`Bot Missing Permissions: \`${botPermissions[1]}\``
-				);
+                    if(member.roles.highest.position <= targetMember.roles.highest.position) {
+                        const Embed = new EmbedBuilder()
+                            .setColor(Colors.Red)
+                            .setDescription(`You cannot ban a member with a higher role than you`);
+                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                    }
+                }
 
-			// User permissions
-			const userPermissions = await permissionCheck(
-				interaction,
-				userPermissionsArry,
-				member
-			);
+                const bans = await interaction.guild.bans.fetch();
 
-			if (!userPermissions[0])
-				return await sendEmbed(
-					interaction,
-					`User Missing Permissions: \`${userPermissions[1]}\``
-				);
+                if(bans.has(targetUser.id)) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('This user is already banned!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
 
-			await sendEmbed(interaction, 'Attempting carry out moderation command');
-			await sleep(2000);
-
-			switch (options.getSubcommand()) {
-				case 'ban':
-					// Variables
-					var targetUser = options.getUser('user-id');
-					var targetMember = guild.members.cache.get(targetUser.id);
-					var reason = options.getString('reason');
-					var auditLogsReason;
-
-					if (targetUser.id === client.user.id)
-						return await sendEmbed(interaction, 'You cannot ban me');
-
-					if (targetUser.id === user.id)
-						return await sendEmbed(interaction, 'You cannot ban yourself');
-
-
-					if (!reason) {
-						reason = 'No reason provided';
-						auditLogsReason = `Banned by @${user.username} | Reason: No reason provided`;
-					} else {
-						auditLogsReason = `Banned by @${user.username} | Reason: ${reason}`;
-					}
-
-					if (targetMember) {
-						if (targetMember.bannable === false) {
-							return await sendEmbed(
-								interaction,
-								`Bot Missing Permissions | \`RoleHierarchy\``
-							);
-						}
-
-						if (member.roles.highest.position <= targetMember.roles.highest.position)
-							return await sendEmbed(interaction, 'You cannot ban a member with a higher role than you');
-					}
-
-					const bans = await guild.bans.fetch().catch()
-					if (bans.has(targetUser.id)) return await sendEmbed(interaction, 'This user is already banned');
-
-					// Ban the target user
-					await guild.bans.create(targetUser.id, { reason: auditLogsReason }).catch(async (error) => {});
-
-					if(targetMember) {
-						const embed = new EmbedBuilder()
-							.setColor(EmbedColour)
+                await guild.bans.create(targetUser.id, { reason: auditLogReason }).catch(console.error);
+                
+                if(targetMember) {
+                    const embed = new EmbedBuilder()
+							.setColor(Colors.Blurple)
 							.setDescription(`You have been banned from **${guild.name}**`)
 							.addFields(
 								{ name: 'Reason', value: reason },
-								{
-									name: 'Moderator',
-									value: `@${user.username} | (${member})`,
-									inline: true,
-								}
+								{ name: 'Moderator', value: `@${user.username} | (${member})`, inline: true }
 							)
-							.setTimestamp()
-							.setFooter({ text: FooterText, iconURL: FooterImage });
 
 						await targetMember.send({ embeds: [embed] }).catch(async (error) => {
 							const Embed = new EmbedBuilder()
-								.setColor(EmbedColour)
-								.setDescription(
-									`${targetMember} has DMs disabled, unable to send ban message`
-								)
-								.setTimestamp()
-								.setFooter({ text: FooterText, iconURL: FooterImage });
-							await interaction.followUp({ embeds: [Embed] });
-							await sleep(5000);
+								.setColor(Colors.Blurple)
+								.setDescription(`${targetMember} has DMs disabled, unable to send ban message`)
+							await interaction.followUp({ embeds: [Embed], ephemeral: true });
 						});
-					}
-
-					// Interaction reply embed
-					const Embed2 = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setTitle('Ban')
-						.setDescription(
-							`You banned <@${targetUser.id}> from the server  `
-						)
-						.addFields(
-							{ name: 'Reason', value: reason },
-							{
-								name: 'Moderator',
-								value: `@${user.username} | (${member})`,
-								inline: true,
-							}
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await interaction.editReply({ embeds: [Embed2] });
-
-					break;
-				case 'unban':
-					// Variables
-					const targetUseridUnban = options.getString('userid');
-
-					const targetUserFetchedUnban = await client.users
-						.fetch(targetUseridUnban)
-						.catch(() => {
-							return false;
-						});
-
-					if (!targetUserFetchedUnban)
-						return await sendEmbed(interaction, 'Could not find user');
-
-					if (targetUserFetchedUnban.id === client.user.id)
-						return await sendEmbed(interaction, 'You cannot unban me');
-
-					if (targetUserFetchedUnban.id === user.id)
-						return await sendEmbed(interaction, 'You cannot unban yourself');
-
-					const bannedUsers = await guild.bans.fetch().catch(async (error) => {
-						return (
-							(await sendErrorEmbed(interaction, error)) &&
-							(await sendEmbed(
-								interaction,
-								`There was an error fetching the banned users`
-							))
-						);
-					});
-
-					if (!bannedUsers.has(targetUserFetchedUnban.id))
-						return await sendEmbed(interaction, 'This user is not banned');
-
-					// DM Unban Embed
-					const UnbanEmbed = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setDescription(`• You have been unbanned from **${guild.name}** •`)
-						.addFields({
-							name: 'Moderator',
-							value: `${user.username} | (${member})`,
-							inline: true,
-						})
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await targetUserFetchedUnban
-						.send({ embeds: [UnbanEmbed] })
-						.catch(async (error) => {
-							await sendEmbed(
-								interaction,
-								`${targetUserFetchedUnban} has DMs disabled or does not have a common server with the bot, unable to send unban message`
-							);
-							await sleep(5000);
-						});
-
-					await guild.members
-						.unban(targetUserFetchedUnban.id, `Unbanned by ${user.username}`)
-						.catch(async (error) => {
-							return (
-								(await sendErrorEmbed(interaction, error)) &&
-								(await sendEmbed(
-									interaction,
-									`There was an error unbanning this user`
-								))
-							);
-						});
-
-					// Interaction reply embed
-					const UnbanEmbed2 = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setTitle('Unban')
-						.setDescription(
-							`You unbanned ${targetUserFetchedUnban} from the server  `
-						)
-						.addFields({
-							name: 'Moderator',
-							value: `@${user.username} | (${member})`,
-							inline: true,
-						})
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await interaction.editReply({ embeds: [UnbanEmbed2] });
-
-					break;
-
-				case 'kick':
-					// Variables
-					const targetMemberKick = options.getMember('member');
-					var reasonKick = options.getString('reason');
-					var auditLogsReasonKick;
-
-					if (!targetMemberKick)
-						return await sendEmbed(
-							interaction,
-							'Please specify a valid member'
-						);
-
-					// Checking if the target is the command user
-					if (targetMemberKick.id === user.id)
-						return await sendEmbed(interaction, 'You cannot kick yourself');
-
-					// Checking if the target user is kickable
-					if (!targetMemberKick.kickable)
-						return await sendEmbed(
-							interaction,
-							`Bot Missing Permissions | \`RoleHierarchy\``
-						);
-
-					// Checking If the interaction member has a higher role than the target member
-					if (
-						member.roles.highest.position <=
-						targetMemberKick.roles.highest.position
-					)
-						return await sendEmbed(
-							interaction,
-							'You cannot kick a member with equal or higher role than you'
-						);
-
-					if (!reasonKick) {
-						reasonKick = 'No reason provided';
-						auditLogsReasonKick = `Kicked by @${user.username} | Reason: No reason provided`;
-					} else {
-						auditLogsReasonKick = `Kicked by @${user.username} | Reason: ${reasonKick}`;
-					}
-
-					// DM Embed
-					const EmbedKick = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setDescription(`You have been kicked from **${guild.name}**`)
-						.addFields(
-							{ name: 'Reason', value: reasonKick },
-							{
-								name: 'Moderator',
-								value: `@${user.username} | (${member})`,
-								inline: true,
-							}
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await targetMemberKick
-						.send({ embeds: [EmbedKick] })
-						.catch(async (error) => {
-							// await sendErrorEmbed(interaction, error);
-							const Embed = new EmbedBuilder()
-								.setColor(EmbedColour)
-								.setDescription(
-									`${targetMemberKick} has DMs disabled, unable to send kick message`
-								)
-								.setTimestamp()
-								.setFooter({ text: FooterText, iconURL: FooterImage });
-							await interaction.editReply({ embeds: [Embed] });
-							await sleep(5000);
-						});
-
-					await targetMemberKick
-						.kick(auditLogsReasonKick)
-						.catch(async (error) => {
-							return (
-								(await sendErrorEmbed(interaction, error)) &&
-								(await sendEmbed(
-									interaction,
-									`There was an error kicking this user`
-								))
-							);
-						});
-
-					// Interaction reply embed
-					const EmbedKick2 = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setTitle('Kick')
-						.setDescription(
-							`You kicked <@${targetMemberKick.id}> from the server  `
-						)
-						.addFields(
-							{ name: 'Reason', value: reasonKick },
-							{
-								name: 'Moderator',
-								value: `@${user.username} | (${member})`,
-								inline: true,
-							}
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await interaction.editReply({ embeds: [EmbedKick2] });
-
-					break;
-				case 'timeout':
-					// Variables
-					const targetMemberTimeout = options.getMember('member');
-					const duration = options.getString('duration');
-					var reasonTimeout = options.getString('reason');
-					var auditLogsReasonTimeout;
-					var durationTime;
-
-					if (!targetMemberTimeout)
-						return await sendEmbed(
-							interaction,
-							'Please specify a valid member'
-						);
-
-					switch (duration) {
-						case '60Sec':
-							durationTime = 60000;
-							break;
-						case '5Min':
-							durationTime = 60000 * 5;
-							break;
-						case '10Min':
-							durationTime = 60000 * 10;
-							break;
-						case '1Hour':
-							durationTime = 60000 * 60;
-							break;
-						case '1Day':
-							durationTime = 60000 * 60 * 24;
-							break;
-						case '1Week':
-							durationTime = 60000 * 60 * 24 * 7;
-							break;
-						default:
-							return await sendEmbed(interaction, 'Invalid duration');
-					}
-
-					var timeAfterTimeout = Date.now() + durationTime;
-
-					if (targetMemberTimeout.user.bot) {
-						return await sendEmbed(interaction, 'You cannot timeout a bot');
-					}
-
-					if (targetMemberTimeout.id === user.id)
-						return await sendEmbed(interaction, 'You cannot timeout yourself');
-
-					if (!targetMemberTimeout.moderatable)
-						return await sendEmbed(
-							interaction,
-							`Bot Missing Permissions | \`RoleHierarchy\``
-						);
-
-					if (
-						member.roles.highest.position <=
-						targetMemberTimeout.roles.highest.position
-					)
-						return await sendEmbed(
-							interaction,
-							'You cannot timeout a member with a higher role than you'
-						);
-
-					if (!reasonTimeout) {
-						reasonTimeout = 'No reason provided';
-						auditLogsReasonTimeout = `Timedout by @${user.username} | Reason: No reason provided`;
-					} else {
-						auditLogsReasonTimeout = `Timedout by @${user.username} | Reason: ${reasonTimeout}`;
-					}
-
-					// DM Embed
-					const EmbedTimeout = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setDescription(`You have been timedout from **${guild.name}**`)
-						.addFields(
-							{ name: 'Reason', value: reasonTimeout },
-							{
-								name: 'Moderator',
-								value: `@${user.username} | (${member})`,
-								inline: true,
-							},
-							{
-								name: 'Ends',
-								value: `<t:${(timeAfterTimeout / 1000).toFixed(0)}:R>`,
-								inline: false,
-							}
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await targetMemberTimeout
-						.send({ embeds: [EmbedTimeout] })
-						.catch(async (error) => {
-							// await sendErrorEmbed(interaction, error);
-							const Embed = new EmbedBuilder()
-								.setColor(EmbedColour)
-								.setDescription(
-									`${targetMemberTimeout} has DMs disabled, unable to send timeout message`
-								)
-								.setTimestamp()
-								.setFooter({ text: FooterText, iconURL: FooterImage });
-							await interaction.editReply({ embeds: [Embed] });
-							await sleep(5000);
-						});
-
-					await targetMemberTimeout
-						.timeout(durationTime, auditLogsReasonTimeout)
-						.catch(async (error) => {
-							return (
-								(await sendErrorEmbed(interaction, error)) &&
-								(await sendEmbed(
-									interaction,
-									`There was an error timing out this user`
-								))
-							);
-						});
-
-					// Interaction reply embed
-					const EmbedTimeout2 = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setTitle('Timeout')
-						.setDescription(
-							`You timedout <@${targetMemberTimeout.id}> from the server  `
-						)
-						.addFields(
-							{ name: 'Reason', value: reasonTimeout },
-							{
-								name: 'Moderator',
-								value: `@${user.username} | (${member})`,
-								inline: true,
-							},
-							{
-								name: 'Ends',
-								value: `<t:${(timeAfterTimeout / 1000).toFixed(0)}:R>`,
-								inline: false,
-							}
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await interaction.editReply({ embeds: [EmbedTimeout2] });
-
-					break;
-				case 'removetimeout':
-					// Variables
-					const targetMemberRemoveTimeout = options.getMember('member');
-					var reasonRemoveTimeout = options.getString('reason');
-					var auditLogsReasonRemoveTimeout;
-
-					if (!targetMemberRemoveTimeout)
-						return await sendEmbed(
-							interaction,
-							'Please specify a valid member'
-						);
-
-					if (targetMemberRemoveTimeout.id === user.id)
-						return await sendEmbed(
-							interaction,
-							'You cannot remove a timeout from yourself'
-						);
-
-					if (!targetMemberRemoveTimeout.moderatable)
-						return await sendEmbed(
-							interaction,
-							`Bot Missing Permissions | \`RoleHierarchy\``
-						);
-
-					if (
-						member.roles.highest.position <=
-						targetMemberRemoveTimeout.roles.highest.position
-					)
-						return await sendEmbed(
-							interaction,
-							'You cannot remove a timeout from a member with a higher role than you'
-						);
-
-					if (!targetMemberRemoveTimeout.isCommunicationDisabled()) {
-						return await sendEmbed(interaction, 'User is not timedout');
-					}
-
-					if (!reasonRemoveTimeout) {
-						reasonRemoveTimeout = 'No reason provided';
-						auditLogsReasonRemoveTimeout = `Removed Timeout by @${user.username} | Reason: No reason provided`;
-					} else {
-						auditLogsReasonRemoveTimeout = `Removed Timeout by @${user.username} | Reason: ${reasonRemoveTimeout}`;
-					}
-
-					// DM Embed
-					const EmbedRemoveTimeout = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setDescription(
-							`Your timeout has been removed from **${guild.name}**`
-						)
-						.addFields(
-							{ name: 'Reason', value: reasonRemoveTimeout },
-							{
-								name: 'Moderator',
-								value: `@${user.username} | (${member})`,
-								inline: true,
-							}
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await targetMemberRemoveTimeout
-						.send({ embeds: [EmbedRemoveTimeout] })
-						.catch(async (error) => {
-							// await sendErrorEmbed(interaction, error);
-							const Embed = new EmbedBuilder()
-								.setColor(EmbedColour)
-								.setDescription(
-									`${targetMemberRemoveTimeout} has DMs disabled, unable to send remove timeout message`
-								)
-								.setTimestamp()
-								.setFooter({ text: FooterText, iconURL: FooterImage });
-							await interaction.editReply({ embeds: [Embed] });
-							await sleep(5000);
-						});
-
-					// remove timeout on target member
-					await targetMemberRemoveTimeout
-						.timeout(null, auditLogsReasonRemoveTimeout)
-						.catch(async (error) => {
-							return (
-								(await sendErrorEmbed(interaction, error)) &&
-								(await sendEmbed(
-									interaction,
-									`There was an error removing the timeout from this user`
-								))
-							);
-						});
-
-					// Interaction reply embed
-					const EmbedRemoveTimeout2 = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setTitle('Remove Timeout')
-						.setDescription(
-							`You removed the timeout from <@${targetMemberRemoveTimeout.id}> from the server  `
-						)
-						.addFields(
-							{ name: 'Reason', value: reasonRemoveTimeout },
-							{
-								name: 'Moderator',
-								value: `@${user.username} | (${member})`,
-								inline: true,
-							}
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await interaction.editReply({ embeds: [EmbedRemoveTimeout2] });
-					break;
-
-				case 'purge':
-					// Variables
-					var amount = options.getInteger('amount');
-					if (!amount) amount = 100;
-					if (amount < 1 || amount > 100)
-						return await sendEmbed(
-							interaction,
-							'Please provide a number between 1 and 100'
-						);
-
-					const messagesDeleted = await channel
-						.bulkDelete(amount, true)
-						.catch(async (error) => {
-							return false;
-						});
-
-					const EmbedPurge = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setDescription(`Deleted ${messagesDeleted.size || 0} messages`)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					const reply = await interaction.followUp({
-						embeds: [EmbedPurge],
-					});
-
-					await sleep(5000);
-					const fetchedMessage = await reply.fetch().catch(() => {
-						return false;
-					});
-
-					if (fetchedMessage) {
-						await reply.delete();
-					}
-
-					const MessageLogsData = await MessageLogs.findOne({
-						guild: guild.id,
-					});
-
-					if (!MessageLogsData) return;
-
-					const channelToSend =
-						guild.channels.cache.get(MessageLogsData.channel) ||
-						guild.channels.fetch(MessageLogsData.channel).catch(() => {
-							return false;
-						});
-
-					if (!channelToSend) {
-						await MessageLogs.findOneAndDelete({ guild: guild.id });
-						await sendEmbed(
-							await guild.fetchOwner(),
-							`Message Logs channel was deleted or changed | Message Logs is now \`disabled\``
-						);
-						return;
-					}
-
-					const botPermissionsArry2 = ['SendMessages', 'ViewChannel'];
-					const botPermissions2 = await permissionCheck(
-						channelToSend,
-						botPermissionsArry2,
-						client
-					);
-
-					if (!botPermissions2[0]) {
-						await MessageLogs.findOneAndDelete({ guild: guild.id });
-						return await sendEmbed(
-							await guild.fetchOwner(),
-							`Bot Missing Permissions: \`${botPermissions2[1]}\` in channel : ${channelToSend} | Message Logs is now \`disabled\``
-						);
-					}
-
-					await sendEmbed(
-						channelToSend,
-						`${member} Used the /purge in ${channel}`
-					);
-
-					break;
-
-				case 'nickname':
-					// Variables
-					const targetMemberNickname = options.getMember('member');
-					const nickname = options.getString('nickname');
-					const targetOldNickname =
-						targetMemberNickname.nickname ||
-						`@${targetMemberNickname.user.username}`;
-
-					if (!targetMemberNickname)
-						return await sendEmbed(
-							interaction,
-							'Please specify a valid member'
-						);
-
-					if (!targetMemberNickname.moderatable) {
-						return await sendEmbed(
-							interaction,
-							`Bot Missing Permissions | \`RoleHierarchy\``
-						);
-					}
-
-					if (
-						member.roles.highest.position <
-							targetMemberNickname.roles.highest.position &&
-						targetMemberNickname.id !== member.id
-					)
-						return await sendEmbed(
-							interaction,
-							'You cannot change a member`s nickname with a higher role than you'
-						);
-
-					if (
-						member.roles.highest.position <
-						targetMemberNickname.roles.highest.position
-					)
-						return await sendEmbed(
-							interaction,
-							'I cannot change a member`s nickname with a higher role than me'
-						);
-
-					if (!nickname) {
-						return await sendEmbed(interaction, 'Please specify a nickname');
-					}
-
-					if (nickname.length > 32)
-						return await sendEmbed(
-							interaction,
-							'The nickname must be less than 32 characters'
-						);
-
-					// Checking if the nickname is the same as the old nickname
-					if (nickname === targetOldNickname)
-						return await sendEmbed(
-							interaction,
-							'The nickname must be different from the old nickname'
-						);
-
-					// Change the nickname
-					await targetMemberNickname.setNickname(nickname);
-
-					// DM the target user
-					const NicknameEmbed = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setDescription(
-							`Your nickname has been changed in **${guild.name}**`
-						)
-						.addFields(
-							{ name: 'Old Nickname', value: targetOldNickname, inline: true },
-							{ name: 'New Nickname', value: nickname, inline: true },
-							{
-								name: 'Moderator',
-								value: `@${user.username} | (${member})`,
-								inline: true,
-							}
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await targetMemberNickname
-						.send({ embeds: [NicknameEmbed] })
-						.catch(async (error) => {
-							// await sendErrorEmbed(interaction, error);
-							const Embed = new EmbedBuilder()
-								.setColor(EmbedColour)
-								.setDescription(
-									`${targetMember} has DMs disabled, unable to send a message`
-								)
-								.setTimestamp()
-								.setFooter({ text: FooterText, iconURL: FooterImage });
-							await interaction.editReply({ embeds: [Embed] });
-							await sleep(5000);
-						});
-
-					// Nickname changed embed
-					const NicknameEmbedFinish = new EmbedBuilder()
-						.setColor(EmbedColour)
-						.setTitle('Nickname')
-						.setDescription(
-							`You changed the nickname of ${targetMemberNickname}`
-						)
-						.addFields(
-							{ name: 'Old Nickname', value: targetOldNickname, inline: true },
-							{ name: 'New Nickname', value: nickname, inline: true },
-							{
-								name: 'Moderator',
-								value: `@${user.username} | (${member})`,
-								inline: false,
-							}
-						)
-						.setTimestamp()
-						.setFooter({ text: FooterText, iconURL: FooterImage });
-
-					await interaction.editReply({ embeds: [NicknameEmbedFinish] });
-
-					break;
-
-				default:
-					return await sendEmbed(interaction, 'Something went wrong 2');
-			}
-		} catch (error) {
-			console.error(error);
-			await sendErrorEmbed(interaction, error);
-			await sendEmbed(
-				interaction,
-				`There was an error running this command\n\n${error}`
-			);
-			return;
-		}
-	},
+                }
+
+                const banEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`You banned <@${targetUser.id}> from the server  `)
+                    .addFields(
+                        { name: 'Reason', value: reason },
+                        { name: 'Moderator', value: `@${user.username} | (${member})`, inline: true }
+                    );
+                await interaction.reply({ embeds: [banEmbed], ephemeral: true });
+
+
+                break;
+            case 'unban':
+                const fetchedBans = await interaction.guild.bans.fetch();
+                const isUserBanned = fetchedBans.get(targetUser.id);
+
+                if(!isUserBanned) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('This user is not banned!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                await interaction.guild.bans.remove(targetUser.id, `Unbanned by @${interaction.user.tag}`).catch(console.error);
+
+                const unbanEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`You unbanned <@${targetUser.id}> from the server`)
+                    .addFields(
+                        { name: 'Moderator', value: `@${user.username} | (${member})`, inline: true }
+                    );
+
+                await interaction.reply({ embeds: [unbanEmbed], ephemeral: true });
+
+
+                break;
+            case 'kick':
+                const auditLogReasonKick = `Kicked by @${interaction.user.tag} for: ${reason}`;
+
+                if(targetUser.id === client.user.id) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('I cannot kick myself!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(targetUser.id === interaction.user.id) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('You cannot kick yourself!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(targetMember) {
+                    if(targetMember.kickable === false) {
+                        const Embed = new EmbedBuilder()
+                            .setColor(Colors.Red)
+                            .setDescription(`Bot Missing Permissions | \`RoleHierarchy\``);
+                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                    }
+
+                    if(member.roles.highest.position <= targetMember.roles.highest.position) {
+                        const Embed = new EmbedBuilder()
+                            .setColor(Colors.Red)
+                            .setDescription(`You cannot kick a member with a higher role than you`);
+                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                    }
+
+                    const KickedEmbed = new EmbedBuilder()
+                        .setColor(Colors.Blurple)
+                        .setDescription(`You have been kicked from **${guild.name}**`)
+                        .addFields(
+                            { name: 'Reason', value: reason },
+                            { name: 'Moderator', value: `@${user.username} | (${member})`, inline: true }
+                        );
+
+                    await targetMember.send({ embeds: [KickedEmbed] }).then( async () => 
+                        await targetMember.kick({ reason: auditLogReasonKick })).catch(async (error) => {
+                        const kickFailedDM = new EmbedBuilder()
+                            .setColor(Colors.Blurple)
+                            .setDescription(`${targetMember} has DMs disabled, unable to send kick message`)
+                        await interaction.followUp({ embeds: [kickFailedDM], ephemeral: true });
+                    });
+
+                    const kickEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`You kicked <@${targetUser.id}> from the server`)
+                    .addFields(
+                        { name: 'Reason', value: reason },
+                        { name: 'Moderator', value: `@${user.username} | (${member})`, inline: true }
+                    );
+
+                    await interaction.reply({ embeds: [kickEmbed], ephemeral: true });
+                } else {
+                    const kickNotInServerEmbed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('This user is not in the server!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                break;
+            case 'timeout':
+                const auditLogReasonTimeout = `Timed out by @${interaction.user.tag} for: ${reason}`;
+                const timeAfterTimeout = Date.now() + duration;
+
+                if(targetUser.id === client.user.id) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('I cannot timeout myself!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(targetUser.id === interaction.user.id) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('You cannot timeout yourself!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(targetMember) {
+
+                    if(targetMember.isCommunicationDisabled()) {
+                        const Embed = new EmbedBuilder()
+                            .setColor(Colors.Red)
+                            .setDescription('This user is already timed out!');
+                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                    }
+
+                    if(targetMember.roles.highest.position >= member.roles.highest.position) {
+                        const Embed = new EmbedBuilder()
+                            .setColor(Colors.Red)
+                            .setDescription(`You cannot timeout a member with a higher role than you`);
+                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                    }
+
+                    if(!targetMember.moderatable) {
+                        const Embed = new EmbedBuilder()
+                            .setColor(Colors.Red)
+                            .setDescription(`Bot Missing Permissions | \`RoleHierarchy\``);
+                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                    }
+
+                    const timeoutEmbed = new EmbedBuilder()
+                        .setColor(Colors.Blurple)
+                        .setDescription(`You have been timed out from **${guild.name}**`)
+                        .addFields(
+                            { name: 'Reason', value: reason },
+                            { name: 'Moderator', value: `@${user.username} | (${member})`, inline: true },
+                            { name: 'Ends', value: `<t:${(timeAfterTimeout/ 1000).toFixed(0)}:R>`, inline: false }
+                        );
+
+                    await targetMember.send({ embeds: [timeoutEmbed] }).catch(async (error) => {
+                        const timeoutFailedDM = new EmbedBuilder()
+                            .setColor(Colors.Blurple)
+                            .setDescription(`${targetMember} has DMs disabled, unable to send timeout message`)
+                        await interaction.followUp({ embeds: [timeoutFailedDM] });
+                    });
+
+                    await targetMember.timeout( duration, reason ).catch(console.error);
+
+                    const timeoutSuccessEmbed = new EmbedBuilder()
+                        .setColor(Colors.Blurple)
+                        .setDescription(`You timed out <@${targetUser.id}> from the server`)
+                        .addFields(
+                            { name: 'Reason', value: reason },
+                            { name: 'Moderator', value: `@${user.username} | (${member})`, inline: true },
+                            { name: 'Ends', value: `<t:${(timeAfterTimeout/ 1000).toFixed(0)}:R>`, inline: false }
+                        );
+
+                    await interaction.reply({ embeds: [timeoutSuccessEmbed], ephemeral: true });                   
+                    
+                }
+
+                break;
+            case 'remove-timeout':
+
+                if(!targetMember) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('This user is not in the server!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(targetUser.id === client.user.id) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('I cannot remove a timeout from myself!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(targetUser.id === interaction.user.id) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('You cannot remove a timeout from yourself!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(!targetMember.isCommunicationDisabled()) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('This user is not timed out!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                await targetMember.removeTimeout().catch(console.error);
+
+                const removeTimeoutEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`You removed the timeout from <@${targetUser.id}>`)
+                    .addFields(
+                        { name: 'Moderator', value: `@${user.username} | (${member})`, inline: true }
+                    );
+
+                await interaction.reply({ embeds: [removeTimeoutEmbed], ephemeral: true });
+
+                break;
+            case 'purge':
+                
+                    if(!amount) amount = 100;
+                    if(amount < 1 || amount > 100) {
+                        const Embed = new EmbedBuilder()
+                            .setColor(Colors.Red)
+                            .setDescription('You need to input a number between 1 and 100');
+                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                    }
+
+                    const messagesDeleted = await channel.bulkDelete(amount, true).catch(() => { return false });
+
+                    const purgeEmbed = new EmbedBuilder()
+                        .setColor(Colors.Blurple)
+                        .setDescription(`Purged ${messagesDeleted.size} messages`)
+
+                    const reply = await interaction.reply({ embeds: [purgeEmbed], ephemeral: true });
+
+                    setTimeout(async () => {
+                        const fetchedReply = await reply.fetch().catch(() => { return false });
+                        if(fetchedReply) {
+                            reply.delete()
+                        }
+                    }, 5000);
+
+                break;
+
+            case 'nickname':
+                const oldNickname = targetMember.nickname || targetMember.user.displayName;
+
+                if(!targetMember) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('This user is not in the server!');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(!targetMember.moderatable) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription(`Bot Missing Permissions | \`RoleHierarchy\``);
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(targetMember.roles.highest.position >= member.roles.highest.position) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription(`You cannot change the nickname of a member with a higher role than you`);
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(!nickname) {
+                    // go back to display name
+                    await targetMember.setNickname('', `Changed by @${interaction.user.tag}`).catch(console.error);
+
+                    const removeNicknameEmbed = new EmbedBuilder()
+                        .setColor(Colors.Blurple)
+                        .setDescription(`You removed the nickname of <@${targetUser.id}>`)
+                        .addFields(
+                            { name: 'Old Nickname', value: oldNickname, inline: true },
+                            { name: 'Moderator', value: `@${user.username} | (${member})`, inline: false }
+                        );
+
+                    return await interaction.reply({ embeds: [removeNicknameEmbed], ephemeral: true });
+                    
+                }
+
+                if(nickname.length > 32) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('The nickname cannot be longer than 32 characters');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                if(nickname === oldNickname) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('The nickname is already set to that');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                await targetMember.setNickname(nickname, `Changed by @${interaction.user.tag}`).catch(console.error);
+
+                const nicknameEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`You changed the nickname of <@${targetUser.id}>`)
+                    .addFields(
+                        { name: 'Old Nickname', value: oldNickname, inline: true },
+                        { name: 'New Nickname', value: nickname, inline: true },
+                        { name: 'Moderator', value: `@${user.username} | (${member})`, inline: false }
+                    );
+
+                await interaction.reply({ embeds: [nicknameEmbed], ephemeral: true });
+
+                const targetNicknameEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`Your nickname was changed in **${guild.name}**`)
+                    .addFields(
+                        { name: 'Old Nickname', value: oldNickname, inline: true },
+                        { name: 'New Nickname', value: nickname, inline: true },
+                        { name: 'Moderator', value: `@${user.username} | (${member})`, inline: false }
+                    );
+
+                await targetMember.send({ embeds: [targetNicknameEmbed] }).catch(() => {});
+                break;
+
+            default:
+                const Embed = new EmbedBuilder()
+                    .setColor(Colors.Red)
+                    .setDescription('Invalid subcommand');
+                await interaction.reply({ embeds: [Embed], ephemeral: true });
+
+                break;
+            
+
+
+                    
+        }
+    }
+
 };
