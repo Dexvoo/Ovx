@@ -1,7 +1,7 @@
 const { Events, Client, EmbedBuilder, Colors } = require('discord.js');
 const { cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 const BotStats = require('../../models/BotStats.js');
-const { ClientID } = process.env;
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.ClientReady,
@@ -14,8 +14,14 @@ module.exports = {
     async execute(client) {
         const startTime = Date.now();
 
-        const messageId = ClientID ? '1158595086116999238' : '1158549863546499143';
-        const channel = client.channels.cache.get('1115340622027575306');
+
+        const statsChannelId = '1115340622027575306'
+        const devMessageId = '1158595086116999238'
+        const publicMessageId = '1158549863546499143'
+
+
+        const messageId = DeveloperMode ? devMessageId : publicMessageId;
+        const channel = client.channels.cache.get(statsChannelId);
         const messageToEdit = await channel.messages.fetch(messageId);
 
         const getStats = async () => {

@@ -14,6 +14,7 @@ module.exports = {
      */
 
     async execute(message) {
+        if (DeveloperMode === 'true') return;
         const { client, guild, member, channel, content, author } = message;
 
         // Exit if message is from a bot or outside a guild

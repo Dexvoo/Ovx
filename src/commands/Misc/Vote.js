@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType } = require('discord.js');
-const { ClientID } = process.env;
+const { PublicClientID } = process.env;
 
 module.exports = {
     cooldown: 5,
@@ -21,7 +21,7 @@ module.exports = {
             new ButtonBuilder()
             .setStyle(ButtonStyle.Link)
             .setLabel('Vote')
-            .setURL(`https://top.gg/bot/${ClientID}/vote`)
+            .setURL(`https://top.gg/bot/${PublicClientID}/vote`)
         );
 
         const Embed = new EmbedBuilder()

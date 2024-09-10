@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType } = require('discord.js');
-const { ClientID } = process.env;
+const { DeveloperMode, PublicClientID, DevClientID } = process.env;
 
 module.exports = {
     cooldown: 5,
@@ -20,18 +20,7 @@ module.exports = {
         const supportServer = 'https://discord.gg/uPGkcXyNZ3';
         var buttons
 
-        if(client.user.id === ClientID) {
-            buttons = new ActionRowBuilder().addComponents(
-                new ButtonBuilder()
-                .setStyle(ButtonStyle.Link)
-                .setLabel('Support Server')
-                .setURL(supportServer),
-                new ButtonBuilder()
-                .setStyle(ButtonStyle.Link)
-                .setLabel('Invite Bot')
-                .setURL(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot%20applications.commands`)
-            )
-        } else {
+        if(DeveloperMode === 'true') {
             buttons = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setStyle(ButtonStyle.Link)
@@ -42,6 +31,17 @@ module.exports = {
                     .setLabel('Invite Bot')
                     .setURL(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot%20applications.commands`)
                     .setDisabled(true)
+            )
+        } else {
+            buttons = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel('Support Server')
+                .setURL(supportServer),
+                new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel('Invite Bot')
+                .setURL(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot%20applications.commands`)
             )
         }
 

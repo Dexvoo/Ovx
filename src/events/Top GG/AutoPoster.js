@@ -1,5 +1,5 @@
 const { Events, Client } = require('discord.js');
-const { TopggAPIKey } = process.env;
+const { TopggAPIKey, DeveloperMode } = process.env;
 
 const { AutoPoster } = require('topgg-autoposter');
 module.exports = {
@@ -12,6 +12,8 @@ module.exports = {
 	 */
 
 	async execute(client) {
+		if (DeveloperMode == 'true') return;
+
 		const ap = AutoPoster(TopggAPIKey, client);
 
 		ap.on('posted', () => {

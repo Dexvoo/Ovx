@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Token, ClientID } = process.env;
+const { PublicToken, DevToken, PublicClientID, DevClientID, DeveloperMode } = process.env;
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord.js');
 const fsPromises = require('fs').promises;
@@ -7,6 +7,8 @@ const path = require('node:path');
 const { cleanConsoleLogData, cleanConsoleLog } = require('./utils/ConsoleLogs');
 
 
+let ClientID = DeveloperMode === 'true' ? DevClientID : PublicClientID;
+let Token = DeveloperMode === 'true' ? DevToken : PublicToken;
 
 const rest = new REST({ version: '10' }).setToken(Token);
 

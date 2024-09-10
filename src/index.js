@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits, Collection, Events, EmbedBuilder, Interaction
 require('dotenv').config();
 const { cleanConsoleLogData, cleanConsoleLog } = require('./utils/ConsoleLogs');
 const { permissionCheck } = require('./utils/Checks');
-const { Token } = process.env;
+const { PublicToken, DevToken, DeveloperMode } = process.env;
 const path = require('node:path');
 const fsPromises = require('fs').promises
 
@@ -236,4 +236,8 @@ async function crawlDirectory(directory, crawlType) {
 }
 
 // Client login
-client.login(Token)
+if(DeveloperMode === 'true') {
+	client.login(DevToken);
+} else {
+	client.login(PublicToken);
+}
