@@ -7,8 +7,8 @@ const path = require('node:path');
 const { cleanConsoleLogData, cleanConsoleLog } = require('./utils/ConsoleLogs');
 
 
-let ClientID = DeveloperMode === 'true' ? DevClientID : PublicClientID;
-let Token = DeveloperMode === 'true' ? DevToken : PublicToken;
+let ClientID = DeveloperMode === true ? DevClientID : PublicClientID;
+let Token = DeveloperMode === true ? DevToken : PublicToken;
 
 const rest = new REST({ version: '10' }).setToken(Token);
 

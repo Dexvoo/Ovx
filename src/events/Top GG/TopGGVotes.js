@@ -18,7 +18,7 @@ module.exports = {
 	 */
 
 	async execute(client) {
-		if (DeveloperMode == 'true') return;
+		if (DeveloperMode) return;
 
 		app.post(
 			'/webhook-endpoint',

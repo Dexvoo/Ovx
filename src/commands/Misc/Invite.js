@@ -20,7 +20,7 @@ module.exports = {
         const supportServer = 'https://discord.gg/uPGkcXyNZ3';
         var buttons
 
-        if(DeveloperMode === 'true') {
+        if(DeveloperMode) {
             buttons = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setStyle(ButtonStyle.Link)

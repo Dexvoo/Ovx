@@ -28,7 +28,7 @@ module.exports = {
                 .setTitle('Tickets | Missing Permissions')
                 .setDescription(`Bot Missing Permissions: \`${missingPermissions}\` in ${channel}`)
                 .setColor('Red');
-            return member.send({ embeds: [noPermissionEmbed] }).catch(() => { });
+            return interaction.reply({ embeds: [noPermissionEmbed], ephemeral: true });
         }
     
         const ticketSetupData = await Tickets.findOne({ guildId: guild.id });
@@ -38,7 +38,7 @@ module.exports = {
                 .setTitle('Tickets | Setup Required')
                 .setDescription('You need to setup the ticket system before creating tickets.')
                 .setColor('Red');
-            return member.send({ embeds: [noTicketSetupEmbed] }).catch(() => { });
+            return interaction.reply({ embeds: [noTicketSetupEmbed], ephemeral: true });
         }
     
         const ticketId = await UserTickets.find({ guildId: guild.id }).countDocuments() + 1;
@@ -57,6 +57,26 @@ module.exports = {
             await interaction.reply({ embeds: [embed], ephemeral: true });
             return;
         }
+
+        const ticketCategory = guild.channels.cache.get(ticketSetupData.ticketCategoryId);
+
+        if (!ticketCategory) {
+            const noTicketCategoryEmbed = new EmbedBuilder()
+                .setTitle('Tickets | Channel Not Found')
+                .setDescription('The ticket category channel was not found.')
+                .setColor('Red');
+            return interaction.reply({ embeds: [noTicketCategoryEmbed], ephemeral: true });
+        }
+
+        // check if the bot can permissionOverwrites in the ticket categorym dont use the permissionCheck.
+        if (!ticketCategory.permissionsFor(client.user).has(PermissionsBitField.Flags.ManageChannels) || !ticketCategory.permissionsFor(client.user).has(PermissionsBitField.Flags.ManageRoles)) {
+            const noPermissionEmbed = new EmbedBuilder()
+                .setTitle('Tickets | Missing Permissions')
+                .setDescription(`Bot Missing Permissions: \`Manage Channels\` in ${ticketCategory}`)
+                .setColor('Red');
+            return interaction.reply({ embeds: [noPermissionEmbed], ephemeral: true });
+        }
+
     
         // Prepare role permissions
         const everyoneRole = guild.roles.everyone;
@@ -67,6 +87,8 @@ module.exports = {
                     PermissionsBitField.Flags.ViewChannel,
                     PermissionsBitField.Flags.SendMessages,
                     PermissionsBitField.Flags.ReadMessageHistory,
+                    PermissionsBitField.Flags.ManageChannels,
+                    PermissionsBitField.Flags.ManageRoles,
                     PermissionsBitField.Flags.EmbedLinks,
                 ],
             },
@@ -103,6 +125,8 @@ module.exports = {
                 ],
             },
         ];
+
+        
     
         // Create the ticket channel
         try {
@@ -111,8 +135,52 @@ module.exports = {
                 reason: `Ticket Created by ${member.user.username}`,
                 type: ChannelType.GuildText,
                 parent: ticketSetupData.ticketCategoryId,
-                permissionOverwrites: permissions,
+                permissionOverwrites: [
+                    {
+                        id: client.user.id,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages,
+                            PermissionsBitField.Flags.ReadMessageHistory,
+                            PermissionsBitField.Flags.EmbedLinks,
+                        ],
+                    },
+                    {
+                        id: everyoneRole.id,
+                        deny: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages,
+                            PermissionsBitField.Flags.ReadMessageHistory,
+                        ],
+                    },
+                    {
+                        id: ticketSetupData.supportRoleId,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages,
+                            PermissionsBitField.Flags.ReadMessageHistory,
+                        ],
+                    },
+                    {
+                        id: ticketSetupData.adminRoleId,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages,
+                            PermissionsBitField.Flags.ReadMessageHistory,
+                        ],
+                    },
+                    {
+                        id: member.id,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages,
+                            PermissionsBitField.Flags.ReadMessageHistory,
+                        ],
+                    },
+                ],
             });
+
+            
     
             // Save the ticket details in the database
             await UserTickets.create({
@@ -164,9 +232,9 @@ module.exports = {
             console.log(error);
             const embed = new EmbedBuilder()
                 .setColor('Red')
-                .setDescription(`• There was an error creating your ticket. Please try again •`);
+                .setDescription(`An error occurred while creating the ticket. Reason: \`${error.message}\``);
     
-            await interaction.editReply({ embeds: [embed], ephemeral: true });
+            await interaction.reply({ embeds: [embed], ephemeral: true });
         }
     }
     

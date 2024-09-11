@@ -61,6 +61,8 @@ module.exports = {
         const { client, user, guild, options } = interaction;
         const subcommand = options.getSubcommand();
         try {
+            
+            await guild.members.fetch();
 
             switch (subcommand) {
                 case 'user': 

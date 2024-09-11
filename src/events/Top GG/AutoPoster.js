@@ -12,7 +12,7 @@ module.exports = {
 	 */
 
 	async execute(client) {
-		if (DeveloperMode == 'true') return;
+		if (DeveloperMode) return;
 
 		const ap = AutoPoster(TopggAPIKey, client);
 

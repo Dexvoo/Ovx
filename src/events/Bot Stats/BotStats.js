@@ -16,11 +16,11 @@ module.exports = {
 
 
         const statsChannelId = '1115340622027575306'
-        const devMessageId = '1158595086116999238'
-        const publicMessageId = '1158549863546499143'
+        const devMessageId = '1158549863546499143'
+        const publicMessageId = '1158595086116999238'
 
-
-        const messageId = DeveloperMode ? devMessageId : publicMessageId;
+ 
+        const messageId = DeveloperMode == 'true' ? devMessageId : publicMessageId;
         const channel = client.channels.cache.get(statsChannelId);
         const messageToEdit = await channel.messages.fetch(messageId);
 
