@@ -92,6 +92,40 @@ const TicketsSchema = new Schema({
 
 });
 
+const ReactionRolesSchema = new Schema({
+	guildId: {
+		type: String,
+		required: true,
+	},
+	channelId: {
+		type: String,
+		required: true,
+	},
+	messageId: {
+		type: String,
+		required: true,
+	},
+	enabled: {
+		type: Boolean,
+		required: true,
+	},
+	roles: {
+		type: [
+			{
+				roleId: {
+					type: String,
+					required: true,
+				},
+				roleEmoji: {
+					type: String,
+					required: true,
+				},
+			},
+		],
+		default: [],
+	},
+});
+
 
 
 module.exports = {
@@ -107,4 +141,5 @@ module.exports = {
 	PunishmentLogs: model('Guild-Logs-Punishment', LogsSchema),
 	LevelNotifications: model('Guild-Level-Notifications', LevelNotificationsSchema),
 	Tickets: model('Guild-Tickets', TicketsSchema),
+	ReactionRoles: model('Guild-Reaction-Roles', ReactionRolesSchema),
 };

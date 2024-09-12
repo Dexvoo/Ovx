@@ -1,7 +1,6 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
-const { InviteDetection, LevelNotifications, ChannelLogs, MessageLogs, VoiceLogs, RoleLogs, ServerLogs, PunishmentLogs, JoinLeaveLogs } = require('../../models/GuildSetups.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, parseEmoji, StringSelectMenuBuilder } = require('discord.js');
+const { InviteDetection, LevelNotifications, ChannelLogs, MessageLogs, VoiceLogs, RoleLogs, ServerLogs, PunishmentLogs, JoinLeaveLogs, ReactionRoles, Tickets } = require('../../models/GuildSetups.js');
 const { permissionCheck } = require('../../utils/Checks.js');
-const { Tickets } = require('../../models/GuildSetups.js');
 
 module.exports = {
     cooldown: 5,
@@ -132,6 +131,41 @@ module.exports = {
 
 
             )
+            .addSubcommand(subcommand => subcommand
+                .setName('reactionroles')
+                .setDescription('Setup reaction roles for your server.')
+                .addStringOption(option => option
+                    .setName('type')
+                    .setDescription('Add or remove reaction roles.')
+                    .setRequired(true)
+                    .addChoices(
+                        { name: 'Add', value: 'add' },
+                        { name: 'Remove', value: 'remove' },
+                        { name: 'List', value: 'list' }
+                    )
+                )
+                .addRoleOption(option => option
+                    .setName('role')
+                    .setDescription('Set the role for reaction roles.')
+                    .setRequired(false)
+                )
+                .addStringOption(option => option
+                    .setName('emoji')
+                    .setDescription('Set the emoji for the role.')
+                    .setRequired(false)
+                )
+                .addStringOption(option => option
+                    .setName('messageid')
+                    .setDescription('Message ID for the reaction role(in current channel).')
+                    .setRequired(false)
+                )
+                .addStringOption(option => option
+                    .setName('title')
+                    .setDescription('Set the title for the reaction role embed.')
+                    .setRequired(false)
+                )
+            )
+
 
 
         ),
@@ -370,6 +404,246 @@ module.exports = {
 
 
                             break;
+                        case 'reactionroles':
+
+                            const reactionRolesType = options.getString('type');
+                            const reactionRolesRole = options.getRole('role');
+                            const reactionRolesEmoji = options.getString('emoji');
+                            const reactionRolesMessageId = options.getString('messageid');
+                            const reactionRolesTitle = options.getString('title');
+                            const reactionRolesChannel = interaction.channel;
+
+                            var reactionRolesMessage
+                            if(reactionRolesMessageId) {
+                                reactionRolesMessage = await reactionRolesChannel.messages.fetch(reactionRolesMessageId).catch(() => null);
+
+                                if(!reactionRolesMessage) {
+                                    const Embed = new EmbedBuilder()
+                                        .setColor(Colors.Red)
+                                        .setDescription('Message not found');
+                                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                }
+
+                            }
+                            // loop over all the reaction roles in the guild and make sure they are all valid
+                            // if not delete them from the database and the message
+
+                            const reactionRolesDataCheck = await ReactionRoles.find({ guildId: guild.id });
+
+                            if(reactionRolesDataCheck.length > 0) {
+                                await Promise.all(reactionRolesDataCheck.map(async reactionRole => {
+                                    const channel = guild.channels.cache.get(reactionRole.channelId);
+                                    if(!channel) {
+                                        await ReactionRoles.findOneAndDelete({ channelId: reactionRole.channelId });
+                                        return;
+                                    }
+
+                                    const message = await channel.messages.fetch(reactionRole.messageId).catch(() => null);
+                                    if(!message) {
+                                        await ReactionRoles.findOneAndDelete({ messageId: reactionRole.messageId });
+                                        return;
+                                    }
+                                }));
+                            }
+
+                            switch (reactionRolesType) {
+                                case 'add':
+
+                                    if(!reactionRolesRole) {
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Red)
+                                            .setDescription('Please provide a role for reaction roles');
+                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                    }
+
+                                    if(!reactionRolesEmoji) {
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Red)
+                                            .setDescription('Please provide an emoji for reaction roles');
+                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                    }
+
+                                    if(!reactionRolesMessageId) {
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Blurple)
+                                            .setTitle(reactionRolesTitle || 'Reaction Roles')
+
+                                        reactionRolesMessage = await reactionRolesChannel.send({ embeds: [Embed] })
+                                        .catch(() => {return false})
+
+                                        if(!reactionRolesMessage) {
+                                            const Embed = new EmbedBuilder()
+                                                .setColor(Colors.Red)
+                                                .setDescription('I do not have permission to send messages in this channel');
+                                            return interaction.reply({ embeds: [Embed], ephemeral: true });
+                                        }
+
+                                    }
+
+                                    let reactionRolesData = await ReactionRoles.findOne({ guildId: guild.id, messageId: reactionRolesMessage.id });
+
+                                    if(!reactionRolesData) {
+                                        reactionRolesData = new ReactionRoles({
+                                            guildId: guild.id,
+                                            channelId: reactionRolesChannel.id,
+                                            messageId: reactionRolesMessage.id,
+                                            enabled: true,
+                                            roles: [],
+                                        });
+                                    }
+
+                                    if(reactionRolesData.roles.some(role => role.roleId === reactionRolesRole.id)) {
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Red)
+                                            .setDescription('Role already exists in the reaction roles');
+                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                    }
+
+                                    reactionRolesData.roles.push({ roleId: reactionRolesRole.id, roleEmoji: reactionRolesEmoji });
+
+                                    await reactionRolesData.save();
+
+                                    
+                                    const roleMenu = new StringSelectMenuBuilder()
+                                        .setCustomId(`select-role.${reactionRolesMessage.id}`)
+                                        .setPlaceholder('Select a role')
+                                        .setMaxValues(reactionRolesData.roles.length)
+									    .setMinValues(0)
+                                        .addOptions(reactionRolesData.roles.map(role => {
+                                            const emoji = parseEmoji(role.roleEmoji);
+                                            return { label: guild.roles.cache.get(role.roleId).name, value: role.roleId, emoji: role.roleEmoji };
+                                        }));
+
+                                    const actionRow = new ActionRowBuilder().addComponents(roleMenu);
+
+                                    await reactionRolesMessage.edit({ components: [actionRow] });
+                                    
+                                    const AddEmbed = new EmbedBuilder()
+                                        .setColor(Colors.Blurple)
+                                        .setDescription(`Role ${reactionRolesRole} has been added to the reaction roles`);
+                                    
+                                    await interaction.reply({ embeds: [AddEmbed], ephemeral: true });
+
+                                break;
+                                case 'remove':
+                                    
+                                    if(!reactionRolesRole) {
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Red)
+                                            .setDescription('Please provide a role for reaction roles');
+                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                    }
+
+                                    if(!reactionRolesMessageId) {
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Red)
+                                            .setDescription('Please provide a message ID for the reaction roles');
+                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                    }
+
+                                    const reactionRolesDataRemove = await ReactionRoles.findOne({ messageId: reactionRolesMessageId });
+                                    
+                                    if (!reactionRolesDataRemove) {
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Red)
+                                            .setDescription('Invalid message id');
+                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                    }
+
+                                    if (!reactionRolesDataRemove.roles.some(role => role.roleId === reactionRolesRole.id)) {
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Red)
+                                            .setDescription('Role not found in the reaction roles');
+                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                    }
+
+
+                                    reactionRolesDataRemove.roles = reactionRolesDataRemove.roles.filter(role => role.roleId !== reactionRolesRole.id);
+                                    
+                                    await reactionRolesDataRemove.save();
+
+                                    if(reactionRolesDataRemove.roles.length === 0) {
+                                        await ReactionRoles.findOneAndDelete({ messageId: reactionRolesMessageId });
+                                        await reactionRolesMessage.delete();
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Blurple)
+                                            .setDescription('Reaction roles have been deleted');
+                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                    }
+                                    
+                                    const roleMenu2 = new StringSelectMenuBuilder()
+                                        .setCustomId(`select-role.${reactionRolesMessage.id}`)
+                                        .setPlaceholder('Select a role')
+                                        .setMaxValues(reactionRolesDataRemove.roles.length)
+									    .setMinValues(0)
+                                        .addOptions(reactionRolesDataRemove.roles.map(role => {
+                                            const emoji = parseEmoji(role.roleEmoji);
+                                            return { label: guild.roles.cache.get(role.roleId).name, value: role.roleId, emoji: role.roleEmoji };
+                                        }));
+                                    
+                                    const actionRow2 = new ActionRowBuilder().addComponents(roleMenu2);
+                                    
+                                    await reactionRolesMessage.edit({ components: [actionRow2] });
+                                    
+                                    const RemoveEmbed = new EmbedBuilder()
+                                        .setColor(Colors.Blurple)
+                                        .setDescription(`Role ${reactionRolesRole} has been removed from the reaction roles`);
+                                    
+                                    await interaction.reply({ embeds: [RemoveEmbed], ephemeral: true });
+                                
+
+                                    
+
+
+                                break;
+                                case 'list':
+
+                                    const reactionRolesDataList = await ReactionRoles.find({ guildId: guild.id });
+
+                                    if(reactionRolesDataList.length === 0) {
+                                        const Embed = new EmbedBuilder()
+                                            .setColor(Colors.Red)
+                                            .setDescription('No reaction roles found');
+                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                                    }
+
+                                    const reactionRolesList = await Promise.all(reactionRolesDataList.map(async reactionRole => {
+                                        const channel = guild.channels.cache.get(reactionRole.channelId);
+                                        if(!channel) {
+                                            await ReactionRoles.findOneAndDelete({ channelId: reactionRole.channelId });
+                                            return;
+                                        }
+
+                                        const message = await channel.messages.fetch(reactionRole.messageId).catch(() => null);
+                                        if(!message) {
+                                            await ReactionRoles.findOneAndDelete({ messageId: reactionRole.messageId });
+                                            return;
+                                        }
+
+                                        const roles = reactionRole.roles.map(role => {
+                                            const emoji = parseEmoji(role.roleEmoji);
+                                            return `${guild.roles.cache.get(role.roleId)} | ${emoji ? role.roleEmoji : ''}`;
+                                        });
+
+                                        return `${channel} | ${message.embeds[0].title}\n${roles.join('\n')}`;
+                                    }));
+
+                                    const ListEmbed = new EmbedBuilder()
+                                        .setTitle('Reaction Roles')
+                                        .setColor(Colors.Blurple)
+                                        .setDescription(reactionRolesList.join('\n\n') || 'No reaction roles set');
+
+                                    await interaction.reply({ embeds: [ListEmbed], ephemeral: true });
+
+
+                                    
+
+
+                                break;
+                            }
+
+
+                            break;
                     }
                     break;
             }
@@ -435,11 +709,10 @@ async function handleLevelRewards(interaction) {
                 return await interaction.reply({ embeds: [Embed], ephemeral: true });
             }
 
-
             LevelData.levelRewards.push({ roleId: role.id, level: level });
 
             const AddEmbed = new EmbedBuilder()
-                .setColor(Colors.Green)
+                .setColor(Colors.Blurple)
                 .setDescription(`Role ${role} has been added to level ${level}`);
             await interaction.reply({ embeds: [AddEmbed], ephemeral: true });
 
@@ -464,7 +737,7 @@ async function handleLevelRewards(interaction) {
             }
 
             const RemoveEmbed = new EmbedBuilder()
-                .setColor(Colors.Green)
+                .setColor(Colors.Blurple)
                 .setDescription(`Role ${role} has been removed from level ${level}`);
             await interaction.reply({ embeds: [RemoveEmbed], ephemeral: true });
 
@@ -486,12 +759,12 @@ async function handleLevelRewards(interaction) {
                     return
                 }
                 return `Level ${reward.level}: ${role ? role.toString() : 'Role not found'}`;
-            });
+            });            
 
             const ListEmbed = new EmbedBuilder()
                 .setTitle('Level Rewards')
                 .setColor(Colors.Blurple)
-                .setDescription(rewards.join('\n'));
+                .setDescription(rewards.join('\n') || 'No rewards set');
 
             await interaction.reply({ embeds: [ListEmbed], ephemeral: true });
             break;

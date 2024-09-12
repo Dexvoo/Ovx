@@ -56,6 +56,6 @@ module.exports = {
         const updateLog = fetchedLogs?.entries?.first();
         let executor = updateLog ? updateLog.executor : null;
 
-        if(!guild.members.me.permissions.has(PermissionFlagsBits.ViewAuditLog)) executor = 'Bot Missing Permission: `ViewAuditLog` ';
+        if(!guild.members.me.permissions.has(PermissionFlagsBits.ViewAuditLog)) executor = 'Bot Missing Permission: `ViewAuditLog` ';        
     }   
 };
