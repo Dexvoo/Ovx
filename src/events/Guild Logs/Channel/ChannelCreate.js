@@ -3,6 +3,7 @@ const { ChannelLogs } = require('../../../models/GuildSetups');
 const { permissionCheck } = require('../../../utils/Checks');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs');
 const { DisabledFeatures } = require('../../../utils/Embeds');
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.ChannelCreate,
@@ -16,7 +17,7 @@ module.exports = {
     async execute(channel) {
         const { client, guild } = channel;
 
-        if(!guild) return;
+        if(!guild || DeveloperMode === 'true') return;
 
         const guildChannelLogs = await ChannelLogs.findOne({ guildId: guild.id });
 

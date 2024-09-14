@@ -3,6 +3,7 @@ const { PunishmentLogs } = require('../../../models/GuildSetups');
 const { permissionCheck } = require('../../../utils/Checks');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs');
 const { DisabledFeatures } = require('../../../utils/Embeds');
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.GuildBanAdd,
@@ -16,7 +17,7 @@ module.exports = {
     async execute(ban) {
         const { guild, client, user, reason } = ban;
 
-        if(!guild) return;
+        if(!guild || DeveloperMode === 'true') return;
 
         const guildPunishmentLogs = await PunishmentLogs.findOne({ guildId: guild.id });
 

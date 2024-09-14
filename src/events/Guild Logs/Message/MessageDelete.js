@@ -3,6 +3,7 @@ const { MessageLogs } = require('../../../models/GuildSetups');
 const { permissionCheck } = require('../../../utils/Checks');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs');
 const { DisabledFeatures } = require('../../../utils/Embeds');
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.MessageDelete,
@@ -16,7 +17,7 @@ module.exports = {
     async execute(message) {
         const { client, guild, member, channel, content, author } = message;
 
-        if(author.bot || !guild) return;
+        if(author.bot || !guild || DeveloperMode === 'true') return;
 
         const guildMessageLogs = await MessageLogs.findOne({ guildId: guild.id });
 

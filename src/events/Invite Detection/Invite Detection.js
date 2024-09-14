@@ -1,8 +1,8 @@
 const { Events, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const { cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 const { permissionCheck } = require('../../utils/Checks.js');
-
 const { InviteDetection } =  require('../../models/GuildSetups.js');
+const { DeveloperMode } = process.env;
  
 module.exports = {
     name: Events.MessageCreate,
@@ -16,7 +16,7 @@ module.exports = {
         const { client, guild, member, channel, content, author } = message;
 
         // Exit if message is from a bot or outside a guild
-        if (!guild || author.bot) return;
+        if (!guild || author.bot || DeveloperMode === 'true') return;
 
         try {
             const guildInviteDetection = await InviteDetection.findOne({ guildId: guild.id });

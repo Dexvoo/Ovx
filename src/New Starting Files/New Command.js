@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContex
 
 module.exports = {
     cooldown: 5,
-    category: '',
+    category: 'Miscellaneous',
     userpermissions: [],
     botpermissions: [],
     data: new SlashCommandBuilder()

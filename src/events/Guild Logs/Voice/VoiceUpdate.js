@@ -3,6 +3,7 @@ const { VoiceLogs } = require('../../../models/GuildSetups');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs');
 const { DisabledFeatures } = require('../../../utils/Embeds');
 const { permissionCheck } = require('../../../utils/Checks');
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -18,7 +19,7 @@ module.exports = {
     async execute(oldState, newState) {
         const { guild, member, client, channel } = newState;
 
-        if (!guild) return;
+        if (!guild || DeveloperMode === 'true') return;
 
         const guildVoiceLogs = await VoiceLogs.findOne({ guildId: guild.id });
 

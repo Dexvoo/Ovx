@@ -3,7 +3,7 @@ const translate = require('@iamtraction/google-translate');
 
 module.exports = {
 	cooldown: 5,
-	catagory: 'Miscellaneous',
+	category: 'Miscellaneous',
 	data: new SlashCommandBuilder()
 		.setName('translate')
 		.setDescription('Translate text to another language.')

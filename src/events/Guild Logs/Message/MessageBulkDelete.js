@@ -3,6 +3,7 @@ const { MessageLogs } = require('../../../models/GuildSetups');
 const { permissionCheck } = require('../../../utils/Checks');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs');
 const { DisabledFeatures } = require('../../../utils/Embeds');
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.MessageBulkDelete,
@@ -17,7 +18,7 @@ module.exports = {
     async execute(messages, channel) {
         const { client, guild } = channel;
 
-        if(!guild) return;
+        if(!guild || DeveloperMode === 'true') return;
 
         const guildMessageLogs = await MessageLogs.findOne({ guildId: guild.id });
 

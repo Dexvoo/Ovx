@@ -17,7 +17,7 @@ module.exports = {
         const { client, guild, member, channel, content, author } = message;
 
         // Exit if message is from a bot or outside a guild
-        if (!guild || author.bot) return;
+        if (!guild || author.bot || DeveloperMode === 'true') return;
 
         try {
 

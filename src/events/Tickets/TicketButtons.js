@@ -4,6 +4,7 @@ const { Tickets } = require('../../models/GuildSetups');
 const { permissionCheck } = require('../../utils/Checks');
 const { execute } = require('../Command Events/CommandIDs');
 const { createTranscript } = require('discord-html-transcripts');
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -15,7 +16,7 @@ module.exports = {
      */
 
     async execute(interaction) {
-        if (!interaction.isButton()) return;
+        if (!interaction.isButton() || DeveloperMode === 'true') return;
     
         const { customId, user, guild, channel, member, client } = interaction;
     

@@ -3,6 +3,7 @@ const { DisabledFeatures } = require('../../../utils/Embeds');
 const { permissionCheck } = require('../../../utils/Checks');
 const { JoinLeaveLogs } = require('../../../models/GuildSetups');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs');
+const { DeveloperMode } = process.env;
 
 
 module.exports = {
@@ -17,7 +18,7 @@ module.exports = {
     async execute(member) {
         const { guild, client } = member;
         
-        if(!guild) return;
+        if(!guild || DeveloperMode === 'true') return;
 
         const guildLogs = await JoinLeaveLogs.findOne({ guildId: guild.id });
 

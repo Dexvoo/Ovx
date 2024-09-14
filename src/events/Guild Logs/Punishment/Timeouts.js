@@ -2,6 +2,7 @@ const { Events, AuditLogEvent, PermissionFlagsBits, GuildMember, EmbedBuilder } 
 const { PunishmentLogs } = require('../../../models/GuildSetups');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs');
 const { permissionCheck } = require('../../../utils/Checks');
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.GuildMemberUpdate,
@@ -15,6 +16,9 @@ module.exports = {
 
     async execute(oldMember, newMember) {
         const { guild, client } = newMember;
+
+        if (!guild || DeveloperMode === 'true') return;
+
         if (oldMember.communicationDisabledUntilTimestamp !== newMember.communicationDisabledUntilTimestamp) {
             // If the new timestamp is null, the timeout has been removed
 

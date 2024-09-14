@@ -3,6 +3,7 @@ const { RoleLogs } = require('../../../models/GuildSetups');
 const { permissionCheck } = require('../../../utils/Checks');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs');
 const { DisabledFeatures } = require('../../../utils/Embeds');
+const { DeveloperMode } = process.env;
 
 
 module.exports = {
@@ -17,7 +18,7 @@ module.exports = {
     async execute(role) {
         const { client, guild } = role;
 
-        if(!guild) return;
+        if(!guild || DeveloperMode === 'true') return;
 
         const guildRoleLogs = await RoleLogs.findOne({ guildId: guild.id });
 

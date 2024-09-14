@@ -1,5 +1,6 @@
 const { EmbedBuilder, Events, Interaction } = require('discord.js');
 const { ReactionRoles } = require('../../models/GuildSetups');
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -12,7 +13,7 @@ module.exports = {
 
     async execute(interaction) {
         const { customId, user, guild, channel, member, client } = interaction;
-        if (!interaction.isStringSelectMenu() || !customId) return;
+        if (!interaction.isStringSelectMenu() || !customId || DeveloperMode === 'true') return;
     
     
         try {

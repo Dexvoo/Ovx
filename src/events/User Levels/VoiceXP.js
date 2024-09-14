@@ -6,7 +6,7 @@ const { ExpForLevel, LevelForExp, VoiceXP } = require('../../utils/Levels/XPMath
 const { cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 const { addUserVoiceXP } = require('../../utils/Levels/XP-Database.js');
 const cooldowns = new Set();
-const { DeveloperIDs } = process.env;
+const { DeveloperIDs, DeveloperMode } = process.env;
 const inVoiceChannelMembers = new Map();
 const userDataCache = new Map();
 const batchUpdatesQueue = new Map();
@@ -25,7 +25,7 @@ module.exports = {
     async execute(oldState, newState) {
         const { guild, member, client, channel } = newState;
 
-        if (!guild || member.user.bot) return;
+        if (!guild || member.user.bot || DeveloperMode === 'true') return;
 
         const guildLevelNotifications = await LevelNotifications.findOne({ guildId: guild.id });
         if (!guildLevelNotifications || !guildLevelNotifications.enabled) return;

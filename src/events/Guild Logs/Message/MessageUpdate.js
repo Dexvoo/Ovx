@@ -3,6 +3,7 @@ const { MessageLogs } = require('../../../models/GuildSetups');
 const { permissionCheck } = require('../../../utils/Checks');
 const { cleanConsoleLogData } = require('../../../utils/ConsoleLogs');
 const { DisabledFeatures } = require('../../../utils/Embeds');
+const { DeveloperMode } = process.env;
 
 
 module.exports = {
@@ -18,7 +19,7 @@ module.exports = {
     async execute(oldMessage, newMessage) {
         const { client, guild, member, channel, author } = newMessage;
     
-        if(author.bot || !guild) return;
+        if(author.bot || !guild || DeveloperMode === 'true') return;
         
         const guildMessageLogs = await MessageLogs.findOne({ guildId: guild.id });
 

@@ -2,7 +2,7 @@ const { EmbedBuilder, Events, Interaction, PermissionsBitField, PermissionFlagsB
 const { UserTickets } = require('../../models/Tickets');
 const { Tickets } = require('../../models/GuildSetups');
 const { permissionCheck } = require('../../utils/Checks');
-const { execute } = require('../Command Events/CommandIDs');
+const { DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -14,7 +14,7 @@ module.exports = {
      */
 
     async execute(interaction) {
-        if (!interaction.isButton()) return;
+        if (!interaction.isButton() || DeveloperMode === 'true') return;
     
         const { customId, user, guild, channel, member, client } = interaction;
     

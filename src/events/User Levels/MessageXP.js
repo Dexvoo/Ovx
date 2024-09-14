@@ -4,7 +4,7 @@ const { LevelNotifications } = require('../../models/GuildSetups.js');
 const { cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
 const { addUserMessageXP } = require('../../utils/Levels/XP-Database.js');
 const cooldowns = new Set();
-const { DeveloperIDs, DisabledFeaturesChannelID, DevGuildID } = process.env;
+const { DeveloperIDs, DisabledFeaturesChannelID, DevGuildID, DeveloperMode } = process.env;
 
 module.exports = {
     name: Events.MessageCreate,
@@ -20,7 +20,7 @@ module.exports = {
         const { client, guild, user, content, author, member } = message;
 
         // Exit if message is from a bot or outside a guild
-        if (!guild || author.bot) return;
+        if (!guild || author.bot || DeveloperMode === 'true') return;
 
         try {
             const guildLevelNotifications = await LevelNotifications.findOne({ guildId: guild.id });

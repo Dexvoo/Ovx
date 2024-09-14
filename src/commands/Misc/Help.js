@@ -43,11 +43,11 @@ module.exports = {
 
         if(!targetCommand) {
             const commands = client.commands;
-            const categories = [...new Set(commands.map(command => command.category))];
+            const categories = [...new Set(commands.map(command => command.category).filter(category => category !== 'Developer'))];
 
             const fields = categories.map(category => {
                 const commandList = commands
-                    .filter(command => command.category === category && command.data.name !== 'Developer')
+                    .filter(command => command.category === category && command.category !== 'Developer')
                     .map(command => `${command.commandTags.join('\n')}`)
                     .join('\n');
             

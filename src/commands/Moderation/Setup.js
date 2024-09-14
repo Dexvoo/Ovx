@@ -633,15 +633,10 @@ module.exports = {
                                         .setColor(Colors.Blurple)
                                         .setDescription(reactionRolesList.join('\n\n') || 'No reaction roles set');
 
-                                    await interaction.reply({ embeds: [ListEmbed], ephemeral: true });
-
-
-                                    
-
+                                    await interaction.reply({ embeds: [ListEmbed] });                      
 
                                 break;
                             }
-
 
                             break;
                     }
@@ -766,7 +761,7 @@ async function handleLevelRewards(interaction) {
                 .setColor(Colors.Blurple)
                 .setDescription(rewards.join('\n') || 'No rewards set');
 
-            await interaction.reply({ embeds: [ListEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [ListEmbed] });
             break;
     }
 
