@@ -130,7 +130,7 @@ module.exports = {
                     return interaction.reply({ embeds: [alreadyLockedEmbed], ephemeral: true });
                 }
 
-                if(!member.permissions.has(PermissionsBitField.ManageChannels)) {
+                if(!member.permissions.has(PermissionFlagsBits.ManageChannels)) {
                     const noPermissionEmbed = new EmbedBuilder()
                         .setTitle('Tickets | Missing Permissions')
                         .setDescription('You are missing the `Manage Channels` permission.')
@@ -148,7 +148,9 @@ module.exports = {
 
 
                     await channel.permissionOverwrites.edit(ticketOwnerMember.user, {
-                        SendMessages: false,
+                        SendMessages: true,
+                        ViewChannel: true,
+                        ReadMessageHistory: true,
                     }).catch((error) => { console.log(error) });
 
                 await interaction.reply({ embeds: [lockedEmbed] });
@@ -163,7 +165,7 @@ module.exports = {
                     return interaction.reply({ embeds: [alreadyUnlockedEmbed], ephemeral: true });
                 }
 
-                if(!member.permissions.has(PermissionsBitField.ManageChannels)) {
+                if(!member.permissions.has(PermissionFlagsBits.ManageChannels)) {
                     const noPermissionEmbed = new EmbedBuilder()
                         .setTitle('Tickets | Missing Permissions')
                         .setDescription('You are missing the `Manage Channels` permission.')
@@ -180,7 +182,9 @@ module.exports = {
                     .setColor('Blurple');
 
                     await channel.permissionOverwrites.edit(ticketOwnerMember.user, {
-                        SendMessages: false,
+                        SendMessages: true,
+                        ViewChannel: true,
+                        ReadMessageHistory: true,
                     }).catch((error) => { console.log(error) });
 
                 await interaction.reply({ embeds: [unlockedEmbed] });
