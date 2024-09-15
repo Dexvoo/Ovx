@@ -30,7 +30,7 @@ module.exports = {
                     .setStyle(ButtonStyle.Link)
                     .setLabel('Invite Bot')
                     .setURL(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot%20applications.commands`)
-                    .setDisabled(true)
+                    .setDisabled(DeveloperMode === 'true')
             )
         } else {
             buttons = new ActionRowBuilder().addComponents(

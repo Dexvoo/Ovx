@@ -159,7 +159,7 @@ function comparePermissions(oldPerm, newPerm, channel, executor) {
     }
 
     if (description.length > 2) {
-        sendPermsEmbed(channel, description, executor, 'Permissions');
+        sendEmbed(channel, description, executor, 'Permissions');
     }
 }
 

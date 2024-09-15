@@ -62,9 +62,7 @@ async function crawlCommands(directory, filesArray, type) {
       if (isValidCommand(command, type, newPath)) {
         cleanConsoleLogData(command.data.name, command.data.description, 'info');
         filesArray.push(command.data.toJSON());
-      } else {
-        cleanConsoleLogData(dir.name, 'Invalid command structure', 'error');
-      }
+      } 
     }
   }
 }

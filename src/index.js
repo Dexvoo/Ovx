@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits, Collection, Events, EmbedBuilder, Interaction
 require('dotenv').config();
 const { cleanConsoleLogData, cleanConsoleLog } = require('./utils/ConsoleLogs');
 const { permissionCheck } = require('./utils/Checks');
-const { PublicToken, DevToken, DeveloperMode } = process.env;
+const { PublicToken, DevToken, DeveloperMode, DeveloperIDs } = process.env;
 const path = require('node:path');
 const fsPromises = require('fs').promises
 
@@ -113,8 +113,10 @@ client.on('interactionCreate', async (interaction) => {
 	}
 
 	// Set the cooldown
-	timestamps.set(user.id, now);
-	setTimeout(() => timestamps.delete(user.id), cooldownAmount);
+	if(!DeveloperIDs.includes(user.id)) {
+		timestamps.set(user.id, now);
+		setTimeout(() => timestamps.delete(user.id), cooldownAmount);
+	}
 
 
 	// Check Bot Permissions
