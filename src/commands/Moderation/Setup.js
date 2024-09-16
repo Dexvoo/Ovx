@@ -78,7 +78,7 @@ module.exports = {
                     .setRequired(false)
                 )
                 .addStringOption(option => option
-                    .setName('message') // the description i want people to be able to do {server} and {user} and {memberCount}
+                    .setName('message')
                     .setDescription('Set the message for the welcome ({server} and {user} and {memberCount})')
                     .setRequired(false)
                 )

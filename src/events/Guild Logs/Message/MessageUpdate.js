@@ -66,6 +66,7 @@ module.exports = {
             .setColor('Orange')
             .setAuthor({ name: member.user.username, icon: member.displayAvatarURL() })
             .setTitle(`Message Updated in #${channel.name}`)
+            .setURL(`https://discord.com/channels/${guild.id}/${newMessage.channel.id}/${newMessage.id}`)
             .setDescription(description.join('\n'))
             .setFooter({ text: `ID: ${member.id}` })
 
