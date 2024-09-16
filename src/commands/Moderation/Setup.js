@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, parseEmoji, StringSelectMenuBuilder } = require('discord.js');
-const { InviteDetection, LevelNotifications, ChannelLogs, MessageLogs, VoiceLogs, RoleLogs, ServerLogs, PunishmentLogs, JoinLeaveLogs, ReactionRoles, Tickets, AutoRoles } = require('../../models/GuildSetups.js');
+const { InviteDetection, LevelNotifications, ChannelLogs, MessageLogs, VoiceLogs, RoleLogs, ServerLogs, PunishmentLogs, JoinLeaveLogs, ReactionRoles, Tickets, AutoRoles, WelcomeMessage } = require('../../models/GuildSetups.js');
 const { permissionCheck } = require('../../utils/Checks.js');
 
 module.exports = {
@@ -62,6 +62,28 @@ module.exports = {
                     .setDescription('Set the level for the role.')
                 )
             )
+            
+            .addSubcommand(subcommand => subcommand
+                .setName('welcomemessages')
+                .setDescription('Setup welcome messages for your server.')
+                .addBooleanOption(option => option
+                    .setName('enabled')
+                    .setDescription('Enable or disable welcome messages.')
+                    .setRequired(true)
+                )
+                .addChannelOption(option => option
+                    .setName('channel')
+                    .setDescription('Channel to send the welcomes in.')
+                    .addChannelTypes(ChannelType.GuildText)
+                    .setRequired(false)
+                )
+                .addStringOption(option => option
+                    .setName('message') // the description i want people to be able to do {server} and {user} and {memberCount}
+                    .setDescription('Set the message for the welcome ({server} and {user} and {memberCount})')
+                    .setRequired(false)
+                )
+            )
+                
             .addSubcommand(subcommand => subcommand
                 .setName('tickets')
                 .setDescription('Setup ticket system for your server.')
@@ -499,6 +521,9 @@ module.exports = {
 
 
                             break;
+                        case 'welcomemessages':
+                            await handleWelcomeMessages(interaction);
+                            break;
                     }
                     break;
             }
@@ -511,6 +536,60 @@ module.exports = {
         }
     }
 };
+
+/**
+ * @param {CommandInteraction} interaction
+ */
+
+async function handleWelcomeMessages(interaction) {
+    const { options, guild, client } = interaction;
+
+    const welcomeMessagesEnabled = options.getBoolean('enabled');
+    const welcomeMessagesChannel = options.getChannel('channel');
+    const welcomeMessagesMessage = options.getString('message');
+
+    if(!welcomeMessagesChannel && welcomeMessagesEnabled) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide a channel for welcome messages');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    if(!welcomeMessagesMessage && welcomeMessagesEnabled) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide a message for welcome messages');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    if(welcomeMessagesEnabled) {
+        const botPermissionsInWelcome = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
+        const [hasWelcomePermissions, missingWelcomePermissions] = permissionCheck(welcomeMessagesChannel, botPermissionsInWelcome, client);
+
+        if (!hasWelcomePermissions) {
+            const WelcomeEmbed = new EmbedBuilder()
+                .setColor(Colors.Red)
+                .setDescription(`Bot Missing Permissions: \`${missingWelcomePermissions}\` in ${welcomeMessagesChannel}`);
+            return await interaction.reply({ embeds: [WelcomeEmbed], ephemeral: true });
+        }
+    }
+
+    await WelcomeMessage.findOneAndUpdate({ guildId: guild.id }, { channelId: welcomeMessagesChannel?.id, enabled: welcomeMessagesEnabled, message: welcomeMessagesMessage }, { upsert: true });
+
+    const WelcomeEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(`Welcome Messages have been ${welcomeMessagesEnabled ? 'enabled' : 'disabled'}`);
+
+    await interaction.reply({ embeds: [WelcomeEmbed], ephemeral: true });
+
+    const previewEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(welcomeMessagesMessage.replace('{server}', guild.name).replace('{user}', interaction.user.toString()).replace('{memberCount}', guild.memberCount));
+
+    await welcomeMessagesChannel.send({ embeds: [previewEmbed] });
+    
+};
+
 
 /**
  * @param {CommandInteraction} interaction

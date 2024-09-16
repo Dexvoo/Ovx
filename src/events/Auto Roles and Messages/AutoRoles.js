@@ -1,6 +1,6 @@
 const { Events, EmbedBuilder, Colors, GuildMember, PermissionFlagsBits } = require('discord.js');
 const { cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
-const { AutoRoles } = require('../../models/GuildSetups');
+const { AutoRoles } = require('../../models/GuildSetups.js');
 const { DisabledFeatures } = require('../../utils/Embeds.js');
 
 module.exports = {
