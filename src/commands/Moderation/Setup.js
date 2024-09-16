@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, parseEmoji, StringSelectMenuBuilder } = require('discord.js');
-const { InviteDetection, LevelNotifications, ChannelLogs, MessageLogs, VoiceLogs, RoleLogs, ServerLogs, PunishmentLogs, JoinLeaveLogs, ReactionRoles, Tickets } = require('../../models/GuildSetups.js');
+const { InviteDetection, LevelNotifications, ChannelLogs, MessageLogs, VoiceLogs, RoleLogs, ServerLogs, PunishmentLogs, JoinLeaveLogs, ReactionRoles, Tickets, AutoRoles } = require('../../models/GuildSetups.js');
 const { permissionCheck } = require('../../utils/Checks.js');
 
 module.exports = {
@@ -165,7 +165,30 @@ module.exports = {
                     .setRequired(false)
                 )
             )
-
+            .addSubcommand(subcommand => subcommand
+                .setName('autoroles')
+                .setDescription('Setup auto roles for your server.')
+                .addStringOption(option => option
+                    .setName('type')
+                    .setDescription('Add or remove auto roles when new members join.')
+                    .setRequired(true)
+                    .addChoices(
+                        { name: 'Add', value: 'add' },
+                        { name: 'Remove', value: 'remove' },
+                        { name: 'List', value: 'list' }
+                    )
+                )
+                .addBooleanOption(option => option
+                    .setName('enabled')
+                    .setDescription('Enable or disable auto roles.')
+                    .setRequired(false)
+                )
+                .addRoleOption(option => option
+                    .setName('role')
+                    .setDescription('Set the role for auto roles.')
+                    .setRequired(false)
+                )
+            )
 
 
         ),
@@ -407,10 +430,7 @@ module.exports = {
                         case 'reactionroles':
 
                             const reactionRolesType = options.getString('type');
-                            const reactionRolesRole = options.getRole('role');
-                            const reactionRolesEmoji = options.getString('emoji');
                             const reactionRolesMessageId = options.getString('messageid');
-                            const reactionRolesTitle = options.getString('title');
                             const reactionRolesChannel = interaction.channel;
 
                             var reactionRolesMessage
@@ -448,195 +468,35 @@ module.exports = {
 
                             switch (reactionRolesType) {
                                 case 'add':
-
-                                    if(!reactionRolesRole) {
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Red)
-                                            .setDescription('Please provide a role for reaction roles');
-                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
-                                    }
-
-                                    if(!reactionRolesEmoji) {
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Red)
-                                            .setDescription('Please provide an emoji for reaction roles');
-                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
-                                    }
-
-                                    if(!reactionRolesMessageId) {
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Blurple)
-                                            .setTitle(reactionRolesTitle || 'Reaction Roles')
-
-                                        reactionRolesMessage = await reactionRolesChannel.send({ embeds: [Embed] })
-                                        .catch(() => {return false})
-
-                                        if(!reactionRolesMessage) {
-                                            const Embed = new EmbedBuilder()
-                                                .setColor(Colors.Red)
-                                                .setDescription('I do not have permission to send messages in this channel');
-                                            return interaction.reply({ embeds: [Embed], ephemeral: true });
-                                        }
-
-                                    }
-
-                                    let reactionRolesData = await ReactionRoles.findOne({ guildId: guild.id, messageId: reactionRolesMessage.id });
-
-                                    if(!reactionRolesData) {
-                                        reactionRolesData = new ReactionRoles({
-                                            guildId: guild.id,
-                                            channelId: reactionRolesChannel.id,
-                                            messageId: reactionRolesMessage.id,
-                                            enabled: true,
-                                            roles: [],
-                                        });
-                                    }
-
-                                    if(reactionRolesData.roles.some(role => role.roleId === reactionRolesRole.id)) {
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Red)
-                                            .setDescription('Role already exists in the reaction roles');
-                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
-                                    }
-
-                                    reactionRolesData.roles.push({ roleId: reactionRolesRole.id, roleEmoji: reactionRolesEmoji });
-
-                                    await reactionRolesData.save();
-
-                                    
-                                    const roleMenu = new StringSelectMenuBuilder()
-                                        .setCustomId(`select-role.${reactionRolesMessage.id}`)
-                                        .setPlaceholder('Select a role')
-                                        .setMaxValues(reactionRolesData.roles.length)
-									    .setMinValues(0)
-                                        .addOptions(reactionRolesData.roles.map(role => {
-                                            const emoji = parseEmoji(role.roleEmoji);
-                                            return { label: guild.roles.cache.get(role.roleId).name, value: role.roleId, emoji: role.roleEmoji };
-                                        }));
-
-                                    const actionRow = new ActionRowBuilder().addComponents(roleMenu);
-
-                                    await reactionRolesMessage.edit({ components: [actionRow] });
-                                    
-                                    const AddEmbed = new EmbedBuilder()
-                                        .setColor(Colors.Blurple)
-                                        .setDescription(`Role ${reactionRolesRole} has been added to the reaction roles`);
-                                    
-                                    await interaction.reply({ embeds: [AddEmbed], ephemeral: true });
-
+                                    await handleReactionRoleAdd(interaction, reactionRolesMessage);
                                 break;
                                 case 'remove':
-                                    
-                                    if(!reactionRolesRole) {
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Red)
-                                            .setDescription('Please provide a role for reaction roles');
-                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
-                                    }
-
-                                    if(!reactionRolesMessageId) {
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Red)
-                                            .setDescription('Please provide a message ID for the reaction roles');
-                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
-                                    }
-
-                                    const reactionRolesDataRemove = await ReactionRoles.findOne({ messageId: reactionRolesMessageId });
-                                    
-                                    if (!reactionRolesDataRemove) {
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Red)
-                                            .setDescription('Invalid message id');
-                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
-                                    }
-
-                                    if (!reactionRolesDataRemove.roles.some(role => role.roleId === reactionRolesRole.id)) {
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Red)
-                                            .setDescription('Role not found in the reaction roles');
-                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
-                                    }
-
-
-                                    reactionRolesDataRemove.roles = reactionRolesDataRemove.roles.filter(role => role.roleId !== reactionRolesRole.id);
-                                    
-                                    await reactionRolesDataRemove.save();
-
-                                    if(reactionRolesDataRemove.roles.length === 0) {
-                                        await ReactionRoles.findOneAndDelete({ messageId: reactionRolesMessageId });
-                                        await reactionRolesMessage.delete();
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Blurple)
-                                            .setDescription('Reaction roles have been deleted');
-                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
-                                    }
-                                    
-                                    const roleMenu2 = new StringSelectMenuBuilder()
-                                        .setCustomId(`select-role.${reactionRolesMessage.id}`)
-                                        .setPlaceholder('Select a role')
-                                        .setMaxValues(reactionRolesDataRemove.roles.length)
-									    .setMinValues(0)
-                                        .addOptions(reactionRolesDataRemove.roles.map(role => {
-                                            const emoji = parseEmoji(role.roleEmoji);
-                                            return { label: guild.roles.cache.get(role.roleId).name, value: role.roleId, emoji: role.roleEmoji };
-                                        }));
-                                    
-                                    const actionRow2 = new ActionRowBuilder().addComponents(roleMenu2);
-                                    
-                                    await reactionRolesMessage.edit({ components: [actionRow2] });
-                                    
-                                    const RemoveEmbed = new EmbedBuilder()
-                                        .setColor(Colors.Blurple)
-                                        .setDescription(`Role ${reactionRolesRole} has been removed from the reaction roles`);
-                                    
-                                    await interaction.reply({ embeds: [RemoveEmbed], ephemeral: true });
-                                
-
-                                    
-
-
+                                    await handleReactionRoleRemove(interaction, reactionRolesMessage);
                                 break;
                                 case 'list':
-
-                                    const reactionRolesDataList = await ReactionRoles.find({ guildId: guild.id });
-
-                                    if(reactionRolesDataList.length === 0) {
-                                        const Embed = new EmbedBuilder()
-                                            .setColor(Colors.Red)
-                                            .setDescription('No reaction roles found');
-                                        return await interaction.reply({ embeds: [Embed], ephemeral: true });
-                                    }
-
-                                    const reactionRolesList = await Promise.all(reactionRolesDataList.map(async reactionRole => {
-                                        const channel = guild.channels.cache.get(reactionRole.channelId);
-                                        if(!channel) {
-                                            await ReactionRoles.findOneAndDelete({ channelId: reactionRole.channelId });
-                                            return;
-                                        }
-
-                                        const message = await channel.messages.fetch(reactionRole.messageId).catch(() => null);
-                                        if(!message) {
-                                            await ReactionRoles.findOneAndDelete({ messageId: reactionRole.messageId });
-                                            return;
-                                        }
-
-                                        const roles = reactionRole.roles.map(role => {
-                                            const emoji = parseEmoji(role.roleEmoji);
-                                            return `${guild.roles.cache.get(role.roleId)} | ${emoji ? role.roleEmoji : ''}`;
-                                        });
-
-                                        return `${channel} | ${message.embeds[0].title}\n${roles.join('\n')}`;
-                                    }));
-
-                                    const ListEmbed = new EmbedBuilder()
-                                        .setTitle('Reaction Roles')
-                                        .setColor(Colors.Blurple)
-                                        .setDescription(reactionRolesList.join('\n\n') || 'No reaction roles set');
-
-                                    await interaction.reply({ embeds: [ListEmbed] });                      
-
+                                    await handleReactionRoleList(interaction);               
                                 break;
                             }
+
+                            break;
+                        case 'autoroles':
+
+                            const autoRolesType = options.getString('type');
+                            const autoRolesEnabled = options.getBoolean('enabled');
+                            const autoRolesRole = options.getRole('role');
+
+                            switch (autoRolesType) {
+                                case 'add':
+                                    await handleAutoRolesAdd(interaction, autoRolesRole, autoRolesEnabled);
+                                    break;
+                                case 'remove':
+                                    await handleAutoRolesRemove(interaction, autoRolesRole, autoRolesEnabled);
+                                    break;
+                                case 'list':
+                                    await handleAutoRolesList(interaction);
+                                    break;
+                            }
+
 
                             break;
                     }
@@ -650,6 +510,350 @@ module.exports = {
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
     }
+};
+
+/**
+ * @param {CommandInteraction} interaction
+ */
+
+async function handleAutoRolesAdd(interaction, autoRolesRole, autoRolesEnabled) {
+    const { guild } = interaction;
+    
+
+    if(!autoRolesRole) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide a role for auto roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    if(autoRolesRole.position >= guild.members.me.roles.highest.position) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Role is higher than the bot\'s role');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    let autoRolesData = await AutoRoles.findOne({ guildId: guild.id });
+
+    if(!autoRolesData) {
+        autoRolesData = new AutoRoles({
+            guildId: guild.id,
+            enabled: autoRolesEnabled,
+            roles: [],
+        });
+    }
+
+    if(autoRolesEnabled !== null && autoRolesData.enabled !== autoRolesEnabled) {
+        autoRolesData.enabled = autoRolesEnabled;
+
+        await autoRolesData.save();
+
+        const EnableEmbed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setDescription(`Auto Roles have been ${autoRolesEnabled ? 'enabled' : 'disabled'}`);
+
+        return await interaction.reply({ embeds: [EnableEmbed], ephemeral: true });
+    }
+
+    if(autoRolesData.roles.some(role => role === autoRolesRole.id)) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Role already exists in the auto roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    autoRolesData.roles.push(autoRolesRole.id);
+
+    await autoRolesData.save();
+
+    const AddEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(`Role ${autoRolesRole} has been added to the auto roles`);
+
+    await interaction.reply({ embeds: [AddEmbed], ephemeral: true });
+};
+
+/**
+ * @param {CommandInteraction} interaction
+ */
+
+async function handleAutoRolesRemove(interaction, autoRolesRole, autoRolesEnabled) {
+    const { guild } = interaction;
+
+    if(!autoRolesRole) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide a role for auto roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    let autoRolesDataRemove = await AutoRoles.findOne({ guildId: guild.id });
+
+    if (!autoRolesDataRemove) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Auto Roles have not been enabled in this guild | To enable them a server admin can use \`/setup guild autoroles\`');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    console.log(autoRolesEnabled);
+
+    if(autoRolesEnabled !== null && autoRolesDataRemove.enabled !== autoRolesEnabled) {
+        autoRolesDataRemove.enabled = autoRolesEnabled;
+
+        await autoRolesDataRemove.save();
+
+        const EnableEmbed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setDescription(`Auto Roles have been ${autoRolesEnabled ? 'enabled' : 'disabled'}`);
+
+        return await interaction.reply({ embeds: [EnableEmbed], ephemeral: true });
+    }
+
+    if (!autoRolesDataRemove.roles.some(role => role === autoRolesRole.id)) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Role not found in the auto roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    autoRolesDataRemove.roles = autoRolesDataRemove.roles.filter(role => role !== autoRolesRole.id);
+
+    await autoRolesDataRemove.save();
+
+    const RemoveEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(`Role ${autoRolesRole} has been removed from the auto roles`);
+
+    await interaction.reply({ embeds: [RemoveEmbed], ephemeral: true });
+};
+
+/**
+ * @param {CommandInteraction} interaction
+ */
+
+async function handleAutoRolesList(interaction) {
+    const { guild } = interaction;
+
+    const autoRolesDataList = await AutoRoles.findOne({ guildId: guild.id });
+
+    if(!autoRolesDataList) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('No auto roles found');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    const roles = autoRolesDataList.roles.map(role => guild.roles.cache.get(role));
+
+    const ListEmbed = new EmbedBuilder()
+        .setTitle('Auto Roles')
+        .setColor(Colors.Blurple)
+        .setDescription(`Auto Roles is ${autoRolesDataList.enabled}\n\n${roles.join('\n')}` || 'No auto roles set');
+
+    await interaction.reply({ embeds: [ListEmbed] });
+};
+
+
+/**
+ * @param {CommandInteraction} interaction
+ */
+async function handleReactionRoleAdd(interaction, reactionRolesMessage) {
+    const { options, guild } = interaction;
+
+    const reactionRolesRole = options.getRole('role');
+    const reactionRolesEmoji = options.getString('emoji');
+    const reactionRolesMessageId = options.getString('messageid');
+    const reactionRolesTitle = options.getString('title');
+    const reactionRolesChannel = interaction.channel;
+
+    if(!reactionRolesRole) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide a role for reaction roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    if(!reactionRolesEmoji) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide an emoji for reaction roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    if(!reactionRolesMessageId) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setTitle(reactionRolesTitle || 'Reaction Roles')
+
+        reactionRolesMessage = await reactionRolesChannel.send({ embeds: [Embed] })
+        .catch(() => {return false})
+
+        if(!reactionRolesMessage) {
+            const Embed = new EmbedBuilder()
+                .setColor(Colors.Red)
+                .setDescription('I do not have permission to send messages in this channel');
+            return interaction.reply({ embeds: [Embed], ephemeral: true });
+        }
+
+    }
+
+    let reactionRolesData = await ReactionRoles.findOne({ guildId: guild.id, messageId: reactionRolesMessage.id });
+
+    if(!reactionRolesData) {
+        reactionRolesData = new ReactionRoles({
+            guildId: guild.id,
+            channelId: reactionRolesChannel.id,
+            messageId: reactionRolesMessage.id,
+            enabled: true,
+            roles: [],
+        });
+    }
+
+    if(reactionRolesData.roles.some(role => role.roleId === reactionRolesRole.id)) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Role already exists in the reaction roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    reactionRolesData.roles.push({ roleId: reactionRolesRole.id, roleEmoji: reactionRolesEmoji });
+
+    await reactionRolesData.save();
+
+    
+    const roleMenu = new StringSelectMenuBuilder()
+        .setCustomId(`select-role.${reactionRolesMessage.id}`)
+        .setPlaceholder('Select a role')
+        .setMaxValues(reactionRolesData.roles.length)
+        .setMinValues(0)
+        .addOptions(reactionRolesData.roles.map(role => {
+            const emoji = parseEmoji(role.roleEmoji);
+            return { label: guild.roles.cache.get(role.roleId).name, value: role.roleId, emoji: role.roleEmoji };
+        }));
+
+    const actionRow = new ActionRowBuilder().addComponents(roleMenu);
+
+    await reactionRolesMessage.edit({ components: [actionRow] });
+    
+    const AddEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(`Role ${reactionRolesRole} has been added to the reaction roles`);
+    
+    await interaction.reply({ embeds: [AddEmbed], ephemeral: true });
+};
+
+async function handleReactionRoleRemove(interaction, reactionRolesMessage) {
+    const { options, guild } = interaction;
+
+    const reactionRolesRole = options.getRole('role');
+    const reactionRolesMessageId = options.getString('messageid');
+
+    if(!reactionRolesRole) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide a role for reaction roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    if(!reactionRolesMessageId) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide a message ID for the reaction roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    const reactionRolesDataRemove = await ReactionRoles.findOne({ messageId: reactionRolesMessageId });
+    
+    if (!reactionRolesDataRemove) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Invalid message id');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    if (!reactionRolesDataRemove.roles.some(role => role.roleId === reactionRolesRole.id)) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Role not found in the reaction roles');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+
+    reactionRolesDataRemove.roles = reactionRolesDataRemove.roles.filter(role => role.roleId !== reactionRolesRole.id);
+    
+    await reactionRolesDataRemove.save();
+
+    if(reactionRolesDataRemove.roles.length === 0) {
+        await ReactionRoles.findOneAndDelete({ messageId: reactionRolesMessageId });
+        await reactionRolesMessage.delete();
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setDescription('Reaction roles have been deleted');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+    
+    const roleMenu2 = new StringSelectMenuBuilder()
+        .setCustomId(`select-role.${reactionRolesMessage.id}`)
+        .setPlaceholder('Select a role')
+        .setMaxValues(reactionRolesDataRemove.roles.length)
+        .setMinValues(0)
+        .addOptions(reactionRolesDataRemove.roles.map(role => {
+            const emoji = parseEmoji(role.roleEmoji);
+            return { label: guild.roles.cache.get(role.roleId).name, value: role.roleId, emoji: role.roleEmoji };
+        }));
+    
+    const actionRow2 = new ActionRowBuilder().addComponents(roleMenu2);
+    
+    await reactionRolesMessage.edit({ components: [actionRow2] });
+    
+    const RemoveEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(`Role ${reactionRolesRole} has been removed from the reaction roles`);
+    
+    await interaction.reply({ embeds: [RemoveEmbed], ephemeral: true });
+};
+
+async function handleReactionRoleList(interaction) {
+    const { guild } = interaction;
+
+    const reactionRolesDataList = await ReactionRoles.find({ guildId: guild.id });
+
+    if(reactionRolesDataList.length === 0) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('No reaction roles found');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    const reactionRolesList = await Promise.all(reactionRolesDataList.map(async reactionRole => {
+        const channel = guild.channels.cache.get(reactionRole.channelId);
+        if(!channel) {
+            await ReactionRoles.findOneAndDelete({ channelId: reactionRole.channelId });
+            return;
+        }
+
+        const message = await channel.messages.fetch(reactionRole.messageId).catch(() => null);
+        if(!message) {
+            await ReactionRoles.findOneAndDelete({ messageId: reactionRole.messageId });
+            return;
+        }
+
+        const roles = reactionRole.roles.map(role => {
+            const emoji = parseEmoji(role.roleEmoji);
+            return `${guild.roles.cache.get(role.roleId)} | ${emoji ? role.roleEmoji : ''}`;
+        });
+
+        return `${channel} | ${message.embeds[0].title}\n${roles.join('\n')}`;
+    }));
+
+    const ListEmbed = new EmbedBuilder()
+        .setTitle('Reaction Roles')
+        .setColor(Colors.Blurple)
+        .setDescription(reactionRolesList.join('\n\n') || 'No reaction roles set');
+
+    await interaction.reply({ embeds: [ListEmbed] });
 };
 
 

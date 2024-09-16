@@ -15,8 +15,6 @@ function DisabledFeatures(client, targetMember, feature, reason) {
     if(!feature) throw new Error('No feature provided.');
     if(!reason) throw new Error('No reason provided.');
 
-    if(targetMember instanceof GuildMember) throw new Error('Invalid member provided.');
-
     const DisabledFeaturesChannel = client.guilds.cache.get(DevGuildID).channels.cache.get(DisabledFeaturesChannelID);
     if (!DisabledFeaturesChannel) return;
 

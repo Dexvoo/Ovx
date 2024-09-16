@@ -126,6 +126,21 @@ const ReactionRolesSchema = new Schema({
 	},
 });
 
+const AutoRolesSchema = new Schema({
+	guildId: {
+		type: String,
+		required: true,
+	},
+	enabled: {
+		type: Boolean,
+		default: false,
+	},
+	roles: {
+		type: Array,
+		default: [],
+	},
+});
+
 
 
 module.exports = {
@@ -142,4 +157,5 @@ module.exports = {
 	LevelNotifications: model('Guild-Level-Notifications', LevelNotificationsSchema),
 	Tickets: model('Guild-Tickets', TicketsSchema),
 	ReactionRoles: model('Guild-Reaction-Roles', ReactionRolesSchema),
+	AutoRoles: model('Guild-Auto-Roles', AutoRolesSchema),
 };
