@@ -60,6 +60,10 @@ module.exports = {
                 .setDescription('The emoji to delete')
                 .setRequired(true)
             )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('list')
+            .setDescription('List all emojis from a guild')
         ),
     /**
      * @param {CommandInteraction} interaction
@@ -73,7 +77,7 @@ module.exports = {
 
         try {
 
-            const emoji = options.getString('emoji');
+            const emoji = options.getString('emoji') || '<a:OVX_Yes:1115593935746781185>'
             const emojiCheck = parseEmoji(emoji);
 
             if(!emojiCheck.id) {
@@ -94,6 +98,9 @@ module.exports = {
 
                 case 'delete':
                     await handleDeleteCommand(interaction, emojiCheck);
+                    break;
+                case 'list':
+                    await handleListEmojis(interaction);
             break;
         }
 
@@ -109,6 +116,86 @@ module.exports = {
     }
 
 };
+
+/**
+ * 
+ * @param {CommandInteraction} interaction 
+ */
+
+async function handleListEmojis(interaction) {
+    const { guild } = interaction;
+
+    const staticEmojis = guild.emojis.cache.filter(emoji => !emoji.animated);
+    const animatedEmojis = guild.emojis.cache.filter(emoji => emoji.animated);
+
+    const emojiEmbeds = [];
+
+    let emojiString = '';
+    for(const emoji of staticEmojis) {
+
+        const currentEmoji = `${emoji[1]}`
+        if(emojiString.length + currentEmoji.length >= 2000) {
+
+            if(emojiString.length > 0) {
+                const emojiEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setTitle('Static Emojis')
+                    .setDescription(emojiString)
+
+                emojiEmbeds.push(emojiEmbed);
+                emojiString = '';
+            }
+        }
+
+        emojiString += `${currentEmoji} `;
+    }
+
+    if(emojiString.length > 0) {
+        const emojiEmbed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setTitle('Static Emojis')
+            .setDescription(emojiString)
+
+        emojiEmbeds.push(emojiEmbed);
+        emojiString = '';
+    }
+
+    for(const emoji of animatedEmojis) {
+        const currentEmoji = `${emoji[1]}`
+        if(emojiString.length + currentEmoji.length >= 1300) {
+            if(emojiString.length > 0) {
+                const emojiEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setTitle('Animated Emojis')
+                    .setDescription(emojiString)
+
+                emojiEmbeds.push(emojiEmbed);
+                emojiString = '';
+            }
+        }
+
+        emojiString += `${currentEmoji} `;
+    };
+
+    if(emojiString.length > 0) {
+        const emojiEmbed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setTitle('Animated Emojis')
+            .setDescription(emojiString)
+
+        emojiEmbeds.push(emojiEmbed);
+        emojiString = '';
+    }
+
+    if(emojiEmbeds.length < 1) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('No emojis found in this server.')
+        return await interaction.editReply({ embeds: [Embed] });
+    }
+
+    await interaction.editReply({ embeds: emojiEmbeds });
+}
 
 function verifyEmojiName(emojiName) {
 	if (emojiName.length > 32) return false;
