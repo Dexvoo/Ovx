@@ -77,14 +77,17 @@ module.exports = {
 
         try {
 
-            const emoji = options.getString('emoji') || '<a:OVX_Yes:1115593935746781185>'
-            const emojiCheck = parseEmoji(emoji);
-
-            if(!emojiCheck.id) {
-                const Embed = new EmbedBuilder()
-                    .setColor(Colors.Red)
-                    .setDescription('Please provide a valid emoji.')
-                return await interaction.editReply({ embeds: [Embed] });
+            let emojiCheck
+            if(subcommand !== 'list') {
+                const emoji = options.getString('emoji');
+                
+                emojiCheck = parseEmoji(emoji);
+                if(!emojiCheck.id) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('Please provide a valid emoji.')
+                    return await interaction.editReply({ embeds: [Embed] });
+                }
             }
 
             switch (subcommand) {
@@ -101,8 +104,8 @@ module.exports = {
                     break;
                 case 'list':
                     await handleListEmojis(interaction);
-            break;
-        }
+                    break;
+            }
 
         } catch (error) {
             console.error(error);

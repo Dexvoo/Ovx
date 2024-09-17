@@ -21,6 +21,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "mongoose": "^8.4.1",
+    "node-fetch": "^3.3.2",
     "nodemon": "^3.1.2",
     "pm2": "^5.4.0",
     "topgg-autoposter": "^2.0.2"
