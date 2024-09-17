@@ -21,7 +21,7 @@ module.exports = {
      */
 
     async execute(interaction) {
-        const { options, client, member, guild, user, channel } = interaction;
+        const { options } = interaction;
         const query = options.getString('query');
 
         const params = `key=${TenorAPIKey}&q=${query}&limit=50&contentfilter=high&media_filter=minimal&ar_range=all`;
