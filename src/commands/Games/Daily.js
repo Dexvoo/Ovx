@@ -19,12 +19,8 @@ module.exports = {
     async execute(interaction) {
         const { options, client, member, guild, user, channel } = interaction;
 
-
-
-
-
         // check if user voted for the bot on top gg
-        const voted = await fetch(`https://top.gg/api/bots/${PublicClientID}/check?userId=500417499351875595`, {
+        const voted = await fetch(`https://top.gg/api/bots/${PublicClientID}/check?userId=${user.id}`, {
             headers: {
                 'Authorization': TopggAPIKey
             }});
