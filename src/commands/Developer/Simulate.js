@@ -39,14 +39,14 @@ module.exports = {
             case 'leave':
                 client.emit('guildMemberRemove', member);
                 const leaveEmbed = new EmbedBuilder()
-                    .setColor(Colors.Green)
+                    .setColor(Colors.Blurple)
                     .setDescription('Simulated leaving the server');
                 await interaction.reply({ embeds: [leaveEmbed], ephemeral: true });
                 break;
             case 'join':
                 client.emit('guildMemberAdd', member);
                 const joinEmbed = new EmbedBuilder()
-                    .setColor(Colors.Green)
+                    .setColor(Colors.Blurple)
                     .setDescription('Simulated joining the server');
                 await interaction.reply({ embeds: [joinEmbed], ephemeral: true });
                 

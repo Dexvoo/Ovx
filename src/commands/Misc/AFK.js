@@ -50,7 +50,7 @@ module.exports = {
         await newGuildAFKUser.save();
 
         const AFKEmbed = new EmbedBuilder()
-            .setColor('Green')
+            .setColor('Blurple')
             .setDescription(`${member} is now AFK: ${status}`);
         await interaction.reply({ embeds: [AFKEmbed] });
         

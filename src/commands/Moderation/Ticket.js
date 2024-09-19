@@ -118,7 +118,7 @@ module.exports = {
                     });
             
                     const Embed = new EmbedBuilder()
-                        .setColor(Colors.Green)
+                        .setColor(Colors.Blurple)
                         .setTitle('Tickets | Add Member')
                         .setDescription(`Successfully added ${memberToAdd} to the ticket!`);
                     return await interaction.editReply({ embeds: [Embed] });
@@ -165,7 +165,7 @@ module.exports = {
                     });
             
                     const Embed = new EmbedBuilder()
-                        .setColor(Colors.Green)
+                        .setColor(Colors.Blurple)
                         .setDescription(`Successfully removed ${memberToRemove} from the ticket!`);
                     return await interaction.editReply({ embeds: [Embed] });
                 }

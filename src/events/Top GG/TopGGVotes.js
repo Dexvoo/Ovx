@@ -33,7 +33,7 @@ module.exports = {
 					case 'upvote':
 						embed
 							.setDescription(`<@${user}> | Voted for <@${bot}>!`)
-							.setColor('Green');
+							.setColor('Blurple');
 						await client.channels.cache
 							.get('1172988214756249661')
 							.send({ embeds: [embed] });
@@ -49,7 +49,7 @@ module.exports = {
 					case 'unvote':
 						embed
 							.setDescription(`<@${user}> | You can now vote again`)
-							.setColor('Green');
+							.setColor('Blurple');
 						await client.channels.cache
 							.get('1172988214756249661')
 							.send({ content: `<@${user}>`, embeds: [embed] });

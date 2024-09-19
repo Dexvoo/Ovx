@@ -90,7 +90,7 @@ module.exports = {
 
 
         const FollowUp = new EmbedBuilder()
-            .setColor(Colors.Green)
+            .setColor(Colors.Blurple)
             .setDescription(`Successfully ${type} role to ${successful.length} members\nFailed to add/remove role to ${failed.length} members`);
 
         await interaction.member.send({ embeds: [FollowUp] });
