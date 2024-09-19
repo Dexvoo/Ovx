@@ -30,10 +30,12 @@ module.exports = {
                 return;
             }
 
+            await guild.members.fetch();
+
             const message = autoRolesData.message
-                .replace(/{username}/g, member.user.username)
+                .replace(/{username}/g, `@${member.user.username}`)
                 .replace(/{usermention}/g, member)
-                .replace(/{guild}/g, guild.name)
+                .replace(/{server}/g, guild.name)
                 .replace(/{memberCount}/g, guild.memberCount);
 
             const Embed = new EmbedBuilder()
