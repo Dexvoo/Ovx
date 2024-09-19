@@ -31,15 +31,16 @@ module.exports = {
             }
 
             const message = autoRolesData.message
-                .replace(/{user}/g, member.user.toString())
-                .replace(/{server}/g, guild.name)
+                .replace(/{username}/g, member.user.username)
+                .replace(/{usermention}/g, member)
+                .replace(/{guild}/g, guild.name)
                 .replace(/{memberCount}/g, guild.memberCount);
 
             const Embed = new EmbedBuilder()
                 .setColor(Colors.Blurple)
                 .setDescription(message);
 
-            channel.send({ embeds: [Embed] }).catch(async () => { 
+            channel.send({ content: `<@${member.id}>`, embeds: [Embed] }).catch(async () => { 
                 autoRolesData.enabled = false;
                 autoRolesData.save();
                 

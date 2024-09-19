@@ -79,7 +79,7 @@ module.exports = {
                 )
                 .addStringOption(option => option
                     .setName('message')
-                    .setDescription('Set the message for the welcome ({server} and {user} and {memberCount})')
+                    .setDescription('Set the message for the welcome ({server}, {username}, {usermention}, {memberCount})')
                     .setRequired(false)
                 )
             )
@@ -542,7 +542,7 @@ module.exports = {
  */
 
 async function handleWelcomeMessages(interaction) {
-    const { options, guild, client } = interaction;
+    const { options, guild, client, user } = interaction;
 
     const welcomeMessagesEnabled = options.getBoolean('enabled');
     const welcomeMessagesChannel = options.getChannel('channel');
@@ -584,7 +584,7 @@ async function handleWelcomeMessages(interaction) {
 
     const previewEmbed = new EmbedBuilder()
         .setColor(Colors.Blurple)
-        .setDescription(welcomeMessagesMessage.replace('{server}', guild.name).replace('{user}', interaction.user.toString()).replace('{memberCount}', guild.memberCount));
+        .setDescription(welcomeMessagesMessage.replace(/{server}/g, guild.name).replace(/{username}/g, user.username).replace(/{usermention}/g, user).replace(/{memberCount}/g, guild.memberCount));
 
     await welcomeMessagesChannel.send({ embeds: [previewEmbed] });
     
