@@ -1,5 +1,6 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { UserCurrency } = require('../../models/UserCurrency');
+const { TopggAPIKey, PublicClientID } = process.env;
 
 module.exports = {
     cooldown: 5,
@@ -17,6 +18,38 @@ module.exports = {
 
     async execute(interaction) {
         const { options, client, member, guild, user, channel } = interaction;
+
+
+
+
+
+        // check if user voted for the bot on top gg
+        const voted = await fetch(`https://top.gg/api/bots/${PublicClientID}/check?userId=500417499351875595`, {
+            headers: {
+                'Authorization': TopggAPIKey
+            }});
+
+        const button = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+            .setStyle(ButtonStyle.Link)
+            .setLabel('Vote')
+            .setURL(`https://top.gg/bot/${PublicClientID}/vote`)
+        );
+
+        if(!voted) {
+            const Embed = new EmbedBuilder()
+                .setColor('Red')
+                .setDescription(`You need to vote for the bot on top.gg to claim your daily reward!`);
+            return await interaction.reply({ embeds: [Embed], components: [button] });
+        }
+        const votedJson = await voted.json();
+
+        if(!votedJson.voted) {
+            const Embed = new EmbedBuilder()
+                .setColor('Red')
+                .setDescription(`You need to vote for the bot on top.gg to claim your daily reward!`);
+            return await interaction.reply({ embeds: [Embed], components: [button] });
+        }
 
         var userCurrency = await UserCurrency.findOne({ userId: user.id });
  
