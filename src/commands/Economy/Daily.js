@@ -92,7 +92,7 @@ module.exports = {
 
         const DailyEmbed = new EmbedBuilder()
             .setColor('Blurple')
-            .setDescription(`You have claimed your daily reward of ${reward} coins! | ${getDiscordTimestamp(todaysClaim)}`)
+            .setDescription(`You have claimed your daily reward of ${reward} cash! | ${getDiscordTimestamp(todaysClaim)}`)
             .setFooter({ text: `Streak: ${userCurrency.dailyStreak}` });
 
         await interaction.reply({ embeds: [DailyEmbed] });

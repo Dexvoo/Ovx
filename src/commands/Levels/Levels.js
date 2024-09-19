@@ -7,7 +7,7 @@ const { ExpForLevel } = require('../../utils/Levels/XPMathematics');
 
 module.exports = {
     cooldown: 5,
-    category: 'Miscellaneous',
+    category: 'Levels',
     userpermissions: [],
     botpermissions: [],
     data: new SlashCommandBuilder()
