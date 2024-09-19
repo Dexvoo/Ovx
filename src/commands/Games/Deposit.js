@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContex
 const { UserCurrency } = require('../../models/UserCurrency');
 module.exports = {
     cooldown: 5,
-    category: 'Miscellaneous',
+    category: 'Economy',
     userpermissions: [],
     botpermissions: [],
     data: new SlashCommandBuilder()

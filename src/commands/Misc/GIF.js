@@ -1,11 +1,11 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionFlagsBits } = require('discord.js');
 const { TenorAPIKey } = process.env;
 
 module.exports = {
     cooldown: 5,
     category: 'Miscellaneous',
-    userpermissions: [],
-    botpermissions: [],
+    userpermissions: [PermissionFlagsBits.EmbedLinks],
+    botpermissions: [PermissionFlagsBits.EmbedLinks],
     data: new SlashCommandBuilder()
         .setName('gif')
         .setDescription('Search for a gif')
