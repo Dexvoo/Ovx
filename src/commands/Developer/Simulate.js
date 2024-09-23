@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, parseEmoji, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, parseEmoji, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { DeveloperIDs } = process.env;
 
 module.exports = {
@@ -9,7 +9,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('sim')
         .setDescription('Simulate leaving and joining a server')
-        .setContexts( InteractionContextType.Guild )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
+        .setContexts( InteractionContextType.Guild)
         .addStringOption(option => option
             .setName('choice')
             .setDescription('Choose to leave or join a server')

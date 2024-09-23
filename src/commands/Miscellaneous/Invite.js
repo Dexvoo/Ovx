@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { DeveloperMode, PublicClientID, DevClientID } = process.env;
 
 module.exports = {
@@ -9,7 +9,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('invite')
         .setDescription('Generate an invite link for the bot/support server')
-        .setContexts( InteractionContextType.PrivateChannel, InteractionContextType.BotDM , InteractionContextType.Guild ),
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ),
 
     /**
      * @param {CommandInteraction} interaction

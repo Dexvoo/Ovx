@@ -20,7 +20,7 @@ module.exports = {
      */
 
     async execute(interaction) {
-        const { options, client, member, guild, user, channel } = interaction;
+        const { options, user } = interaction;
 
         var userCurrency = await UserCurrency.findOne({ userId: user.id });
  

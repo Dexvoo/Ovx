@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType, EmbedBuilder, PermissionFlagsBits, CommandInteraction, PermissionsBitField, ChannelType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, EmbedBuilder, PermissionFlagsBits, CommandInteraction, PermissionsBitField, ChannelType, ApplicationIntegrationType } = require('discord.js');
 const { permissionCheck } = require('../../utils/Checks');
 const SuccessEmoji='<a:OVX_Yes:1115593935746781185>';
 const ErrorEmoji='<a:OVX_No:1115593604073791488>';
@@ -25,6 +25,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('information')
         .setDescription('Get information about a user, guild, role or bot')
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
         .setContexts( InteractionContextType.Guild )
         .addSubcommand(subcommand => subcommand
             .setName('user')
@@ -274,7 +275,7 @@ async function handleBotInformation(interaction) {
  */
 
 async function handleRoleInformation(interaction) {
-    const { client, guild, member, options, user, channel } = interaction;
+    const {options } = interaction;
 
     const role = options.getRole('role');
     const roleCreated = getDiscordTimestamp(role.createdAt);

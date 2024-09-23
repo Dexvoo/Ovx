@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, CommandInteraction, EmbedBuilder } = require('discord.js')
+const { SlashCommandBuilder, CommandInteraction, EmbedBuilder, ApplicationIntegrationType, InteractionContextType } = require('discord.js')
 const ms = require('ms');
 
 module.exports = {
@@ -9,6 +9,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('reminder')
         .setDescription('Set a reminder')
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel )
         .addStringOption(option => option
             .setName('time')
             .setDescription('Time to set the reminder for (e.g. 1h30m, 30s)')
@@ -25,7 +27,7 @@ module.exports = {
      */
 
     async execute(interaction) {
-        const { options, member } = interaction;
+        const { options, user } = interaction;
         const timeInput = options.getString('time');
         const reminderInput = options.getString('reminder');
 
@@ -54,7 +56,7 @@ module.exports = {
             const ReminderMessage = new EmbedBuilder()
                 .setColor('Blurple')
                 .setDescription(`You asked me to remind you with the message: ${reminderInput}`);
-            await interaction.followUp({ content: `${member}`, embeds: [ReminderMessage] });
+            await interaction.followUp({ content: `${user}`, embeds: [ReminderMessage] });
         }, timeInMs);
         
     }

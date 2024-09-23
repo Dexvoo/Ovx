@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 
 module.exports = {
     cooldown: 5,
@@ -8,6 +8,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('moderation')
         .setDescription('Ban, unban, kick, timeout, remove timeout, purge messages, or change the nickname of a user')
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
         .setContexts( InteractionContextType.Guild )
         .addSubcommand(subcommand => subcommand
             .setName('ban')

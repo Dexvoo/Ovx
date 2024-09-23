@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, AutocompleteInteraction, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, AutocompleteInteraction, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 
 module.exports = {
     cooldown: 5,
@@ -8,7 +8,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('help')
         .setDescription('List all of my commands or info about a specific command')
-        .setContexts( InteractionContextType.BotDM, InteractionContextType.Guild )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel )
         .addStringOption(option => option
             .setName('command')
             .setDescription('Name of the command')
@@ -37,7 +38,7 @@ module.exports = {
      */
 
     async execute(interaction) {
-        const { options, client, member, guild, user, channel } = interaction;
+        const { options, client } = interaction;
 
         const targetCommand = options.getString('command');
 

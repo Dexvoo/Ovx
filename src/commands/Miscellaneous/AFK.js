@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { AFKUsers } = require('../../models/GuildSetups.js');
 
 module.exports = {
@@ -9,7 +9,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('afk')
         .setDescription('set your status to AFK')
-        .setContexts( InteractionContextType.Guild )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
+        .setContexts( InteractionContextType.Guild)
         .addStringOption(option => option
             .setName('status')
             .setDescription('Set your AFK status')

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { UserCurrency } = require('../../models/UserCurrency');
 
 module.exports = {
@@ -9,14 +9,15 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('balance')
         .setDescription('Check how much cash and money in the bank you have')
-        .setContexts( InteractionContextType.Guild, InteractionContextType.PrivateChannel, InteractionContextType.BotDM ),
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ),
 
     /**
      * @param {CommandInteraction} interaction
      */
 
     async execute(interaction) {
-        const { options, client, member, guild, user, channel } = interaction;
+        const { user } = interaction;
 
         var userCurrency = await UserCurrency.findOne({ userId: user.id });
  

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ActionRowBuilder, ButtonStyle, ButtonBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ActionRowBuilder, ButtonStyle, ButtonBuilder, ApplicationIntegrationType } = require('discord.js');
 
 module.exports = {
     cooldown: 5,
@@ -8,7 +8,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('avatar')
         .setDescription('Get the avatar of a user/guild')
-        .setContexts(InteractionContextType.Guild)
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel )
         .addSubcommandGroup((group) => group
             .setName('discord')
             .setDescription('Get the avatar of a user/guild.')

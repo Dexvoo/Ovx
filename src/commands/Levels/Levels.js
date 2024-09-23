@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionsBitField, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionsBitField, PermissionFlagsBits, ApplicationIntegrationType } = require('discord.js');
 const { UserLevels } = require('../../models/Levels');
 const { LevelNotifications } = require('../../models/GuildSetups')
 const { fetchLeaderboardData, sortLeaderboard } = require('../../utils/Levels/XP-Functions');
@@ -13,7 +13,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('level')
         .setDescription('Get a users level and XP or even a leaderboard')
-        .setContexts( InteractionContextType.Guild )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
+        .setContexts( InteractionContextType.Guild)
         .addSubcommand(subcommand => subcommand
             .setName('rank')
             .setDescription('Shows your current level and XP in the guild')

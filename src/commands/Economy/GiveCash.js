@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const { UserCurrency } = require('../../models/UserCurrency');
 module.exports = {
     cooldown: 5,
@@ -8,7 +8,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('givecash')
         .setDescription('Give cash to another user')
-        .setContexts( InteractionContextType.Guild, InteractionContextType.PrivateChannel, InteractionContextType.BotDM )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel )
         .addUserOption(option => option
             .setName('user')
             .setDescription('The user you want to give cash to')
@@ -25,7 +26,7 @@ module.exports = {
      */
 
     async execute(interaction) {
-        const { options, client, member, user, guild, channel } = interaction;
+        const { options, user } = interaction;
 
         var userCurrency = await UserCurrency.findOne({ userId: user.id });
         

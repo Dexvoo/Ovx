@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionFlagsBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, User } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionFlagsBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, User, ApplicationIntegrationType } = require('discord.js');
 const { UserCurrency } = require('../../models/UserCurrency');
 
 const choices = [
@@ -28,20 +28,12 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('coinflip')
         .setDescription('Flip a coin')
-        .setContexts( InteractionContextType.Guild, InteractionContextType.PrivateChannel )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel )
         .addIntegerOption(option => option
             .setName('amount')
             .setDescription('The amount of cash you want to bet')
             .setRequired(true)
-        )
-        .addStringOption(option => option
-            .setName('side')
-            .setDescription('The side you want to bet on')
-            .setRequired(true)
-            .addChoices(
-                { name: 'Heads', value: 'Heads' },
-                { name: 'Tails', value: 'Tails' }
-            )
         )
         .addUserOption(option => option
             .setName('user')
@@ -54,11 +46,10 @@ module.exports = {
      */
 
     async execute(interaction) {
-        const { options, client, member, guild, user, channel } = interaction;
+        const { options, user } = interaction;
 
         
         const amount = options.getInteger('amount');
-        const side = options.getString('side');
         const targetUser = options.getUser('user');
 
         // no max bet
@@ -103,7 +94,7 @@ module.exports = {
 
             const reply = await interaction.reply({ embeds: [StartGameEmbed], components: [row] });
 
-            const userInteraction = await reply.awaitMessageComponent({ filter: i => i.user.id === member.id, time: 60_000 }).catch(async () => {
+            const userInteraction = await reply.awaitMessageComponent({ filter: i => i.user.id === user.id, time: 60_000 }).catch(async () => {
                 const Embed = new EmbedBuilder()
                     .setColor('Red')
                     .setDescription(messages.GameOver.replace('{user}', user.username));
@@ -215,7 +206,7 @@ module.exports = {
             await userCurrency.save();
             await targetCurrency.save();
 
-            FinishEmbed.setDescription(messages.UserWin.replace('{winner}', `@${member.user.username}`).replace('{amount}', amount.toLocaleString()).replace('{choice}', `@${member.user.username} : ${userChoice.name} ${userChoice.emoji}`).replace('{targetChoice}',  `@${targetUser.username} : ${targetUserChoice.name} ${targetUserChoice.emoji}`));
+            FinishEmbed.setDescription(messages.UserWin.replace('{winner}', `@${user.username}`).replace('{amount}', amount.toLocaleString()).replace('{choice}', `@${user.username} : ${userChoice.name} ${userChoice.emoji}`).replace('{targetChoice}',  `@${targetUser.username} : ${targetUserChoice.name} ${targetUserChoice.emoji}`));
         } else {
 
             userCurrency.cash -= amount;
@@ -223,7 +214,7 @@ module.exports = {
             await userCurrency.save();
             await targetCurrency.save();
 
-            FinishEmbed.setDescription(messages.UserWin.replace('{winner}', `@${targetUser.username}`).replace('{amount}', amount.toLocaleString()).replace('{choice}', `@${member.user.username} : ${userChoice.name} ${userChoice.emoji}`).replace('{targetChoice}',  `@${targetUser.username} : ${targetUserChoice.name} ${targetUserChoice.emoji}`));
+            FinishEmbed.setDescription(messages.UserWin.replace('{winner}', `@${targetUser.username}`).replace('{amount}', amount.toLocaleString()).replace('{choice}', `@${user.username} : ${userChoice.name} ${userChoice.emoji}`).replace('{targetChoice}',  `@${targetUser.username} : ${targetUserChoice.name} ${targetUserChoice.emoji}`));
         }
         
         await reply.edit({ content: '', embeds: [FinishEmbed], components: [] }).catch(() => {});

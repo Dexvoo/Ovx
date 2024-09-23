@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionFlagsBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, User } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionFlagsBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, User, ApplicationIntegrationType } = require('discord.js');
 const { UserCurrency } = require('../../models/UserCurrency');
 
 const choices = [
@@ -29,6 +29,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('rps')
         .setDescription('Play Rock Paper Scissors')
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel )
         .addIntegerOption(option =>
             option.setName('amount')
                 .setDescription('The amount of cash to bet')

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, parseEmoji, StringSelectMenuBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, parseEmoji, StringSelectMenuBuilder, ApplicationIntegrationType } = require('discord.js');
 const { InviteDetection, LevelNotifications, ChannelLogs, MessageLogs, VoiceLogs, RoleLogs, ServerLogs, PunishmentLogs, JoinLeaveLogs, ReactionRoles, Tickets, AutoRoles, WelcomeMessage } = require('../../models/GuildSetups.js');
 const { permissionCheck } = require('../../utils/Checks.js');
 
@@ -10,7 +10,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('setup')
         .setDescription('Setup the bot for your server.')
-        .setContexts(InteractionContextType.Guild)
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
+        .setContexts( InteractionContextType.Guild )
         .addSubcommandGroup(group => group
             .setName('guild')
             .setDescription('Setup the bot for your server.')

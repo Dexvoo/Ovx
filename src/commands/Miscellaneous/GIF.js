@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionFlagsBits, ApplicationIntegrationType } = require('discord.js');
 const { TenorAPIKey } = process.env;
 
 module.exports = {
@@ -9,7 +9,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('gif')
         .setDescription('Search for a gif')
-        .setContexts( InteractionContextType.Guild )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel )
         .addStringOption(option => option
             .setName('query')
             .setDescription('The gif you want to search for')

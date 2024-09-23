@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationIntegrationType } = require('discord.js');
 const { UserCurrency } = require('../../models/UserCurrency');
 const { TopggAPIKey, PublicClientID } = process.env;
 
@@ -10,14 +10,15 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('daily')
         .setDescription('Claim your daily reward')
-        .setContexts( InteractionContextType.Guild, InteractionContextType.PrivateChannel, InteractionContextType.BotDM ),
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ),
 
     /**
      * @param {CommandInteraction} interaction
      */
 
     async execute(interaction) {
-        const { options, client, member, guild, user, channel } = interaction;
+        const { user } = interaction;
 
         // check if user voted for the bot on top gg
         const voted = await fetch(`https://top.gg/api/bots/${PublicClientID}/check?userId=${user.id}`, {

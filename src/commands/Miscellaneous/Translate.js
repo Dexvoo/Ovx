@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const translate = require('@iamtraction/google-translate');
 
 module.exports = {
@@ -7,7 +7,8 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('translate')
 		.setDescription('Translate text to another language.')
-        .setContexts( InteractionContextType.PrivateChannel, InteractionContextType.BotDM , InteractionContextType.Guild )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel )
 		.addStringOption((option) => option
 			.setName('text')
 			.setDescription('Text to translate')
@@ -34,7 +35,7 @@ module.exports = {
 				.setRequired(true)
 		),
 	async execute(interaction) {
-		const { member, options, user, client } = interaction;
+		const { options, user } = interaction;
         await interaction.deferReply();
 
 		// Variables

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, parseEmoji, InteractionContextType, AutocompleteInteraction } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, parseEmoji, InteractionContextType, AutocompleteInteraction, ApplicationIntegrationType } = require('discord.js');
 const { fetchLeaderboardData, sortLeaderboard } = require('../../utils/Levels/XP-Functions');
 const { DeveloperIDs } = process.env;
 
@@ -10,7 +10,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('devstats')
         .setDescription('Developer stats (devs only)')
-        .setContexts( InteractionContextType.Guild )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
+        .setContexts( InteractionContextType.Guild)
         .addSubcommandGroup(group => group
             .setName('guilds')
             .setDescription('Guild stats')

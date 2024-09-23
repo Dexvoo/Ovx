@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, parseEmoji, InteractionContextType, PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, parseEmoji, InteractionContextType, PermissionsBitField, ApplicationIntegrationType } = require('discord.js');
 const { UserTickets } = require('../../models/Tickets');
 const { Tickets } = require('../../models/GuildSetups');
 const { createTranscript } = require('discord-html-transcripts');
@@ -10,6 +10,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('ticket')
         .setDescription('Ticket Actions')
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
         .setContexts( InteractionContextType.Guild )
         
         .addSubcommand(subcommand => subcommand

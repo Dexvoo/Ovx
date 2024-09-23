@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationIntegrationType } = require('discord.js');
 
 module.exports = {
     cooldown: 5,
@@ -8,7 +8,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('banner')
         .setDescription('Get the banner of a user/guild')
-        .setContexts( InteractionContextType.Guild )
+        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall] )
+        .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel )
         .addSubcommandGroup((group) => group
             .setName('discord')
             .setDescription('Get the banner of a user/guild.')
@@ -34,7 +35,7 @@ module.exports = {
          */
 
         async execute(interaction) {
-            const { options, client, member, guild, user, channel } = interaction;
+            const { options } = interaction;
             const subcommandGroup = options.getSubcommandGroup();
             const subcommand = options.getSubcommand();
 
