@@ -160,6 +160,25 @@ const WelcomeMessageSchema = new Schema({
 	},
 });
 
+const LeaveMessageSchema = new Schema({
+	guildId: {
+		type: String,
+		required: true,
+	},
+	enabled: {
+		type: Boolean,
+		default: false,
+	},
+	channelId: {
+		type: String,
+		required: true,
+	},
+	message: {
+		type: String,
+		required: true,
+	},
+});
+
 
 
 module.exports = {
@@ -178,4 +197,5 @@ module.exports = {
 	ReactionRoles: model('Guild-Reaction-Roles', ReactionRolesSchema),
 	AutoRoles: model('Guild-Auto-Roles', AutoRolesSchema),
 	WelcomeMessage: model('Guild-Welcome-Message', WelcomeMessageSchema),
+	LeaveMessage: model('Guild-Leave-Message', LeaveMessageSchema),
 };

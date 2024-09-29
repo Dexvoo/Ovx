@@ -1,12 +1,12 @@
 const { Events, EmbedBuilder, Colors, GuildMember, PermissionFlagsBits } = require('discord.js');
 const { cleanConsoleLogData } = require('../../utils/ConsoleLogs.js');
-const { WelcomeMessage } = require('../../models/GuildSetups.js');
+const { LeaveMessage } = require('../../models/GuildSetups.js');
 const { DisabledFeatures } = require('../../utils/Embeds.js');
 
 module.exports = {
-    name: Events.GuildMemberAdd,
+    name: Events.GuildMemberRemove,
     once: false,
-    nickname: 'Welcome Messages',
+    nickname: 'Leave Messages',
 
     /**
      * @param {GuildMember} member
@@ -15,24 +15,24 @@ module.exports = {
         const { guild, client } = member;
 
         try {
-            const welcomeMessagesData = await WelcomeMessage.findOne({ guildId: guild.id });
-            if (!welcomeMessagesData || !welcomeMessagesData.enabled) {
-                return cleanConsoleLogData('Welcome Messages', `Guild: ${guild.name} | Disabled`, 'warning');
+            const leaveMessagesData = await LeaveMessage.findOne({ guildId: guild.id });
+            if (!leaveMessagesData || !leaveMessagesData.enabled) {
+                return cleanConsoleLogData('Leave Messages', `Guild: ${guild.name} | Disabled`, 'warning');
             }
 
-            const channel = guild.channels.cache.get(welcomeMessagesData.channelId);
+            const channel = guild.channels.cache.get(leaveMessagesData.channelId);
             if (!channel) {
-                welcomeMessagesData.enabled = false;
-                await welcomeMessagesData.save();
+                leaveMessagesData.enabled = false;
+                await leaveMessagesData.save();
                 
                 const guildOwner = await guild.fetchOwner();
-                if (guildOwner) DisabledFeatures(client, guildOwner, 'Welcome Messages', `Channel not found`);
+                if (guildOwner) DisabledFeatures(client, guildOwner, 'Leave Messages', `Channel not found`);
                 return;
             }
 
             await guild.members.fetch();
 
-            const message = welcomeMessagesData.message
+            const message = leaveMessagesData.message
                 .replace(/{username}/g, `@${member.user.username}`)
                 .replace(/{usermention}/g, member)
                 .replace(/{server}/g, guild.name)
@@ -43,11 +43,11 @@ module.exports = {
                 .setDescription(message);
 
             channel.send({ content: `<@${member.id}>`, embeds: [Embed] }).catch(async () => { 
-                welcomeMessagesData.enabled = false;
-                welcomeMessagesData.save();
+                leaveMessagesData.enabled = false;
+                leaveMessagesData.save();
                 
                 const guildOwner = await guild.fetchOwner();
-                if (guildOwner) DisabledFeatures(client, guildOwner, 'Welcome Messages', `Missing Permissions`);
+                if (guildOwner) DisabledFeatures(client, guildOwner, 'Leave Messages', `Missing Permissions`);
             });
 
         } catch (error) {

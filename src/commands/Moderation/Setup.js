@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, PermissionFlagsBits, InteractionContextType, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, parseEmoji, StringSelectMenuBuilder, ApplicationIntegrationType } = require('discord.js');
-const { InviteDetection, LevelNotifications, ChannelLogs, MessageLogs, VoiceLogs, RoleLogs, ServerLogs, PunishmentLogs, JoinLeaveLogs, ReactionRoles, Tickets, AutoRoles, WelcomeMessage } = require('../../models/GuildSetups.js');
+const { InviteDetection, LevelNotifications, ChannelLogs, MessageLogs, VoiceLogs, RoleLogs, ServerLogs, PunishmentLogs, JoinLeaveLogs, ReactionRoles, Tickets, AutoRoles, WelcomeMessage, LeaveMessage } = require('../../models/GuildSetups.js');
 const { permissionCheck } = require('../../utils/Checks.js');
 
 module.exports = {
@@ -81,6 +81,27 @@ module.exports = {
                 .addStringOption(option => option
                     .setName('message')
                     .setDescription('Set the message for the welcome ({server}, {username}, {usermention}, {memberCount})')
+                    .setRequired(false)
+                )
+            )
+
+            .addSubcommand(subcommand => subcommand
+                .setName('leavemessages')
+                .setDescription('Setup leaving messages for your server.')
+                .addBooleanOption(option => option
+                    .setName('enabled')
+                    .setDescription('Enable or disable leave messages.')
+                    .setRequired(true)
+                )
+                .addChannelOption(option => option
+                    .setName('channel')
+                    .setDescription('Channel to send the message in.')
+                    .addChannelTypes(ChannelType.GuildText)
+                    .setRequired(false)
+                )
+                .addStringOption(option => option
+                    .setName('message')
+                    .setDescription('Set the message for the leave ({server}, {username}, {usermention}, {memberCount})')
                     .setRequired(false)
                 )
             )
@@ -525,6 +546,9 @@ module.exports = {
                         case 'welcomemessages':
                             await handleWelcomeMessages(interaction);
                             break;
+                        case 'leavemessages':
+                            await handleLeaveMessages(interaction);
+                            break;
                     }
                     break;
             }
@@ -536,6 +560,59 @@ module.exports = {
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
     }
+};
+
+/**
+ * @param {CommandInteraction} interaction
+ */
+
+async function handleLeaveMessages(interaction) {
+    const { options, guild, client, user } = interaction;
+
+    const leaveMessagesEnabled = options.getBoolean('enabled');
+    const leaveMessagesChannel = options.getChannel('channel');
+    const leaveMessagesMessage = options.getString('message');
+
+    if(!leaveMessagesChannel && leaveMessagesEnabled) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide a channel for welcome messages');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    if(!leaveMessagesMessage && leaveMessagesEnabled) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Please provide a message for welcome messages');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    if(leaveMessagesEnabled) {
+        const botPermissionsInLeave = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
+        const [hasLeavePermissions, missingLeavePermissions] = permissionCheck(leaveMessagesChannel, botPermissionsInLeave, client);
+
+        if (!hasLeavePermissions) {
+            const LeaveEmbed = new EmbedBuilder()
+                .setColor(Colors.Red)
+                .setDescription(`Bot Missing Permissions: \`${missingLeavePermissions}\` in ${leaveMessagesChannel}`);
+            return await interaction.reply({ embeds: [LeaveEmbed], ephemeral: true });
+        }
+    }
+
+    await LeaveMessage.findOneAndUpdate({ guildId: guild.id }, { channelId: leaveMessagesChannel?.id, enabled: leaveMessagesEnabled, message: leaveMessagesMessage }, { upsert: true });
+
+    const LeaveEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(`Leave Messages have been ${leaveMessagesEnabled ? 'enabled' : 'disabled'}`);
+
+    await interaction.reply({ embeds: [LeaveEmbed], ephemeral: true });
+
+    const previewEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(leaveMessagesMessage.replace(/{server}/g, guild.name).replace(/{username}/g, user.username).replace(/{usermention}/g, user).replace(/{memberCount}/g, guild.memberCount));
+
+    await leaveMessagesChannel.send({ embeds: [previewEmbed] });
+    
 };
 
 /**

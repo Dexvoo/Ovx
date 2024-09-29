@@ -50,7 +50,7 @@ const init = async () => {
 };
 
 
-cleanConsoleLog('Aqua Catch Discord Bot');
+cleanConsoleLog('Ovx Discord Bot');
 cleanConsoleLogData('Created by: @Dexvo', ' ');
 init();
 
