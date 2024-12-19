@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationIntegrationType } = require('discord.js');
-const { UserCurrency } = require('../../models/UserCurrency');
+const { UserCurrency } = require('../../models/UserSetups');
 const { TopggAPIKey, PublicClientID } = process.env;
 
 module.exports = {

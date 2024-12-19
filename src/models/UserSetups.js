@@ -29,6 +29,22 @@ const UserCurrencySchema = new Schema({
 	
 });
 
+const UserVerificationSchema = new Schema({
+    discordUserId: {
+        type: String,
+        required: true,
+    },
+    robloxUserIds: {
+        type: Array,
+        default: [],
+    },
+    osuUserId: {
+        type: String,
+        default: null,
+    },
+});
+
 module.exports = {
     UserCurrency: model('User-Currency', UserCurrencySchema),
+    UserVerification: model('User-Verification', UserVerificationSchema),
 };

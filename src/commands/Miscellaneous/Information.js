@@ -135,7 +135,7 @@ async function handleUserInformation(interaction) {
 
     const isStaff = hasPermissions ? `• ${SuccessEmoji} •` : `• ${ErrorEmoji} •`;
     const isBot = userMember.user.bot ? `• ${SuccessEmoji} •` : `• ${ErrorEmoji} •`;
-    const isServerBooster = userMember.premiumSince ? `• ${SuccessEmoji} <t:${ new Date(userMember.premiumSince).getTime() / 1000 }:R>•` : `• ${ErrorEmoji} •`;
+    const isServerBooster = userMember.premiumSince ? `• ${SuccessEmoji} ${ getDiscordTimestamp(userMember.premiumSince) } •` : `• ${ErrorEmoji} •`;
     const userJoinedAt = getDiscordTimestamp(userMember.joinedAt);
     const userCreatedAt = getDiscordTimestamp(userMember.user.createdAt);
 

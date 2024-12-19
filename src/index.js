@@ -50,18 +50,15 @@ const init = async () => {
 };
 
 
-cleanConsoleLog('Aqua Catch Discord Bot');
+cleanConsoleLog('Ovx Discord Bot');
 cleanConsoleLogData('Created by: @Dexvo', ' ');
 init();
 
 
-// Cooldowns
-
-
-/**
+	/**
      * @param {Interaction} interaction
      */
-client.on('interactionCreate', async (interaction) => {
+client.on(Events.InteractionCreate, async (interaction) => {
 
 	const { guild, commandName, user  } = interaction;
 	if (!interaction.isCommand()) return;
@@ -149,13 +146,16 @@ client.on('interactionCreate', async (interaction) => {
 
 	try {
 		await command.execute(interaction);
+
 	} catch (error) {
 		console.error(error);
+
 		if (interaction.replied || interaction.deferred) {
 			const Embed = new EmbedBuilder()
 				.setColor('Red')
 				.setDescription('There was an error while executing this command!')
 			await interaction.followUp({ embeds: [Embed] });
+
 		} else {
 			const Embed = new EmbedBuilder()
 				.setColor('Red')

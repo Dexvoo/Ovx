@@ -1,8 +1,7 @@
-const { EmbedBuilder, Events, Interaction, PermissionsBitField, PermissionFlagsBits, ButtonStyle, ActionRowBuilder, ChannelType, ButtonBuilder } = require('discord.js');
+const { EmbedBuilder, Events, Interaction, PermissionFlagsBits } = require('discord.js');
 const { UserTickets } = require('../../models/Tickets');
 const { Tickets } = require('../../models/GuildSetups');
 const { permissionCheck } = require('../../utils/Checks');
-const { execute } = require('../Command Events/CommandIDs');
 const { createTranscript } = require('discord-html-transcripts');
 const { DeveloperMode } = process.env;
 

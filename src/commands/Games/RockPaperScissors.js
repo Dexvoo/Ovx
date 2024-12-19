@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, PermissionFlagsBits, ButtonBuilder, ButtonStyle, ActionRowBuilder, User, ApplicationIntegrationType } = require('discord.js');
-const { UserCurrency } = require('../../models/UserCurrency');
+const { UserCurrency } = require('../../models/UserSetups');
 
 const choices = [
     { name: 'Rock', beats: 'Scissors', emoji: '🪨' },

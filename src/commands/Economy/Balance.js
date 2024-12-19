@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, CommandInteraction, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
-const { UserCurrency } = require('../../models/UserCurrency');
+const { UserCurrency } = require('../../models/UserSetups');
 
 module.exports = {
     cooldown: 5,

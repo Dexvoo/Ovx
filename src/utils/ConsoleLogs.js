@@ -1,6 +1,6 @@
 const cleanConsoleLog = (log) => {
 	// making sure the string is not longer than 84 characters
-	console.log(`|${log.padStart(82 + log.length / 2, '-').padEnd(169, '-')}|`);
+	console.log(`|${log.padStart(82 + log.length / 2, '-').padEnd(140, '-')}|`);
 };
 
 const cleanConsoleLogData = (title, description, type) => {
@@ -39,7 +39,7 @@ const cleanConsoleLogData = (title, description, type) => {
 	}
 
 	const string = `${title} \u001b[0m| ${type}${description} \u001b[0m`.padEnd(
-		190,
+		161,
 		' '
 	);
 	console.log(`| ${string}|`);
