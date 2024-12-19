@@ -73,8 +73,6 @@ module.exports = {
 
         if(!target) {
             
-            const BotChoice = choices[Math.floor(Math.random() * choices.length)];
-
             const StartGameEmbed = new EmbedBuilder()
                 .setColor('Blurple')
                 .setDescription(messages.BotChallenge.replace('{amount}', amount));
