@@ -41,9 +41,6 @@ module.exports = {
             return await interaction.reply({ embeds: [Embed], ephemeral: true });
         }
 
-
-        // upsert the user in the database
-        
         await AFKUsers.findOneAndUpdate({ userId: user.id }, { userId: user.id, reason: status, timestamp: Date.now() }, { upsert: true });
 
         const AFKEmbed = new EmbedBuilder()
