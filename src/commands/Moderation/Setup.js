@@ -448,7 +448,6 @@ module.exports = {
                                         }
                                     }
 
-                                    // how would you handle multiple logs?
                                     const updateLogs = [
                                         MessageLogs.findOneAndUpdate({ guildId: guild.id }, { channelId: channel?.id, enabled: enabled }, { upsert: true }),
                                         ChannelLogs.findOneAndUpdate({ guildId: guild.id }, { channelId: channel?.id, enabled: enabled }, { upsert: true }),
@@ -489,8 +488,6 @@ module.exports = {
                                 }
 
                             }
-                            // loop over all the reaction roles in the guild and make sure they are all valid
-                            // if not delete them from the database and the message
 
                             const reactionRolesDataCheck = await ReactionRoles.find({ guildId: guild.id });
 
@@ -1205,7 +1202,6 @@ async function handleTickets(interaction) {
     const adminRole = options.getRole('admin-role');
                     
     if (!enabled) {
-        // Disable tickets
     
         let TicketData = await Tickets.findOne({ guildId: guild.id });
     

@@ -180,6 +180,26 @@ const LeaveMessageSchema = new Schema({
 });
 
 
+const ServerBoostMessages = new Schema({
+	guildId: {
+		type: String,
+		required: true,
+	},
+	enabled: {
+		type: Boolean,
+		default: false,
+	},
+	channelId: {
+		type: String,
+		required: true,
+	},
+	message: {
+		type: String,
+		required: true,
+	},
+});
+
+
 
 module.exports = {
 	InviteDetection: model('Guild-Invite-Detection', InviteDetectionSchema),
@@ -198,4 +218,5 @@ module.exports = {
 	AutoRoles: model('Guild-Auto-Roles', AutoRolesSchema),
 	WelcomeMessage: model('Guild-Welcome-Message', WelcomeMessageSchema),
 	LeaveMessage: model('Guild-Leave-Message', LeaveMessageSchema),
+	ServerBoostMessage: model('Guild-Server-Boost-Message', ServerBoostMessages),
 };
