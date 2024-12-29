@@ -43,7 +43,7 @@ module.exports = {
 
 
         // upsert the user in the database
-        await AFKUsers.findOneAndUpdate({ guildId: guild.id, userId: user.id }, { guildId: guild.id, userId: user.id, status: status }, { upsert: true });
+        await AFKUsers.findOneAndUpdate({ guildId: guild.id, userId: user.id }, { guildId: guild.id, userId: user.id, status: status, timestamp: Date.now() }, { upsert: true });
 
         const AFKEmbed = new EmbedBuilder()
             .setColor('Blurple')
