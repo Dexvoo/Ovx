@@ -2,7 +2,7 @@ const { GuildMember, GuildChannel, VoiceBasedChannel, EmbedBuilder, PermissionFl
 const { VoiceXP, MessageXP, LevelForExp, ExpForLevel } = require('./XPMathematics');
 const { UserLevels } = require('../../models/Levels');
 const { LevelNotifications } = require('../../models/GuildSetups');
-const { UserLevelLoggingChannelID } = process.env;
+const { UserLevelLoggingChannelID, PublicClientID, TopggAPIKey } = process.env;
 
 
 
@@ -21,7 +21,16 @@ async function addUserVoiceXP(member, channel, guildRewards, timeInChannel) {
 
     let levelData = await UserLevels.findOne({ userId: user.id, guildId: guild.id });
     let newLevel, xpLeftover, newVoiceMinutes, oldTotalXP = 0;
-    const randomXP = VoiceXP(timeInChannel);
+
+    const hasVoted = await fetch(`https://top.gg/api/bots/${PublicClientID}/check?userId=${user.id}`, {
+        headers: {
+            'Authorization': TopggAPIKey
+        }}).then(res => res.json()).then(json => json.voted);
+
+    var randomXP = VoiceXP(timeInChannel);
+    if (hasVoted) {
+        randomXP = randomXP + (Math.floor(randomXP * 0.1));
+    }
 
     if(!levelData) {
         [newLevel, xpLeftover] = LevelForExp(randomXP);
@@ -69,7 +78,17 @@ async function addUserMessageXP(member, channel, guildRewards) {
 
     let levelData = await UserLevels.findOne({ userId: user.id, guildId: guild.id });
     let newLevel, xpLeftover, newNumMessages, oldTotalXP = 0;
-    const randomXP = MessageXP();
+
+    const hasVoted = await fetch(`https://top.gg/api/bots/${PublicClientID}/check?userId=${user.id}`, {
+        headers: {
+            'Authorization': TopggAPIKey
+        }}).then(res => res.json()).then(json => json.voted);
+
+    var randomXP = MessageXP()
+    if (hasVoted) {
+        randomXP = randomXP + (Math.floor(randomXP * 0.1));
+    }
+
 
     if (!levelData) {
         [newLevel, xpLeftover] = LevelForExp(randomXP);

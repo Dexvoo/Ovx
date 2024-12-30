@@ -27,7 +27,7 @@ module.exports = {
 
         const Embed = new EmbedBuilder()
             .setColor(Colors.Blurple)
-            .setDescription('Click the button below to vote for the bot on top.gg')
+            .setDescription(`10% more XP for 12 hours! Click the button below to vote for the bot on top.gg`)
 
         await interaction.reply({ embeds: [Embed], components: [button] });
     }

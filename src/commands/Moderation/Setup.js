@@ -41,6 +41,34 @@ module.exports = {
             )
 
             .addSubcommand(subcommand => subcommand
+                .setName('levelblacklist')
+                .setDescription('Setup level blacklist for your server.')
+                .addStringOption(option => option
+                    .setName('type')
+                    .setDescription('Add or remove roles/channels from the blacklist.')
+                    .setRequired(true)
+                    .addChoices(
+                        { name: 'Add', value: 'add' },
+                        { name: 'Remove', value: 'remove' },
+                        { name: 'List', value: 'list' }
+                    )
+
+                )
+                .addRoleOption(option => option
+                    .setName('role')
+                    .setDescription('Set the role for the blacklist.')
+                    .setRequired(false)
+                )
+                .addChannelOption(option => option
+                    .setName('channel')
+                    .setDescription('Set the channel for the blacklist.')
+                    .addChannelTypes(ChannelType.GuildText, ChannelType.GuildVoice)
+                    .setRequired(false)
+                )
+            )
+
+
+            .addSubcommand(subcommand => subcommand
                 .setName('levelrewards')
                 .setDescription('Setup level rewards for your server.')
                 .addStringOption(option => option
@@ -253,6 +281,9 @@ module.exports = {
                             break;
                         case 'levels':
                             await handleLevels(interaction);
+                            break;
+                        case 'levelblacklist':
+                            await handleLevelBlacklist(interaction);
                             break;
                         case 'levelrewards':
                             await handleLevelRewards(interaction);
@@ -1010,6 +1041,136 @@ async function handleReactionRoleList(interaction) {
     await interaction.reply({ embeds: [ListEmbed] });
 };
 
+
+async function handleLevelBlacklist(interaction) {
+    const { options, guild } = interaction;
+    const type = options.getString('type');
+    const role = options.getRole('role');
+    const channel = options.getChannel('channel');
+
+    let LevelBlacklistData = await LevelNotifications.findOne({ guildId: guild.id });
+
+    if (!LevelBlacklistData) {
+        const Embed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setDescription('Level Notifications have not been enabled in this guild | To enable them a server admin can use `/setup guild levelnotifications`');
+        return await interaction.reply({ embeds: [Embed], ephemeral: true });
+    }
+
+    switch (type) {
+        case 'add':
+            if (!role && !channel) {
+                const Embed = new EmbedBuilder()
+                    .setColor(Colors.Red)
+                    .setDescription('Please provide a role or channel for the blacklist');
+                return await interaction.reply({ embeds: [Embed], ephemeral: true });
+            }
+
+            if (role) {
+                if (LevelBlacklistData.blacklisted.roles.includes(role.id)) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('Role already exists in the blacklist');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                LevelBlacklistData.blacklisted.roles.push(role.id);
+
+                const AddEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`Role ${role} has been added to the blacklist`);
+                await interaction.reply({ embeds: [AddEmbed], ephemeral: true });
+            }
+
+            if (channel) {
+                if (LevelBlacklistData.blacklisted.channels.includes(channel.id)) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('Channel already exists in the blacklist');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                LevelBlacklistData.blacklisted.channels.push(channel.id);
+
+                const AddEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`Channel ${channel} has been added to the blacklist`);
+                await interaction.reply({ embeds: [AddEmbed], ephemeral: true });
+            }
+
+            await LevelBlacklistData.save();
+            break;
+
+        case 'remove':
+            if (!role && !channel) {
+                const Embed = new EmbedBuilder()
+                    .setColor(Colors.Red)
+                    .setDescription('Please provide a role or channel for the blacklist');
+                return await interaction.reply({ embeds: [Embed], ephemeral: true });
+            }
+
+            if (role) {
+                if (!LevelBlacklistData.blacklisted.roles.includes(role.id)) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('Role does not exist in the blacklist');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                LevelBlacklistData.blacklisted.roles = LevelBlacklistData.blacklisted.roles.filter(roleId => roleId !== role.id);
+
+                const RemoveEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`Role ${role} has been removed from the blacklist`);
+                await interaction.reply({ embeds: [RemoveEmbed], ephemeral: true });
+            }
+
+            if (channel) {
+                if (!LevelBlacklistData.blacklisted.channels.includes(channel.id)) {
+                    const Embed = new EmbedBuilder()
+                        .setColor(Colors.Red)
+                        .setDescription('Channel does not exist in the blacklist');
+                    return await interaction.reply({ embeds: [Embed], ephemeral: true });
+                }
+
+                LevelBlacklistData.blacklisted.channels = LevelBlacklistData.blacklisted.channels.filter(channelId => channelId !== channel.id);
+
+                const RemoveEmbed = new EmbedBuilder()
+                    .setColor(Colors.Blurple)
+                    .setDescription(`Channel ${channel} has been removed from the blacklist`);
+                await interaction.reply({ embeds: [RemoveEmbed], ephemeral: true });
+            }
+
+            await LevelBlacklistData.save();
+            break;
+
+        case 'list':
+            if (!LevelBlacklistData) {
+                const Embed = new EmbedBuilder()
+                    .setColor(Colors.Red)
+                    .setDescription('Level Notifications have not been enabled in this guild | To enable them a server admin can use `/setup guild levelnotifications`');
+                return await interaction.reply({ embeds: [Embed], ephemeral: true });
+            }
+
+            const roles = LevelBlacklistData.blacklisted.roles.map(roleId => guild.roles.cache.get(roleId)).filter(role => role);
+            const channels = LevelBlacklistData.blacklisted.channels.map(channelId => guild.channels.cache.get(channelId)).filter(channel => channel);
+
+            if (roles.length === 0 && channels.length === 0) {
+                const Embed = new EmbedBuilder()
+                    .setColor(Colors.Red)
+                    .setDescription('No blacklist roles/channels set');
+                return await interaction.reply({ embeds: [Embed], ephemeral: true });
+            }
+
+            const ListEmbed = new EmbedBuilder()
+                .setTitle('Level Blacklist')
+                .setColor(Colors.Blurple)
+                .setDescription(`Roles: ${roles.join(', ')}\n\nChannels: ${channels.join(', ')}` || 'No blacklist set');
+
+            await interaction.reply({ embeds: [ListEmbed] });
+            break;
+    }
+}
 
 /**
  * @param {CommandInteraction} interaction

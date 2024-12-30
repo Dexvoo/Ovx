@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { PublicToken, DevToken, PublicClientID, DevClientID, DeveloperMode, DevGuildID } = process.env;
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord.js');

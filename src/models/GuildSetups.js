@@ -54,6 +54,18 @@ const LevelNotificationsSchema = new Schema({
 		type: Boolean,
 		default: false,
 	},
+
+	blacklisted: {
+        roles: {
+            type: [String],
+            default: [],
+        },
+        channels: {
+            type: [String],
+            default: [],
+        },
+    },
+
 	levelRewards: {
 		type: Array,  
 		default: [],
