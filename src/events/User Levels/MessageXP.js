@@ -22,6 +22,8 @@ module.exports = {
         // Exit if message is from a bot, outside a guild, or in developer mode
         if (!guild || author.bot || DeveloperMode === 'true') return;
 
+        if(message.content.length < 5) return addCooldown(author.id);
+
         // Check if user is on cooldown
         if (cooldowns.has(author.id)) return;
 

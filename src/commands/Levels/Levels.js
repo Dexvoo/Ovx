@@ -131,7 +131,7 @@ async function handleRankCommand(interaction) {
         .setThumbnail(rankUser.displayAvatarURL({ dynamic: true }))
         .addFields(
             { name: 'Level', value: `**${userData.level}**`, inline: true },
-            { name: 'XP', value: `**${userData.xp}**`, inline: true },
+            { name: 'XP', value: `**${userData.xp}/${ExpForLevel(userData.level)}**`, inline: true },
             { name: 'Messages', value: `**${userData.totalMessages}**`, inline: true },
             { name: 'Voice Time', value: `**${userData.totalVoice}** minutes`, inline: true }
         )
