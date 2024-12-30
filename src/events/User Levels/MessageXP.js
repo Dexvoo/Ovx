@@ -20,7 +20,7 @@ module.exports = {
         const { client, guild, author, member, channel: messageChannel } = message;
 
         // Exit if message is from a bot, outside a guild, or in developer mode
-        // if (!guild || author.bot || DeveloperMode === 'true') return;
+        if (!guild || author.bot || DeveloperMode === 'true') return;
 
         // Check if user is on cooldown
         if (cooldowns.has(author.id)) return;
