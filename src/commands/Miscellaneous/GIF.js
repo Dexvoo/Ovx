@@ -39,6 +39,14 @@ module.exports = {
 
         const json = await response.json();
         const randomNumber = Math.floor(Math.random() * (50 - 0) + 0);
+
+        if(json.results.length === 0) {
+            const NoResultsEmbed = new EmbedBuilder()
+                .setColor('Red')
+                .setDescription('No results found for the given query.');
+            return await interaction.reply({ embeds: [NoResultsEmbed], ephemeral: true });
+        }
+        
         const gifUrl = json.results[randomNumber].url;
 
         interaction.reply({ content: gifUrl });
