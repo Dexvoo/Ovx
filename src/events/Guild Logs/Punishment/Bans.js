@@ -15,9 +15,15 @@ module.exports = {
      */
 
     async execute(ban) {
-        const { guild, client, user, reason } = ban;
-
+        const { guild, client, user } = ban;
+        
+        
         if(!guild || DeveloperMode === 'true') return;
+        // fetch the current ban
+        const fetchedBan = await guild.bans.fetch(user.id).catch(() => { });
+        if(!fetchedBan) return;
+
+        const { reason } = fetchedBan;
 
         const guildPunishmentLogs = await PunishmentLogs.findOne({ guildId: guild.id });
 
