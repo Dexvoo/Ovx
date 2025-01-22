@@ -49,7 +49,7 @@ module.exports = {
             return DisabledFeatures(client, guildOwner, 'Join Logs', `Missing Permissions: \`${missingPermissions}\``);
         }
 
-        const placed = member.guild.members.cache.size;
+        const placed = await guild.members.fetch();
         const suffix = placed % 10 == 1 && placed % 100 != 11 ? "st" : placed % 10 == 2 && placed % 100 != 12 ? "nd" : placed % 10 == 3 && placed % 100 != 13 ? "rd" : "th";
 
         description = [
