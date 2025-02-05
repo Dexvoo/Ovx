@@ -43,7 +43,7 @@ module.exports = {
                 );
             }
 
-            Embed.addFields({ name: 'Command', value: `\`${interaction}\``, inline: false });
+            Embed.addFields({ name: 'Command', value: `\`${interaction.substring(0, 1020)}\``, inline: false });
 
             await devChannel.send({ embeds: [Embed] });
         } catch (error) {

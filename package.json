@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@iamtraction/google-translate": "^2.0.1",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",
     "mongoose": "^8.9.6",
