@@ -43,7 +43,12 @@ module.exports = {
                 );
             }
 
-            Embed.addFields({ name: 'Command', value: `\`${interaction.substring(0, 1020)}\``, inline: false });
+            let commandText = `/${interaction.commandName}`
+            for(let i = 0; i < interaction.options.data.length;i++ ) {
+                commandText = `${commandText} ${interaction.options.data[i].name}:${interaction.options.data[i].value}`
+            } 
+            
+            Embed.addFields({ name: 'Command', value: `\`${commandText.substring(0, 1020)}\``, inline: false });
 
             await devChannel.send({ embeds: [Embed] });
         } catch (error) {
