@@ -1,4 +1,4 @@
-const { Events, Client, CommandInteraction, EmbedBuilder, Colors } = require('discord.js');
+const { Events, Client, CommandInteraction, EmbedBuilder, Colors, ApplicationCommandOptionType } = require('discord.js');
 const { consoleLogData } = require('../../utils/LoggingData.js');
 require('dotenv').config();
 
@@ -44,15 +44,30 @@ module.exports = {
             }
 
             let commandText = `/${interaction.commandName}`
-            for(let i = 0; i < interaction.options.data.length;i++ ) {
-                commandText = `${commandText} ${interaction.options.data[i].name}:${interaction.options.data[i].value}`
-            } 
+
+            if(interaction.options.data) {
+                commandText = `${commandText} ${interaction.options.data[0].name}`
+                if(interaction.options.data[0].type === ApplicationCommandOptionType.SubcommandGroup) {
+                    if(interaction.options.data[0].options[0].type === ApplicationCommandOptionType.Subcommand) {
+                        commandText = `${commandText} ${interaction.options.data[0].options[0].name}`
+                        for(const option of interaction.options.data[0].options[0].options) {
+                            commandText = `${commandText} ${option.name}:${option.value}`
+                        }
+                    } else {
+                        for(const option of interaction.options.data[0].options[0]) {
+                            commandText = `${commandText} ${option.name}:${option.value}`
+                        }
+                    }
+                } else {
+                    commandText = `${commandText}:${interaction.options.data[0].value}`
+                }
+            }
             
             Embed.addFields({ name: 'Command', value: `\`${commandText.substring(0, 1020)}\``, inline: false });
 
             await devChannel.send({ embeds: [Embed] });
         } catch (error) {
-            consoleLogData('Command Logs', `Failed to send embed: ${error.message}`, 'error');
+            console.log(error)
         }
     }
 };

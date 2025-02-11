@@ -43,7 +43,7 @@ module.exports = {
 
     async execute(interaction) {
         const { options, client } = interaction;
-        await interaction.deferReply()
+        await interaction.deferReply();
         
         const targetCommand =  options.getString('command');
 
@@ -71,13 +71,13 @@ module.exports = {
             const Embed = new EmbedBuilder()
                 .setColor(Colors.Red)
                 .setDescription(`\`${targetCommand}\` does not exist!`);
-            return await interaction.editReply({embeds: [Embed]})
+            return await interaction.editReply({embeds: [Embed]});
         }
 
         const commandName = command.data.name ? command.data.name.charAt(0).toUpperCase() + command.data.name.slice(1) : 'No name found';
         const commandDescription = command.data.description ? command.data.description : 'No description found';
         const commandTest = command.commandTags ? command.commandTags.join('\n') : 'No command found';
-        let embedDescription = '';
+        let embedDescription = `-# ${commandDescription}\n${commandTest}`
         var i = 0
         if(command.data.options) {
             for(const option of command.data.options) {
@@ -116,7 +116,7 @@ module.exports = {
             .setTitle(`Command: ${commandName}`)
             .setDescription(embedDescription);
 
-            await interaction.editReply({ embeds: [Embed]})
+            await interaction.editReply({ embeds: [Embed]});
         
     }
 };

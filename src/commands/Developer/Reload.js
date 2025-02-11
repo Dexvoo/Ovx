@@ -45,6 +45,13 @@ module.exports = {
     async execute(interaction) {
         const { options } = interaction;
 
+        if(!DeveloperIDs.includes(interaction.user.id)) {
+            const Embed = new EmbedBuilder()
+                .setColor(Colors.Red)
+                .setDescription('You do not have permission to use this command');
+            return interaction.reply({ embeds: [Embed] });
+        }
+        
         const commandName = options.getString('command').toLowerCase();
         const command = interaction.client.commands.get(commandName);
 
@@ -55,12 +62,6 @@ module.exports = {
             return interaction.reply({ embeds: [Embed] });
         }
 
-        if(!DeveloperIDs.includes(interaction.user.id)) {
-            const Embed = new EmbedBuilder()
-                .setColor(Colors.Red)
-                .setDescription('You do not have permission to use this command');
-            return interaction.reply({ embeds: [Embed] });
-        }
 
         const commandPath = path.join(__dirname, '..', '..', 'commands');
         const url = await crawlDirectory(commandPath, commandName);
