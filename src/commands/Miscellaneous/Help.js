@@ -76,40 +76,62 @@ module.exports = {
 
         const commandName = command.data.name ? command.data.name.charAt(0).toUpperCase() + command.data.name.slice(1) : 'No name found';
         const commandDescription = command.data.description ? command.data.description : 'No description found';
-        const commandTest = command.commandTags ? command.commandTags.join('\n') : 'No command found';
-        let embedDescription = `-# ${commandDescription}\n${commandTest}`
-        var i = 0
-        if(command.data.options) {
+        const commandTags = command.commandTags ? command.commandTags.join('\n') : 'No command found';
+        let embedDescription = `-# ${commandDescription}`
+        // console.log(command)
+
+        let OptionsCount = 0
+        if(command.data.options.length > 0) {
+
             for(const option of command.data.options) {
+                // console.log(option)
                 if(option instanceof SlashCommandSubcommandGroupBuilder) {
-                    embedDescription += `**${option.name}** (sub group)`
+                    console.log('Sub Group Options')
+                    // console.log(option)
+                    embedDescription = `${embedDescription}\n# ${option.name} : *${option.description}*` // Sub group name
 
-                    if(option.options) {
-                        
-                        for(const sub of option.options) {
+                    if(option.options.length > 0){
+                        for(const options2 of option.options) {
+                            // console.log(options2)
+                            const commandTag = command.commandTags.find(cmd => cmd.includes(options2.name))
+                            embedDescription = `${embedDescription}\n\n${commandTag} : *${options2.description}*` // command names
 
-                            embedDescription += `\n\n**${sub.name.charAt(0).toUpperCase() + sub.name.slice(1)}:**\n${command.commandTags[i]}\n`
-                            if(sub.options) {
-                                const arrayOptions = [];
-                                for(const subsub of sub.options) {
-                                    arrayOptions.push(`${subsub.name} : ${subsub.description}`)
+                            if(options2.options.length > 0) {
+                                for(const options3 of options2.options) {
+                                    console.log(options3)
+                                    embedDescription = `${embedDescription}\n\`{${options3.name}} - ${options3.description}\``
                                 }
-
-                                embedDescription += `\`${arrayOptions.join('\n')}\``
                             }
-                            i++;
-                            
                         }
                     }
-                    i = 0
+
+                } else if(option instanceof SlashCommandSubcommandBuilder) {
+                    console.log('Sub Options')
+                    const commandTag = command.commandTags.find(cmd => cmd.includes(option.name))
+                    embedDescription = `${embedDescription}\n\n**${commandTag}** : *${option.description}*`
+                    if(option.options.length > 0) {
+                        // console.log(option.options)
+                        for(const option2 of option.options) {
+                            embedDescription = `${embedDescription}\n\`{${option2.name}} - ${option2.description}\``
+                        }
+                    }
                 } else {
-                    if(i === 0) embedDescription += `${command.commandTags[i]}\n\`${option.name} : ${option.description}\``
-                    else embedDescription += `\n\`${option.name} : ${option.description}\``;
-                    i++;
+                    console.log('Some Options')
+                    if(OptionsCount > 0) {
+                        embedDescription = `${embedDescription}\n\`{${option.name}} - ${option.description}\``
+                    } else {
+                        const commandTag = command.commandTags.find(cmd => cmd.includes(command.data.name))
+                        embedDescription = `${embedDescription}\n${commandTag} : \n\`{${option.name}} - ${option.description}\``
+                        OptionsCount++
+                    }
                 }
             }
-            i = 0;
-        };
+
+        } else {
+            console.log('No Options')
+            const commandTag = command.commandTags.find(cmd => cmd.includes(command.data.name))
+            embedDescription = `${embedDescription}\n${commandTag}`
+        }
 
         const Embed = new EmbedBuilder()
             .setColor(Colors.Blurple)

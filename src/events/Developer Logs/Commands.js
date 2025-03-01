@@ -45,7 +45,7 @@ module.exports = {
 
             let commandText = `/${interaction.commandName}`
 
-            if(interaction.options.data) {
+            if(interaction.options.data[0]) {
                 commandText = `${commandText} ${interaction.options.data[0].name}`
                 if(interaction.options.data[0].type === ApplicationCommandOptionType.SubcommandGroup) {
                     if(interaction.options.data[0].options[0].type === ApplicationCommandOptionType.Subcommand) {

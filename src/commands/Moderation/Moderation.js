@@ -13,6 +13,7 @@ module.exports = {
         .setDescription('Ban, unban, kick, timeout, remove timeout, purge messages, or change the nickname of a user')
         .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
         .setContexts( InteractionContextType.Guild )
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild | PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers | PermissionFlagsBits.ModerateMembers)
         
         .addSubcommand(subcommand => subcommand
             .setName('ban')
@@ -53,6 +54,28 @@ module.exports = {
                 .setRequired(false)
             )
         )
+
+
+        .addSubcommand(subcommand => subcommand
+            .setName('mute')
+            .setDescription('Timeout a user')
+            .addUserOption(option => option
+                .setName('user')
+                .setDescription('The user to timeout')
+                .setRequired(true)
+            )
+            .addStringOption((option) =>
+                option
+                    .setName('duration')
+                    .setDescription('How long do you want to timeout this user for? e.g. "10m, 1d, 1w"')
+                    .setRequired(true)
+            )
+            .addStringOption(option => option
+                .setName('reason')
+                .setDescription('The reason for the timeout')
+                .setRequired(false)
+            )
+        )
         
         ,
     /**
@@ -73,9 +96,11 @@ module.exports = {
             case 'kick':
                 await KickUser(interaction);
                 break;
+            case 'mute':
+                await MuteUser(interaction);
             default: 
                 consoleLogData('Moderation Command', `Unknown subcommand`, `error`)
-                SendEmbed(interaction, Colors.Red, 'Failed Command', 'Unkown subcommand')
+                SendEmbed(interaction, Colors.Red, 'Failed Command', 'Unknown subcommand')
             break;
         };
 
@@ -155,8 +180,6 @@ async function BanUser(interaction) {
 async function UnbanUser(interaction) {
     const { options, guild, client, member } = interaction;
 
-    return
-
     const targetUser = options.getUser('user');
     const botMember = guild.members.me;
 
@@ -216,7 +239,7 @@ async function KickUser(interaction) {
     if(!targetMember) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `User is not in the server`, []);
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `User Missing Permissions | \`BanMembers\``, []);
+    if(!member.permissions.has(PermissionFlagsBits.Kick)) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `User Missing Permissions | \`BanMembers\``, []);
     if(!botMember.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `Bot Missing Permissions | \`BanMembers\``, []);
 
     

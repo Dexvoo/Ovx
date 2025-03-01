@@ -14,6 +14,7 @@ module.exports = {
         .setDescription('(Developer) Reloads a command')
         .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
         .setContexts( InteractionContextType.Guild )
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         
         .addStringOption(option =>
             option.setName('command')
