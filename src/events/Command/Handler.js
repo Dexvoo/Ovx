@@ -1,5 +1,6 @@
 const { Events, EmbedBuilder, CommandInteraction, Collection, MessageFlags } = require('discord.js')
 const { permissionCheck } = require('../../utils/Permissions.js')
+const { ShortTimestamp } = require('../../utils/LoggingData.js')
 require('dotenv').config()
 
 const { DeveloperIDs } = process.env;
@@ -32,19 +33,19 @@ module.exports = {
 			const expirationTime = timestamps.get(user.id) + cooldownAmount;
 
 			if (now < expirationTime) {
-				const expiredTimestamp = Math.round(expirationTime / 1000);
 				const CooldownEmbed = new EmbedBuilder()
 					.setTitle('Command Cooldown')
 					.setDescription('You are on cooldown!')
 					.addFields(
 						{ name: 'Command', value: `\`/${command.data.name}\``,inline: true},
-						{ name: 'Cooldown Ends', value: `<t:${expiredTimestamp}:R>`}
+						{ name: 'Cooldown Ends', value: ShortTimestamp(expirationTime), inline: true }
 					);
-				return await interaction.reply({ embeds: [CooldownEmbed], ephemeral: true });
+				return await interaction.reply({ embeds: [CooldownEmbed], flags: [MessageFlags.Ephemeral] });
 			}
 		}
 
 		if(!DeveloperIDs.includes(user.id)) timestamps.set(user.id, now) && setTimeout(() => timestamps.delete(user.id), cooldownAmount);
+		timestamps.set(user.id, now) && setTimeout(() => timestamps.delete(user.id), cooldownAmount);
 
 		if(guild) {
 
@@ -66,7 +67,7 @@ module.exports = {
 					const Embed = new EmbedBuilder()
 						.setColor('Red')
 						.setDescription(`User Missing Permissions: \`${missingPermissions}\``);
-					return await interaction.reply({ embeds: [Embed], ephemeral: true });
+					return await interaction.reply({ embeds: [Embed], flags: [MessageFlags.Ephemeral] });
 				}
 			}
 		}

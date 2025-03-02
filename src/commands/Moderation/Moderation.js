@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, Colors, CommandInteraction, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, GuildMember, Client, User, MessageFlags } = require('discord.js');
-const { SendEmbed, consoleLogData } = require('../../utils/LoggingData')
+const { SendEmbed, consoleLogData, ShortTimestamp } = require('../../utils/LoggingData')
 require('dotenv').config();
+const ms = require('ms');
 const { DeveloperIDs } = process.env;
 
 module.exports = {
@@ -10,7 +11,7 @@ module.exports = {
     botpermissions: [],
     data: new SlashCommandBuilder()
         .setName('moderation')
-        .setDescription('Ban, unban, kick, timeout, remove timeout, purge messages, or change the nickname of a user')
+        .setDescription('Ban, unban, kick, mute, unmute, purge messages, or change the nickname of a user')
         .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
         .setContexts( InteractionContextType.Guild )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild | PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers | PermissionFlagsBits.ModerateMembers)
@@ -76,7 +77,28 @@ module.exports = {
                 .setRequired(false)
             )
         )
+
+        .addSubcommand(subcommand => subcommand
+            .setName('unmute')
+            .setDescription('Remove a mute from a user')
+            .addUserOption(option => option
+                .setName('user')
+                .setDescription('The user to remove a mute')
+                .setRequired(true)
+            )
+        )
         
+        .addSubcommand(subcommand => subcommand
+            .setName('purge')
+            .setDescription('Remove a specific amount of messages')
+            .addIntegerOption(option => option
+                .setName('amount')
+                .setDescription('The amount of messages to purge')
+                .setMaxValue(100)
+				.setMinValue(1)
+                .setRequired(true)
+            )
+        )
         ,
     /**
     * @param {CommandInteraction} interaction
@@ -98,6 +120,13 @@ module.exports = {
                 break;
             case 'mute':
                 await MuteUser(interaction);
+                break;
+            case 'unmute':
+                await UnmuteUser(interaction);
+                break;
+            case 'purge':
+                await PurgeMessages(interaction);
+                break;
             default: 
                 consoleLogData('Moderation Command', `Unknown subcommand`, `error`)
                 SendEmbed(interaction, Colors.Red, 'Failed Command', 'Unknown subcommand')
@@ -239,8 +268,8 @@ async function KickUser(interaction) {
     if(!targetMember) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `User is not in the server`, []);
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.Kick)) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `User Missing Permissions | \`BanMembers\``, []);
-    if(!botMember.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `Bot Missing Permissions | \`BanMembers\``, []);
+    if(!member.permissions.has(PermissionFlagsBits.KickMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `User Missing Permissions | \`KickMembers\``, []);
+    if(!botMember.permissions.has(PermissionFlagsBits.KickMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `Bot Missing Permissions | \`KickMembers\``, []);
 
     
     // Checks
@@ -271,7 +300,7 @@ async function KickUser(interaction) {
     
     // Kick user
     try {
-        await targetMember.kick({ reason: `Banned by @${member.user.username} for: ${reason}` })
+        await targetMember.kick({ reason: `Kicked by @${member.user.username} for: ${reason}` })
     } catch (error) {
         return SendEmbed(interaction, Colors.Red, 'Failed Kick', `Could not kick user : ${error}`);
     }
@@ -282,3 +311,124 @@ async function KickUser(interaction) {
     ]);
 
 };
+
+
+/**
+* @param {CommandInteraction} interaction
+*/
+async function MuteUser(interaction) {
+    const { options, guild, client, member } = interaction;
+
+    const targetUser = options.getUser('user');
+    const targetMember = options.getMember('user');
+    const duration = ms(options.getString('duration'));
+    const reason = options.getString('reason') || 'No reason provided';
+    const botMember = guild.members.me;
+
+    if(!targetMember) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `User is not in the server`, []);
+
+    // Permissions
+    if(!member.permissions.has(PermissionFlagsBits.ModerateMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `User Missing Permissions | \`ModerateMembers\``, []);
+    if(!botMember.permissions.has(PermissionFlagsBits.ModerateMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `Bot Missing Permissions | \`ModerateMembers\``, []);
+
+    
+    // Checks
+    if(targetUser.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Mute', 'I can\'t mute myself', []);
+    if(targetUser.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Mute', 'You can\'t mute yourself', []);
+    if(targetMember.isCommunicationDisabled()) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `${targetMember} is already muted, It ends ${ShortTimestamp(targetMember.communicationDisabledUntil)}`, []);
+    if(!targetMember.moderatable) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `Bot Missing Permissions | \`RoleHierarchy\``, []);
+    if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `You can\'t mute a member with a higher role than you`, []);
+    if(!duration) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `Please provide a valid duration of time e.g. 10m, 1h, 1d`, []);
+    if(duration > 28 * 24 * 60 * 60 * 1000) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `You can't mute a user for longer than 28 days`, []);
+
+    
+    // If user is in the discord, DM them
+    const DMEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(`You have been muted in **${guild.name}**`)
+        .addFields(
+            { name: 'Reason', value: reason, inline: false },
+            { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true },
+            { name: 'Duration', value: ms(duration, { long: true }), inline: true }
+        );
+        
+    try {
+        await targetMember.send({embeds: [DMEmbed]});
+    } catch (error) {
+        const FailedDMEmbed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setTitle('DM Failed')
+            .setDescription(`Could not DM user`)
+        interaction.followUp({ embeds: [FailedDMEmbed], flags: [MessageFlags.Ephemeral] });
+    };
+    
+    // Mute user
+    try {
+        await targetMember.disableCommunicationUntil(Date.now() + duration, `Muted by @${member.user.username} for: ${reason}`);
+    } catch (error) {
+        return SendEmbed(interaction, Colors.Red, 'Failed Mute', `Could not mute user : ${error}`);
+    }
+
+    SendEmbed(interaction, Colors.Blurple, 'Mute Successful', `You muted ${targetUser}`, [
+        { name: 'Reason', value: reason, inline: false },
+        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true },
+        { name: 'Duration', value: ms(duration, { long: true }), inline: true }
+    ]);
+};
+
+
+/**
+* @param {CommandInteraction} interaction
+*/
+async function PurgeMessages(interaction) {
+    const { options, guild, client, member } = interaction;
+
+    const targetUser = options.getUser('user');
+    const targetMember = options.getMember('user');
+    const botMember = guild.members.me;
+
+    if(!targetMember) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `User is not in the server`, []);
+
+    // Permissions
+    if(!member.permissions.has(PermissionFlagsBits.ModerateMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `User Missing Permissions | \`ModerateMembers\``, []);
+    if(!botMember.permissions.has(PermissionFlagsBits.ModerateMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `Bot Missing Permissions | \`ModerateMembers\``, []);
+
+    
+    // Checks
+    if(targetUser.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', 'I can\'t unmute myself', []);
+    if(targetUser.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', 'You can\'t mute yourself', []);
+    if(!targetMember.isCommunicationDisabled()) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `${targetMember} is not muted`, []);
+    if(!targetMember.moderatable) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `Bot Missing Permissions | \`RoleHierarchy\``, []);
+    if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `You can\'t unmute a member with a higher role than you`, []);
+
+    
+    // If user is in the discord, DM them
+    const DMEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(`You have been unmuted in **${guild.name}**`)
+        .addFields(
+            { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
+        );
+        
+    try {
+        await targetMember.send({embeds: [DMEmbed]});
+    } catch (error) {
+        const FailedDMEmbed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setTitle('DM Failed')
+            .setDescription(`Could not DM user`)
+        interaction.followUp({ embeds: [FailedDMEmbed], flags: [MessageFlags.Ephemeral] });
+    };
+    
+    // Unmute user
+    try {
+        await targetMember.disableCommunicationUntil(null);
+    } catch (error) {
+        return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `Could not unmute user : ${error}`);
+    }
+
+    SendEmbed(interaction, Colors.Blurple, 'Unmute Successful', `You unmuted ${targetUser}`, [
+        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
+    ]);
+};
+

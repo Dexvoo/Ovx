@@ -63,7 +63,7 @@ module.exports = {
                 }
             }
             
-            Embed.addFields({ name: 'Command', value: `\`${commandText.substring(0, 1020)}\``, inline: false });
+            Embed.addFields({ name: 'Command', value: `\`${interaction.toString().substring(0, 1020)}\``, inline: false });
 
             await devChannel.send({ embeds: [Embed] });
         } catch (error) {
