@@ -29,6 +29,11 @@ module.exports = {
                 .setDescription('The reason for the ban')
                 .setRequired(false)
             )
+            .addBooleanOption(option => option
+                .setName('preserve_messages')
+                .setDescription('Preserve messages from the user')
+                .setRequired(false)
+            )
         )
         
         .addSubcommand(subcommand => subcommand
@@ -99,6 +104,22 @@ module.exports = {
                 .setRequired(true)
             )
         )
+
+        .addSubcommand(subcommand => subcommand
+            .setName('nickname')
+            .setDescription('Change the nickname of a user')
+            .addUserOption(option => option
+                .setName('user-id')
+                .setDescription('The user to change the nickname of')
+                .setRequired(true)
+            )
+            .addStringOption(option => option
+                .setName('nickname')
+                .setDescription('The new nickname')
+                .setRequired(false)
+            )
+        )
+
         ,
     /**
     * @param {CommandInteraction} interaction
@@ -127,6 +148,9 @@ module.exports = {
             case 'purge':
                 await PurgeMessages(interaction);
                 break;
+            case 'nickname':
+                await NicknameUser(interaction);
+                break;
             default: 
                 consoleLogData('Moderation Command', `Unknown subcommand`, `error`)
                 SendEmbed(interaction, Colors.Red, 'Failed Command', 'Unknown subcommand')
@@ -145,6 +169,7 @@ async function BanUser(interaction) {
     const targetUser = options.getUser('user');
     const targetMember = options.getMember('user');
     const reason = options.getString('reason') || 'No reason provided';
+    const preserveMessages = options.getBoolean('preserve_messages') || false;
     const botMember = guild.members.me;
 
     // Permissions
@@ -188,7 +213,7 @@ async function BanUser(interaction) {
 
     // Ban user
     try {
-        await guild.bans.create(targetUser.id, { reason: `Banned by @${member.user.username} for: ${reason}`});
+        await guild.bans.create(targetUser.id, { reason: `Banned by @${member.user.username} for: ${reason}`, deleteMessageSeconds: preserveMessages ? 0 : 7 });
     } catch (error) {
         return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`Unknown\``, []);
     };
@@ -380,7 +405,7 @@ async function MuteUser(interaction) {
 /**
 * @param {CommandInteraction} interaction
 */
-async function PurgeMessages(interaction) {
+async function UnmuteUser(interaction) {
     const { options, guild, client, member } = interaction;
 
     const targetUser = options.getUser('user');
@@ -432,3 +457,119 @@ async function PurgeMessages(interaction) {
     ]);
 };
 
+/**
+* @param {CommandInteraction} interaction
+*/
+async function PurgeMessages(interaction) {
+    const { options, guild, client, member, channel } = interaction;
+
+    const botMember = guild.members.me;
+    const amount = options.getInteger('amount');
+
+    // Permissions
+    if(!member.permissions.has(PermissionFlagsBits.ManageGuild)) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `User Missing Permissions | \`ManageGuild\``, []);
+    if(!botMember.permissions.has(PermissionFlagsBits.ManageMessages)) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `Bot Missing Permissions | \`ManageMessages\``, []);
+    
+    // Purge Messages
+    let deletedMessages;
+    try {
+        deletedMessages = await channel.bulkDelete(amount, true);
+
+    } catch (error) {
+        return SendEmbed(interaction, Colors.Red, 'Failed Purge', `Could not unmute user : ${error}`);
+    }
+
+    if(deletedMessages.size === 0) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `You purged ${deletedMessages.size} messages\n\n-# ℹ️ : Bots can only delete messages that are up to 2 weeks old`, []);
+    SendEmbed(interaction, Colors.Blurple, 'Successful Purge', `You purged ${deletedMessages.size} messages`, [
+            { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
+    ]);
+};
+
+
+/**
+* @param {CommandInteraction} interaction
+*/
+async function NicknameUser(interaction) {
+    const { options, guild, client, member, channel } = interaction;
+
+    const botMember = guild.members.me;
+    const newNickname = options.getString('nickname');
+    const targetMember = options.getMember('user-id');
+
+    // Permissions
+    if(!member.permissions.has(PermissionFlagsBits.ManageGuild)) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `User Missing Permissions | \`ManageGuild\``, []);
+    if(!botMember.permissions.has(PermissionFlagsBits.ManageMessages)) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `Bot Missing Permissions | \`ManageMessages\``, []);
+    
+    
+    if(!targetMember) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `User is not in the server`, []);
+    const oldNickname = targetMember.nickname || targetMember.user.username;
+
+    // Checks
+    if(targetMember.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', 'I can\'t change my own nickname', []);
+    if(targetMember.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', 'You can\'t change your own nickname', []);
+    if(!targetMember.moderatable) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `Bot Missing Permissions | \`RoleHierarchy\``, []);
+    if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `You can\'t change the nickname of a member with a higher role than you`, []);
+    
+    if(!newNickname) {
+        await targetMember.setNickname('', `Changed by @${interaction.user.tag}`).catch(console.error);
+
+        SendEmbed(interaction, Colors.Blurple, 'Nickname Changed', `You removed the nickname of ${targetMember}`, [
+            { name: 'Old Nickname', value: oldNickname, inline: true },
+            { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: false }
+        ]);
+
+        const DMEmbed = new EmbedBuilder()
+            .setColor(Colors.Blurple)
+            .setDescription(`Your nickname has been removed in **${guild.name}**`)
+            .addFields(
+                { name: 'Old Nickname', value: oldNickname, inline: true },
+                { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: false }
+            );
+
+        try {
+            await targetMember.send({embeds: [DMEmbed]});
+        }
+        catch (error) {
+            const FailedDMEmbed = new EmbedBuilder()
+                .setColor(Colors.Red)
+                .setTitle('DM Failed')
+                .setDescription(`Could not DM user`)
+            interaction.followUp({ embeds: [FailedDMEmbed], flags: [MessageFlags.Ephemeral] });
+        };
+
+        return;
+    }
+
+    if(newNickname.length > 32) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `New nickname is too long`, []);
+    if(newNickname === oldNickname) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `New nickname is the same as the old nickname`, []);
+    
+    await targetMember.setNickname(newNickname, `Changed by @${interaction.user.username}`).catch(console.error);
+
+    await SendEmbed(interaction, Colors.Blurple, 'Nickname Changed', `You changed the nickname of ${targetMember}`, [
+        { name: 'Old Nickname', value: oldNickname, inline: true },
+        { name: 'New Nickname', value: newNickname, inline: true },
+        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: false }
+    ]);
+
+
+    const DMEmbed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setDescription(`Your nickname has been changed in **${guild.name}**`)
+        .addFields(
+            { name: 'Old Nickname', value: oldNickname, inline: true },
+            { name: 'New Nickname', value: newNickname, inline: true },
+            { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: false }
+        );
+
+    try {
+        await targetMember.send({embeds: [DMEmbed]});
+    } catch (error) {
+        const FailedDMEmbed = new EmbedBuilder()
+            .setColor(Colors.Red)
+            .setTitle('DM Failed')
+            .setDescription(`Could not DM user`)
+        interaction.followUp({ embeds: [FailedDMEmbed], flags: [MessageFlags.Ephemeral] });
+    }
+
+
+};

@@ -44,7 +44,50 @@ const UserVerificationSchema = new Schema({
     },
 });
 
+
+const UserTicketSchema = new Schema({
+	guildId: {
+		type: String,
+		required: true,
+	},
+	memberId: {
+		type: String,
+		required: true,
+	},
+	ticketId: {
+		type: String,
+		required: true,
+	},
+	ticketChannelId: {
+		type: String,
+		required: true,
+	},
+	ticketOpen: {
+		type: Boolean,
+		default: true,
+	},
+	ticketLocked: {
+		type: Boolean,
+		default: false,
+	},
+	transcriptURL: {
+		type: String,
+		default: null,
+	},
+	closedAt: {
+		type: Date,
+		default: null,
+	},
+	closedById: {
+		type: String,
+		default: null,
+	},
+}, {
+	timestamps: true
+});
+
 module.exports = {
     UserCurrency: model('User-Currency', UserCurrencySchema),
     UserVerification: model('User-Verification', UserVerificationSchema),
+    UserTickets: model('User-Tickets', UserTicketSchema),
 };

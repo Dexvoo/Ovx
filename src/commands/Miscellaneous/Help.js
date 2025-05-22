@@ -30,7 +30,7 @@ module.exports = {
         const commands =  client.commands;
 
         const choices =  commands.map(command => command.data.name);
-        const filteredChoices = choices.filter(choice => choice.toLowerCase().includes(value.toLocaleLowerCase())).slice(0, 25);
+        const filteredChoices = choices.filter(choice => choice.toLowerCase().includes(value.toLowerCase())).sort().slice(0, 25);
 
         if(!interaction) return;
 
@@ -75,62 +75,26 @@ module.exports = {
         }
 
         const commandName = command.data.name ? command.data.name.charAt(0).toUpperCase() + command.data.name.slice(1) : 'No name found';
-        const commandDescription = command.data.description ? command.data.description : 'No description found';
-        const commandTags = command.commandTags ? command.commandTags.join('\n') : 'No command found';
-        let embedDescription = `-# ${commandDescription}`
+        let embedDescription = `-# ${command.data.description ? command.data.description : 'No description found'}`
         // console.log(command)
 
         let OptionsCount = 0
-        if(command.data.options.length > 0) {
+        if(command.data.options?.length) {
 
             for(const option of command.data.options) {
                 // console.log(option)
                 if(option instanceof SlashCommandSubcommandGroupBuilder) {
-                    console.log('Sub Group Options')
-                    // console.log(option)
-                    embedDescription = `${embedDescription}\n# ${option.name} : *${option.description}*` // Sub group name
-
-                    if(option.options.length > 0){
-                        for(const options2 of option.options) {
-                            // console.log(options2)
-                            const commandTag = command.commandTags.find(cmd => cmd.includes(options2.name))
-                            embedDescription = `${embedDescription}\n\n${commandTag} : *${options2.description}*` // command names
-
-                            if(options2.options.length > 0) {
-                                for(const options3 of options2.options) {
-                                    console.log(options3)
-                                    embedDescription = `${embedDescription}\n\`{${options3.name}} - ${options3.description}\``
-                                }
-                            }
-                        }
-                    }
-
+                    embedDescription += formatSubCommandGroup(option, command.commandTags);
                 } else if(option instanceof SlashCommandSubcommandBuilder) {
-                    console.log('Sub Options')
-                    const commandTag = command.commandTags.find(cmd => cmd.includes(option.name))
-                    embedDescription = `${embedDescription}\n\n**${commandTag}** : *${option.description}*`
-                    if(option.options.length > 0) {
-                        // console.log(option.options)
-                        for(const option2 of option.options) {
-                            embedDescription = `${embedDescription}\n\`{${option2.name}} - ${option2.description}\``
-                        }
-                    }
+                    embedDescription += formatSubCommand(option, command.commandTags);
                 } else {
-                    console.log('Some Options')
-                    if(OptionsCount > 0) {
-                        embedDescription = `${embedDescription}\n\`{${option.name}} - ${option.description}\``
-                    } else {
-                        const commandTag = command.commandTags.find(cmd => cmd.includes(command.data.name))
-                        embedDescription = `${embedDescription}\n${commandTag} : \n\`{${option.name}} - ${option.description}\``
-                        OptionsCount++
-                    }
+                    embedDescription += formatOptions(command, command.commandTags);
+                    break;
                 }
             }
 
         } else {
-            console.log('No Options')
-            const commandTag = command.commandTags.find(cmd => cmd.includes(command.data.name))
-            embedDescription = `${embedDescription}\n${commandTag}`
+            embedDescription += formatOptions(command, command.commandTags);
         }
 
         const Embed = new EmbedBuilder()
@@ -142,3 +106,39 @@ module.exports = {
         
     }
 };
+
+function formatOptions(command, commandTags) {
+    let desc = '';
+    const tag = commandTags.find(cmd => cmd.includes(command.data.name)) || command.data.name;
+
+    desc += `\n\n**${tag}** :`;
+
+    for (const option of command.data.options) {
+        desc += `\n\`{${option.name}} - ${option.description || 'No description'}\``;
+    }
+
+    return desc;
+}
+
+function formatSubCommandGroup(option, commandTags) {
+    let desc = `\n# ${option.name} : *${option.description || 'No description'}*`;
+
+    for (const sub of option.options ?? []) {
+        desc += formatSubCommand(sub, commandTags);
+    }
+
+    return desc;
+}
+
+function formatSubCommand(option, commandTags) {
+    const tag = commandTags.find(cmd => cmd.includes(option.name)) || option.name;
+    let desc = `\n\n**${tag}** : *${option.description || 'No description'}*`;
+
+    if (Array.isArray(option.options) && option.options?.length) {
+        for (const subOption of option.options) {
+            desc += `\n\`{${subOption.name}} - ${subOption.description || 'No description'}\``;
+        }
+    }
+
+    return desc;
+}
