@@ -173,21 +173,21 @@ async function BanUser(interaction) {
     const botMember = guild.members.me;
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `User Missing Permissions | \`BanMembers\``, []);
-    if(!botMember.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`BanMembers\``, []);
+    if(!member.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `User Missing Permissions | \`BanMembers\``);
+    if(!botMember.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`BanMembers\``);
 
     
     // Checks
-    if(targetUser.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Ban', 'I can\'t ban myself', []);
-    if(targetUser.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Ban', 'You can\'t ban yourself', []);
+    if(targetUser.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Ban', 'I can\'t ban myself');
+    if(targetUser.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Ban', 'You can\'t ban yourself');
     if(targetMember) {
-        if (!targetMember.bannable) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`RoleHierarchy\``, []);
-        if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `You can\'t ban a member with a higher role than you`, []);
+        if (!targetMember.bannable) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`RoleHierarchy\``);
+        if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `You can\'t ban a member with a higher role than you`);
     };
 
     // Get Ban
     const isBanned = await guild.bans.fetch(targetUser.id).catch(() => null);
-    if (isBanned) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `User already banned`, []);
+    if (isBanned) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `User already banned`);
 
     // If user is in the discord, DM them
     if(targetMember){
@@ -215,7 +215,7 @@ async function BanUser(interaction) {
     try {
         await guild.bans.create(targetUser.id, { reason: `Banned by @${member.user.username} for: ${reason}`, deleteMessageSeconds: preserveMessages ? 0 : 7 });
     } catch (error) {
-        return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`Unknown\``, []);
+        return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`Unknown\``);
     };
 
     SendEmbed(interaction, Colors.Blurple, 'Ban Successful', `You banned ${targetUser} from the server`, [

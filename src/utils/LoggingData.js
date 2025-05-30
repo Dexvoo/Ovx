@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js')
+const { EmbedBuilder, MessageFlags } = require('discord.js')
 /**
  * @param {string} data - String to be logged to the console
  */
@@ -66,25 +66,47 @@ const consoleLogData = (title, description, type) => {
 
 
 /**
-* @param {CommandInteraction} interaction 
+* @param {import('discord.js').Interaction} interaction 
 * @param {Colors} colour
 * @param {String} title 
 * @param {String} description
 * @param {Array} fields  
+* @param {Boolean} ephemeral
 */
-const SendEmbed = (interaction, colour, title, description, fields = []) => {
+const SendEmbed = async (interaction, colour, title, description, fields = [], ephemeral = true) => {
     if (!interaction) throw new Error('No interaction provided.');
     if (!colour) throw new Error('No colour provided.');
     if (!title) throw new Error('No title provided.');
     if (!description) throw new Error('No description provided.');
 
+    
+
     const embed = new EmbedBuilder()
         .setColor(colour)
         .setTitle(title)
-        .setDescription(description)
-        .addFields(fields);
+        .setDescription(description);
 
-    return interaction.editReply({ embeds: [embed] });
+    if (Array.isArray(fields) && fields.length > 0) embed.addFields(fields);
+
+    // Check if the channel exists and is accessible
+    if (!interaction.channel) {
+        // try to fetch the channel if it doesn't exist
+        try {
+            await interaction.guild.channels.fetch(interaction.channelId);
+        } catch (error) {
+            return console.error('Channel not found or inaccessible:', error);
+        }
+    }
+
+    try {
+        if (interaction.replied || interaction.deferred) {
+            return await interaction.editReply({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined });
+        } else {
+            return await interaction.reply({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined });
+        }
+    } catch (error) {
+        console.error('Failed to send embed:', error);
+    }
 }
 
 /**

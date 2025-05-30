@@ -16,7 +16,7 @@ module.exports = {
 
 	async execute(interaction) {
 		
-		const { guild, commandName, client, user } = interaction;
+		const { guild, commandName, client, user, member } = interaction;
 		if(!interaction.isCommand()) return;
 
 		const command = client.commands.get(commandName);
@@ -61,7 +61,7 @@ module.exports = {
 			}
 
 			if(command.userpermissions) {
-				const [hasPermissions, missingPermissions] = permissionCheck(interaction, command.userpermissions, client);
+				const [hasPermissions, missingPermissions] = permissionCheck(interaction, command.userpermissions, member);
 
 				if (!hasPermissions) {
 					const Embed = new EmbedBuilder()
