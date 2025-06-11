@@ -120,6 +120,31 @@ const ShortTimestamp = timestamp => {
 }
 
 
+/**
+ * Generates a Discord-formatted timestamp.
+ *
+ * @param {Date} date - Date object
+ * @param {'f' | 'F' | 'd' | 'D' | 't' | 'T' | 'R'} [type='R'] - Discord timestamp format
+ * @returns {string} Formatted Discord timestamp string
+ *
+ * @example
+ * // Example output assuming timestamp is 1624855717 (June 27, 2021 9:48 PM)
+ * Timestamp(new Date(1624855717000), 'f') // => '<t:1624855717:f>' (short date time)
+ * Timestamp(new Date(1624855717000), 'F') // => '<t:1624855717:F>' (long date time)
+ * Timestamp(new Date(1624855717000), 'd') // => '<t:1624855717:d>' (short date)
+ * Timestamp(new Date(1624855717000), 'D') // => '<t:1624855717:D>' (long date)
+ * Timestamp(new Date(1624855717000), 't') // => '<t:1624855717:t>' (short time)
+ * Timestamp(new Date(1624855717000), 'T') // => '<t:1624855717:T>' (long time)
+ * Timestamp(new Date(1624855717000), 'R') // => '<t:1624855717:R>' (relative time)
+ */
+
+function Timestamp(date, type = 'R') {
+    if (!date) throw new Error('No date provided.');
+    if (!(date instanceof Date)) throw new Error('Provided date is not a valid Date object.');
+
+    const timestamp = Math.floor(date.getTime() / 1000);
+    return `<t:${timestamp}:${type}>`;
+};
 
 
 
@@ -168,5 +193,19 @@ async function SendEmbedLog(type, interaction, embed) {
         console.error(error);
     };
 };
-module.exports = { consoleLog, consoleLogData, SendEmbed, SendEmbedLog, ShortTimestamp };
+
+
+/**
+ * @param {Number} n - Number
+*/
+function getOrdinalSuffix(n) {
+    const lastDigit = n % 10;
+    const lastTwoDigits = n % 100;
+    if (lastDigit === 1 && lastTwoDigits !== 11) return 'st';
+    if (lastDigit === 2 && lastTwoDigits !== 12) return 'nd';
+    if (lastDigit === 3 && lastTwoDigits !== 13) return 'rd';
+    return 'th';
+}
+
+module.exports = { consoleLog, consoleLogData, SendEmbed, SendEmbedLog, ShortTimestamp, Timestamp, getOrdinalSuffix };
 

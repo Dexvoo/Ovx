@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, Colors, CommandInteraction, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction } = require('discord.js');
+const { SlashCommandBuilder, Colors, CommandInteraction, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, Events } = require('discord.js');
 const path = require('node:path');
 const fsPromises = require('node:fs').promises;
 require('dotenv').config();
@@ -44,7 +44,7 @@ module.exports = {
     */
 
     async execute(interaction) {
-        const { options } = interaction;
+        const { options, client } = interaction;
 
         if(!DeveloperIDs.includes(interaction.user.id)) {
             const Embed = new EmbedBuilder()
@@ -53,8 +53,12 @@ module.exports = {
             return interaction.reply({ embeds: [Embed] });
         }
         
+        client.emit(Events.GuildMemberAdd, interaction.member);
+        client.emit(Events.GuildMemberRemove, interaction.member);
+
+        
         const commandName = options.getString('command').toLowerCase();
-        const command = interaction.client.commands.get(commandName);
+        const command = client.commands.get(commandName);
 
         if(!command) {
             const Embed = new EmbedBuilder()
@@ -78,7 +82,7 @@ module.exports = {
 
         try {
             const newCommand = require(url);
-            interaction.client.commands.set(newCommand.data.name, newCommand);
+            client.commands.set(newCommand.data.name, newCommand);
             const Embed = new EmbedBuilder()
                 .setColor(Colors.Green)
                 .setDescription(`Successfully reloaded \`${commandName}\``);
