@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, Colors, CommandInteraction, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, GuildMember, Client, User, MessageFlags, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, ChatInputCommandInteraction } = require('discord.js');
+const { SlashCommandBuilder, Colors, CommandInteraction, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, GuildMember, Client, User, MessageFlags, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, ChatInputCommandInteraction, PermissionsBitField } = require('discord.js');
 const { SendEmbed, consoleLogData, ShortTimestamp } = require('../../utils/LoggingData')
 require('dotenv').config();
 const ms = require('ms');
@@ -7,11 +7,14 @@ const { TicketConfig, TicketInstance } = require('../../models/GuildSetups');
 const { permissionCheck } = require('../../utils/Permissions');
 
 const handlers = {
-    'ovx-ticket-create': require('../../handlers/Tickets/Buttons/Create'),
-    'ovx-ticket-close': require('../../handlers/Tickets/Buttons/Close'),
-    'ovx-ticket-lock': require('../../handlers/Tickets/Buttons/Lock'),
-    'ovx-ticket-unlock': require('../../handlers/Tickets/Buttons/Unlock'),
+    'ovx-ticket-create': require('../../handlers/Tickets/Create'),
+    'ovx-ticket-close': require('../../handlers/Tickets/Close'),
+    'ovx-ticket-lock': require('../../handlers/Tickets/Lock'),
+    'ovx-ticket-unlock': require('../../handlers/Tickets/Unlock'),
+    'ovx-ticket-setup': require('../../handlers/Tickets/Setup'),
 };
+
+const TicketCache = require('../../cache/Tickets');
 
 module.exports = {
     cooldown: 0,
@@ -23,7 +26,7 @@ module.exports = {
         .setDescription('Add/Remove members, Lock/Unlock tickets, Open/Close tickets, Setup tickets')
         .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
         .setContexts( InteractionContextType.Guild )
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild | PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers | PermissionFlagsBits.ModerateMembers)
+        .setDefaultMemberPermissions(PermissionsBitField.resolve([ PermissionFlagsBits.ManageGuild, PermissionFlagsBits.BanMembers, PermissionFlagsBits.KickMembers, PermissionFlagsBits.ModerateMembers ]))
         
         .addSubcommand(subcommand => subcommand
             .setName('setup')
@@ -98,9 +101,6 @@ module.exports = {
     */
 
     async execute(interaction) {
-        
-        console.log(interaction.commandName)
-        if(!interaction.isCommand()) return;
         const subcommand = interaction.options.getSubcommand();
 
         if(!handlers[`ovx-ticket-${subcommand}`]) return SendEmbed(interaction, Colors.Red, 'Tickets | Not Found', `The subcommand \`${subcommand}\` does not exist.`);
@@ -112,7 +112,8 @@ module.exports = {
         if (!hasPermission) return SendEmbed(interaction, Colors.Red, 'Tickets | Missing Permissions', `Bot Missing Permissions: \`${missingPermissions}\` in ${channel}`);
 
         const TicketData = await TicketInstance.findOne({ channelId: channel.id, guildId: guild.id });
-        const TicketConfigData = await TicketConfig.findOne({ guildId: guild.id });
+        const TicketConfigData = await TicketCache.get(guild.id);
+        TicketConfigData.adminRoleId
         const isAdmin = member.roles.cache.has(TicketConfigData?.adminRoleId) || member.permissions.has(PermissionFlagsBits.Administrator);
         const isMod = member.roles.cache.has(TicketConfigData?.supportRoleId) || member.permissions.has(PermissionFlagsBits.ManageMessages);
         const ticketOwner = TicketData ? await guild.members.fetch(TicketData.memberId).catch(() => null) : null;
@@ -130,87 +131,4 @@ module.exports = {
         }
 
     }
-};
-
-/**
-* @param {CommandInteraction} interaction
-*/
-async function SetupTickets(interaction) {
-    const { options, guild, client, member } = interaction;
-
-    const enabled = options.getBoolean('enabled');
-    const setupChannel = options.getChannel('setup-channel') || null;
-    const ticketCategory = options.getChannel('ticket-category') || null;
-    const archiveChannel = options.getChannel('archive-channel') || null;
-    const supportRole = options.getRole('support-role') || null;
-    const adminRole = options.getRole('admin-role') || null;
-    const botMember = guild.members.me;
-    
-    
-    if(!enabled) {
-        
-        const GuildTicketConfig = await TicketConfig.findOne({ guildId: guild.id });
-        if(!GuildTicketConfig) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Tickets are not setup on this server, `/ticket setup` to enable tickets', []);
-        
-        GuildTicketConfig.enabled = false;
-        await GuildTicketConfig.save();
-
-        return SendEmbed(interaction, Colors.Blurple, 'Ticket System Disabled', `Ticket system has been disabled`, [
-            { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
-        ]);
-    }
-
-    if(!setupChannel) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the ticket embed in', []);
-    if(!ticketCategory) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a category to put the tickets in', []);
-    if(!archiveChannel) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the transcripts in', []);
-    if(!supportRole) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a support role to ping when a ticket is created', []);
-    if(!adminRole) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a admin role to ping when a ticket is created', []);
-
-    const botPermissionsInSetUp = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.ManageChannels];
-    const [hasSetupPermissions, missingSetupPermissions] = permissionCheck(setupChannel, botPermissionsInSetUp, client);
-    if(!hasSetupPermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingSetupPermissions.join(', ')}\` in ${setupChannel}`, []);
-
-    const botPermissionsInArchive = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks];
-    const [hasArchivePermissions, missingArchivePermissions] = permissionCheck(archiveChannel, botPermissionsInArchive, client);
-    if(!hasArchivePermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingArchivePermissions.join(', ')}\` in ${archiveChannel}`, []);
-
-    const botPermissionsInCategory = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageRoles];
-    const [hasCategoryPermissions, missingCategoryPermissions] = permissionCheck(ticketCategory, botPermissionsInCategory, client);
-    if(!hasCategoryPermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`, []);
-
-    if(supportRole.position >= botMember.roles.highest.position || adminRole.position >= botMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Support roles are higher than the bot\'s role.`, []);
-
-    const ticketsEmbedSuccess = new EmbedBuilder()
-        .setColor(Colors.Blurple)
-        .setTitle(`${guild.name} | Tickets`)
-        .setDescription('Welcome to our ticket channel. If you would like to talk to a staff member for assistance, please click the button below.');
-
-    const ticketButton = new ButtonBuilder()
-        .setStyle(ButtonStyle.Primary)
-        .setLabel('Create Ticket')
-        .setCustomId('ovx-ticket-create');
-
-    const row = new ActionRowBuilder().addComponents(ticketButton);
-
-    await setupChannel.send({ embeds: [ticketsEmbedSuccess], components: [row] });
-
-    await TicketConfig.findOneAndUpdate(
-        { guildId: guild.id }, 
-        { enabled: true,
-        setupChannelId: setupChannel.id,
-        ticketCategoryId: ticketCategory.id,
-        archiveChannelId: archiveChannel.id,
-        supportRoleId: supportRole.id,
-        adminRoleId: adminRole.id }, 
-        { upsert: true }
-    );
-
-    return SendEmbed(interaction, Colors.Blurple, 'Ticket System Setup', `Ticket system has been setup successfully`, [
-        { name: 'Setup Channel', value: setupChannel.toString(), inline: true },
-        { name: 'Ticket Category', value: ticketCategory.toString(), inline: true },
-        { name: 'Archive Channel', value: archiveChannel.toString(), inline: true },
-        { name: 'Support Role', value: supportRole.toString(), inline: true },
-        { name: 'Admin Role', value: adminRole.toString(), inline: true },
-        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: false }
-    ]);
 };

@@ -1,11 +1,12 @@
 const { Colors, EmbedBuilder, ButtonInteraction, GuildMember, ChannelType, PermissionsBitField, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { TicketInstance, TicketConfig } = require('../../../models/GuildSetups');
-const { SendEmbed } = require('../../../utils/LoggingData');
-const { permissionCheck } = require('../../../utils/Permissions');
+const { TicketInstance, TicketConfigType } = require('../../models/GuildSetups');
+const { SendEmbed } = require('../../utils/LoggingData');
+const { permissionCheck } = require('../../utils/Permissions');
+const TicketsCache = require('../../cache/Tickets');
 
 /**
  * @param {ButtonInteraction} interaction
- * @param {{ TicketData: TicketInstance, TicketConfigData: TicketConfig, isAdmin: boolean, isMod: boolean, ticketOwner: GuildMember | null }} context
+ * @param {{ TicketData: TicketInstance, TicketConfigData: Partial<TicketConfigType>, isAdmin: boolean, isMod: boolean, ticketOwner: GuildMember | null }} context
  */
 module.exports = async function TicketCreate(interaction, context) {
     const { client, guild, channel, member, user } = interaction;
@@ -24,9 +25,11 @@ module.exports = async function TicketCreate(interaction, context) {
     const [hasCategoryPermissions, missingCategoryPermissions] = permissionCheck(ticketCategory, botPermissionsInCategory, client);
     if(!hasCategoryPermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`, []);
 
-    const ticketId = TicketConfigData.lastTicketId += 1;
-    await TicketConfigData.save();
-
+    TicketConfigData.lastTicketId += 1;
+    
+    await TicketsCache.set(guild.id, TicketConfigData);
+    const ticketId = TicketConfigData.lastTicketId.toString().padStart(4, '0');
+    
     const ticketChannel = await guild.channels.create({
         name: `${user.username}-${ticketId}`,
         reason: `Ticket created by ${user.tag} (${user.id})`,

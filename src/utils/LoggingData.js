@@ -1,4 +1,7 @@
-const { EmbedBuilder, MessageFlags } = require('discord.js')
+const { EmbedBuilder, MessageFlags, Interaction, ChatInputCommandInteraction } = require('discord.js')
+const Global_Cache = require('../cache/Global')
+require('dotenv').config()
+const { CommandCID, JoinGuildCID, LeaveGuildCID, UserLevelCID, DevGuildID } = process.env
 /**
  * @param {string} data - String to be logged to the console
  */
@@ -57,16 +60,13 @@ const consoleLogData = (title, description, type) => {
     const color = typeColors[type] || typeColors.default;
     const titlePrefix = typeTitles[type] || typeTitles.default;
     title = `| ${color}${titlePrefix} | ${title}`;
-
     const data = `${title} | ${description}`.padEnd(maxLength, ' ') + '\u001b[0m|';
-    
     console.log(data);
-
 }
 
 
 /**
-* @param {import('discord.js').Interaction} interaction 
+* @param {Interaction} interaction 
 * @param {Colors} colour
 * @param {String} title 
 * @param {String} description
@@ -119,5 +119,54 @@ const ShortTimestamp = timestamp => {
     return `<t:${Math.round(date / 1000)}:R>`
 }
 
-module.exports = { consoleLog, consoleLogData, SendEmbed, ShortTimestamp };
+
+
+
+
+
+/**
+ * Sends an embed log to the specified log channel based on the type of log.
+ * @param {string} type - The type of log (e.g., 'command', 'joinGuild', 'leaveGuild', 'userLevel').
+ * @param {ChatInputCommandInteraction} interaction - The interaction that triggered the log.
+ * @param {EmbedBuilder} embed - The embed to send
+*/
+
+async function SendEmbedLog(type, interaction, embed) {
+    if (!type) throw new Error('No type provided.');
+    if (!interaction) throw new Error('No interaction provided.');
+    if (!embed) throw new Error('No embed provided.');
+
+    const typesOfLogs = {
+        'command': CommandCID,
+        'joinGuild': JoinGuildCID,
+        'leaveGuild': LeaveGuildCID,
+        'userLevel': UserLevelCID,
+    };
+
+    const currentLogChannel = typesOfLogs[type];
+    if (!currentLogChannel) throw new Error(`No log channel found for type: ${type}`);
+
+    try {
+        await interaction.client.shard.broadcastEval(async (client, {embed, channelId, guildId}) => {
+
+            const guild = client.guilds.cache.get(guildId);
+            if (!guild) return console.error(`Guild with ID ${guildId} not found.`);
+
+            const channel = guild.channels.cache.get(channelId);
+            if (!channel) return;
+
+            await channel.send({ embeds: [embed] });
+        }, {
+            context: {
+                embed: embed,
+                channelId: currentLogChannel,
+                guildId: DevGuildID,
+            },
+            shard: Global_Cache.DevSID
+        });
+    } catch (error) {
+        console.error(error);
+    };
+};
+module.exports = { consoleLog, consoleLogData, SendEmbed, SendEmbedLog, ShortTimestamp };
 

@@ -1,6 +1,6 @@
 const { Colors, ButtonInteraction, GuildMember, ButtonStyle, ButtonBuilder, ActionRowBuilder } = require('discord.js');
-const { TicketInstance, TicketConfig } = require('../../../models/GuildSetups');
-const { SendEmbed } = require('../../../utils/LoggingData');
+const { TicketInstance, TicketConfig } = require('../../models/GuildSetups');
+const { SendEmbed } = require('../../utils/LoggingData');
 
 /**
  * @param {ButtonInteraction} interaction
@@ -15,8 +15,8 @@ module.exports = async function TicketUnlock(interaction, context) {
     if(!isAdmin) return SendEmbed(interaction, Colors.Red, 'Tickets | Permission Denied', 'You do not have permission to close this ticket.');
 
     await channel.permissionOverwrites.edit(TicketData.memberId, { ViewChannel: true, SendMessages: true, ReadMessageHistory: true }).catch(err => {
-        console.error('Failed to lock ticket:', err);
-        return SendEmbed(interaction, Colors.Red, 'Tickets | Error', 'Failed to lock the ticket. Please try again later.');
+        console.error('Failed to unlock ticket:', err);
+        return SendEmbed(interaction, Colors.Red, 'Tickets | Error', 'Failed to unlock the ticket. Please try again later.');
     });
 
     const buttonMessageLock = await channel.messages.fetch(TicketData.buttonId).catch(() => null);

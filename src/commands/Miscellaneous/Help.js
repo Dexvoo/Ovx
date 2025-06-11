@@ -76,13 +76,11 @@ module.exports = {
 
         const commandName = command.data.name ? command.data.name.charAt(0).toUpperCase() + command.data.name.slice(1) : 'No name found';
         let embedDescription = `-# ${command.data.description ? command.data.description : 'No description found'}`
-        // console.log(command)
 
         let OptionsCount = 0
         if(command.data.options?.length) {
 
             for(const option of command.data.options) {
-                // console.log(option)
                 if(option instanceof SlashCommandSubcommandGroupBuilder) {
                     embedDescription += formatSubCommandGroup(option, command.commandTags);
                 } else if(option instanceof SlashCommandSubcommandBuilder) {

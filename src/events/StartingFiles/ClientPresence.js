@@ -1,4 +1,5 @@
 const { Events, Client, ActivityType } = require('discord.js');
+const { DevGuildID } = process.env;
 
 module.exports = {
 	name: Events.ClientReady,
@@ -10,7 +11,7 @@ module.exports = {
 	 */
 
 	async execute(client) {
-		client.user.setActivity(`Ovx! #${client.shard.ids}`, {
+		client.user.setActivity(`Ovx! #${client.shard?.ids?.[0]}`, {
 			type: ActivityType.Watching,
 		});
 	}

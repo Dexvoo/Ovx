@@ -4,14 +4,15 @@ const { TicketConfig, TicketInstance } = require('../../models/GuildSetups');
 const { permissionCheck } = require('../../utils/Permissions');
 const { createTranscript} = require('discord-html-transcripts');
 require('dotenv').config();
+const TicketsCache = require('../../cache/Tickets');
 
 const {  } = process.env;
 
 const handlers = {
-    'ovx-ticket-create': require('../../handlers/Tickets/Buttons/Create'),
-    'ovx-ticket-close': require('../../handlers/Tickets/Buttons/Close'),
-    'ovx-ticket-lock': require('../../handlers/Tickets/Buttons/Lock'),
-    'ovx-ticket-unlock': require('../../handlers/Tickets/Buttons/Unlock'),
+    'ovx-ticket-create': require('../../handlers/Tickets/Create'),
+    'ovx-ticket-close': require('../../handlers/Tickets/Close'),
+    'ovx-ticket-lock': require('../../handlers/Tickets/Lock'),
+    'ovx-ticket-unlock': require('../../handlers/Tickets/Unlock'),
 };
 
 module.exports = {
@@ -34,7 +35,7 @@ module.exports = {
         if (!hasPermission) return SendEmbed(interaction, Colors.Red, 'Tickets | Missing Permissions', `Bot Missing Permissions: \`${missingPermissions}\` in ${channel}`);
 
         const TicketData = await TicketInstance.findOne({ channelId: channel.id, guildId: guild.id });
-        const TicketConfigData = await TicketConfig.findOne({ guildId: guild.id });
+        const TicketConfigData = await TicketsCache.get(guild.id);
         const isAdmin = member.roles.cache.has(TicketConfigData.adminRoleId) || member.permissions.has(PermissionFlagsBits.Administrator)
         const isMod = member.roles.cache.has(TicketConfigData.supportRoleId) || member.permissions.has(PermissionFlagsBits.ManageMessages);
         const ticketOwner = TicketData ? await guild.members.fetch(TicketData.memberId).catch(() => null) : null;

@@ -84,7 +84,7 @@ module.exports = {
                 .setDescription(`Successfully reloaded \`${commandName}\``);
             return interaction.reply({ embeds: [Embed] });
         } catch (error) {
-            console.log(error);
+            console.error(error);
             const Embed = new EmbedBuilder()
                 .setColor(Colors.Red)
                 .setDescription(`Failed to reload \`${commandName}\``);

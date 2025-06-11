@@ -1,6 +1,6 @@
 const { Colors, ButtonInteraction, GuildMember, ButtonStyle, ButtonBuilder, ActionRowBuilder } = require('discord.js');
-const { TicketInstance, TicketConfig } = require('../../../models/GuildSetups');
-const { SendEmbed } = require('../../../utils/LoggingData');
+const { TicketInstance, TicketConfig } = require('../../models/GuildSetups');
+const { SendEmbed } = require('../../utils/LoggingData');
 
 /**
  * @param {ButtonInteraction} interaction

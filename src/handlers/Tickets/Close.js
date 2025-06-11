@@ -1,7 +1,7 @@
-const { Colors, EmbedBuilder, ButtonInteraction, GuildMember } = require('discord.js');
-const { TicketInstance, TicketConfig } = require('../../../models/GuildSetups');
+const { Colors, EmbedBuilder, ButtonInteraction, GuildMember, MessageFlags } = require('discord.js');
+const { TicketInstance, TicketConfig } = require('../../models/GuildSetups');
 const { createTranscript } = require('discord-html-transcripts');
-const { SendEmbed } = require('../../../utils/LoggingData');
+const { SendEmbed } = require('../../utils/LoggingData');
 
 const CLOSE_DELAY = 10_000;
 
@@ -24,7 +24,9 @@ module.exports = async function TicketClose(interaction, context) {
             favicon: client.user.displayAvatarURL({ dynamic: true }),
             saveImages: true,
             limit: 100,
-            filename: `${guild.name}-TicketId-${TicketData.ticketId}.html`
+            filename: `${guild.name}-TicketId-${TicketData.ticketId}.html`,
+            hydrate: true,
+            poweredBy: false,
         });
     } catch (error) {
         console.error('Transcript creation failed:', error);
@@ -33,7 +35,7 @@ module.exports = async function TicketClose(interaction, context) {
 
     const transcriptEmbed = new EmbedBuilder()
         .setTitle('Tickets ')
-        .setDescription(`Guild: ${guild.name} | Ticket ID: ${TicketData.ticketId} | Closed by: ${member}`)
+        .setDescription(`Guild: ${guild.name} | Ticket ID: ${TicketData.ticketId} | Opened by: ${ticketOwner} | Closed by: ${member}`)
         .setColor(Colors.Blurple);
 
     SendEmbed(interaction, Colors.Blurple, 'Tickets | Close Ticket', `This ticket will be closed in 10 seconds, enable DMs for the ticket transcript`, [], false);
@@ -48,9 +50,8 @@ module.exports = async function TicketClose(interaction, context) {
 
     let transcriptURL = '';
     if (archiveLogChannel) {
-        await archiveLogChannel.send({ embeds: [transcriptEmbed], files: [transcript] }).then(async (message) => {
+        await archiveLogChannel.send({ embeds: [transcriptEmbed], files: [transcript]}).then(async (message) => {
             transcriptURL = message.attachments.first()?.url || '';
-            console.log(`Transcript URL: ${transcriptURL}`);
         });
     };
 
@@ -58,7 +59,7 @@ module.exports = async function TicketClose(interaction, context) {
         channel.delete().catch(() => { });
         
         if(ticketOwner) {
-            await ticketOwner.send({ embeds: [transcriptEmbed], files: [transcript] }).catch(async () => { 
+            await ticketOwner.send({ embeds: [transcriptEmbed], files: [transcript], flags: [MessageFlags.ShouldShowLinkNotDiscordWarning]}).catch(async () => { 
                 const noDMEmbed = new EmbedBuilder()
                     .setTitle('Tickets | DM Disabled')
                     .setDescription('You have DMs disabled, the ticket transcript will not be sent to you.')
