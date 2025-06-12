@@ -20,13 +20,12 @@ module.exports = {
         if(!guild) return;
 
         const LogsData = await LogsCache.get(guild.id)
-
         if(!LogsData) return consoleLogData('Member Joined', `Guild: ${guild.name} | Disabled`, 'warning');
         
-        const joinLogData = LogsData.leave
-        if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return consoleLogData('Member Left', `Guild: ${guild.name} | Disabled`, 'warning');
+        const leaveLogData = LogsData.leave
+        if(!leaveLogData || !leaveLogData.enabled || leaveLogData.channelId === null) return consoleLogData('Member Left', `Guild: ${guild.name} | Disabled`, 'warning');
         
-        const logChannel = guild.channels.cache.get(joinLogData.channelId);
+        const logChannel = guild.channels.cache.get(leaveLogData.channelId);
         if(!logChannel) {
             await LogsCache.setType(guild.id, 'leave', { enabled: false, channelId: null });
             return consoleLogData('Member Left', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');

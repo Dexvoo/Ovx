@@ -20,10 +20,13 @@ module.exports = {
 
         if(author.bot || !guild) return;
 
-        const LogsData = await LogsCache.get(guild.id);
-        if(!LogsData || !LogsData?.message?.enabled || !LogsData?.message?.channelId) return consoleLogData('Message Deleted', `Guild: ${guild.name} | Disabled`, 'warning');
+        const LogsData = await LogsCache.get(guild.id)
+        if(!LogsData) return consoleLogData('Message Deleted', `Guild: ${guild.name} | Disabled`, 'warning');
 
-        const logChannel = guild.channels.cache.get(LogsData.message.channelId);
+        const messageLogData = LogsData.message
+        if(!messageLogData || !messageLogData.enabled || messageLogData.channelId === null) return consoleLogData('Member Left', `Guild: ${guild.name} | Disabled`, 'warning');
+        
+        const logChannel = guild.channels.cache.get(messageLogData.channelId);
         if(!logChannel) {
             await LogsCache.setType(guild.id, 'message', { enabled: false, channelId: null });
             return consoleLogData('Message Deleted', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
