@@ -18,12 +18,9 @@ module.exports = {
     async execute(oldMember, newMember) {
         const { client, guild } = newMember;
 
-        console.log(`MemberUpdate`)
-
         if(!guild) return;
 
         const LogsData = await LogsCache.get(guild.id);
-
         if(!LogsData) return consoleLogData('Member Updated', `Guild: ${guild.name} | Disabled`, 'warning');
 
         const joinLogData = LogsData.member

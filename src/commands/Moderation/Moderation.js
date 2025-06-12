@@ -3,6 +3,8 @@ const { SendEmbed, consoleLogData, ShortTimestamp } = require('../../utils/Loggi
 require('dotenv').config();
 const ms = require('ms');
 const { DeveloperIDs } = process.env;
+const LogsCache = require('../../cache/Logs');
+const { permissionCheck } = require('../../utils/Permissions');
 
 module.exports = {
     cooldown: 0,
@@ -272,7 +274,7 @@ async function UnbanUser(interaction) {
         interaction.followUp({ embeds: [FailedDMEmbed], flags: [MessageFlags.Ephemeral] });
     })
 
-    SendEmbed(interaction, Colors.Blurple, 'Unban Successful', `You Unbanned ${targetUser} from the server`, [
+    SendEmbed(interaction, Colors.Blurple, 'Unban Successful', `Unbanned ${targetUser} from the server`, [
         { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
     ]);
 
@@ -335,6 +337,41 @@ async function KickUser(interaction) {
         { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
     ]);
 
+    const LogsData = await LogsCache.get(guild.id);
+    if(!LogsData) return consoleLogData('Punishment Kick', `Guild: ${guild.name} | Disabled`, 'warning');
+
+    const joinLogData = LogsData.punishment
+    if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return consoleLogData('Punishment Kick', `Guild: ${guild.name} | Disabled`, 'warning');
+
+    const logChannel = guild.channels.cache.get(joinLogData.channelId);
+    if(!logChannel) {
+        await LogsCache.setType(guild.id, 'punishment', { enabled: false, channelId: null });
+        return consoleLogData('Punishment Kick', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+    }
+
+    const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
+    const [hasPermission, missingPermissions] = permissionCheck(logChannel, botPermissions, client);
+    if(!hasPermission) {
+        await LogsCache.setType(guild.id, 'punishment', { enabled: false, channelId: null });
+        return consoleLogData('Punishment Kick', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+    }
+
+    const description = [
+        `User: ${targetUser}`,
+        `Reason: ${reason || 'No reason provided'}`,
+    ];
+
+    const LogEmbed = new EmbedBuilder()
+        .setColor(Colors.Red)
+        .setAuthor({ name: targetUser.username, iconURL: targetUser.displayAvatarURL({ size: 512, extension: 'png' }) })
+        .setTitle(`${targetUser.bot ? 'Bot' : 'User'} Kicked`)
+        .setDescription(description.join('\n'))
+        .setFooter({ text: `UID: ${targetUser.id}` })
+        .setTimestamp();
+
+    logChannel.send({ embeds: [LogEmbed] })
+        .then(() => consoleLogData('Punishment Kick', `Guild: ${guild.name} | ${targetUser.bot ? '🤖 Bot' : '👤 User'} @${targetUser.username}`, 'info'))
+        .catch(err => consoleLogData('Punishment Kick', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
 };
 
 
