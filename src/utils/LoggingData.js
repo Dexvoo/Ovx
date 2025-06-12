@@ -1,4 +1,4 @@
-const { EmbedBuilder, MessageFlags, Interaction, ChatInputCommandInteraction } = require('discord.js')
+const { EmbedBuilder, MessageFlags, Interaction, ChatInputCommandInteraction, GuildBasedChannel, TextChannel } = require('discord.js')
 const Global_Cache = require('../cache/Global')
 require('dotenv').config()
 const { CommandCID, JoinGuildCID, LeaveGuildCID, UserLevelCID, DevGuildID } = process.env
@@ -66,7 +66,7 @@ const consoleLogData = (title, description, type) => {
 
 
 /**
-* @param {Interaction} interaction 
+* @param {Interaction | TextChannel } interaction 
 * @param {Colors} colour
 * @param {String} title 
 * @param {String} description
@@ -79,8 +79,6 @@ const SendEmbed = async (interaction, colour, title, description, fields = [], e
     if (!title) throw new Error('No title provided.');
     if (!description) throw new Error('No description provided.');
 
-    
-
     const embed = new EmbedBuilder()
         .setColor(colour)
         .setTitle(title)
@@ -88,25 +86,32 @@ const SendEmbed = async (interaction, colour, title, description, fields = [], e
 
     if (Array.isArray(fields) && fields.length > 0) embed.addFields(fields);
 
-    // Check if the channel exists and is accessible
-    if (!interaction.channel) {
-        // try to fetch the channel if it doesn't exist
-        try {
-            await interaction.guild.channels.fetch(interaction.channelId);
-        } catch (error) {
-            return console.error('Channel not found or inaccessible:', error);
+    if(interaction instanceof ChatInputCommandInteraction) {
+        // Check if the channel exists and is accessible
+        if (!interaction.channel) {
+            // try to fetch the channel if it doesn't exist
+            try {
+                await interaction.guild.channels.fetch(interaction.channelId);
+            } catch (error) {
+                return console.error('Channel not found or inaccessible:', error);
+            }
         }
+
+        try {
+            if (interaction.replied || interaction.deferred) {
+                return await interaction.editReply({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined });
+            } else {
+                return await interaction.reply({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined });
+            }
+        } catch (error) {
+            console.error('Failed to send embed:', error);
+        }
+    } else if (interaction instanceof TextChannel) {
+            interaction.send({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined})
+        
     }
 
-    try {
-        if (interaction.replied || interaction.deferred) {
-            return await interaction.editReply({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined });
-        } else {
-            return await interaction.reply({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined });
-        }
-    } catch (error) {
-        console.error('Failed to send embed:', error);
-    }
+    
 }
 
 /**
