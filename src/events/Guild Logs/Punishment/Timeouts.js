@@ -6,7 +6,7 @@ const { permissionCheck } = require('../../../utils/Permissions.js');
 module.exports = {
     name: Events.GuildMemberUpdate,
     once: false,
-    nickname: 'Member Update | Logs',
+    nickname: 'Punishment Timeout | Logs',
 
 
     /**

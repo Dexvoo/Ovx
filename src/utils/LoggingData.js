@@ -35,8 +35,7 @@ const consoleLogData = (title, description, type) => {
     if (typeof type !== 'string') type = String(type);
 
     const maxTitleLength = 20;
-
-    if (title.length > maxTitleLength) title = title.substring(0, maxTitleLength);
+    title = title.padEnd(maxTitleLength).substring(0, maxTitleLength);
     
 
     const typeColors = {

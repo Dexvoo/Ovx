@@ -14,13 +14,15 @@ module.exports = async function LogsSetup(interaction) {
     const type = options.getString('log-type');
     const enabled = options.getBoolean('enabled');
     const channel = options.getChannel('channel') || null;
-
+    
+    if(type === 'server') return SendEmbed(interaction, Colors.Blurple, `Failed Setup | Unavailable`, `Server logs will be coming soon!`);
     if(!channel && enabled) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the logs to', []);
 
     if(enabled) {
         const botPermissionsInMessage = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
         const [hasMessagePermissions, missingMessagePermissions] = permissionCheck(channel, botPermissionsInMessage, client);
         if(!hasMessagePermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingMessagePermissions.join(', ')}\` in ${channel}`, []);
+
 
         const testEmbed = new EmbedBuilder() 
             .setColor(Colors.Blurple)
