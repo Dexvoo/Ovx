@@ -19,7 +19,7 @@ const TicketCache = require('../../cache/Tickets');
 module.exports = {
     cooldown: 0,
     category: 'Moderation',
-    userpermissions: [ PermissionFlagsBits.Administrator ],
+    userpermissions: [ PermissionFlagsBits.ManageMessages ],
     botpermissions: [ PermissionFlagsBits.ManageGuild, PermissionFlagsBits.ManageMessages, PermissionFlagsBits.ManageRoles ],
     data: new SlashCommandBuilder()
         .setName('ticket')

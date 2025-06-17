@@ -1,4 +1,4 @@
-const { Colors, ButtonInteraction, GuildMember, ButtonStyle, ButtonBuilder, ActionRowBuilder, CommandInteraction, PermissionFlagsBits } = require('discord.js');
+const { Colors, ButtonInteraction, GuildMember, ButtonStyle, ButtonBuilder, ActionRowBuilder, CommandInteraction, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 const { TicketInstance, TicketConfig } = require('../../models/GuildSetups');
 const { SendEmbed } = require('../../utils/LoggingData');
 const TicketCache = require('../../cache/Tickets');
@@ -19,6 +19,7 @@ module.exports = async function TicketSetup(interaction, context) {
     const adminRole = options.getRole('admin-role') || null;
     const botMember = guild.members.me;
 
+    if(!member.permissions.has(PermissionsBitField.Flags.ManageGuild)) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `User Missing Permissions | \`ManageGuild\``, []);
 
     if(!enabled) {
         const GuildTicketConfig = await TicketConfig.findOne({ guildId: guild.id });
@@ -31,7 +32,7 @@ module.exports = async function TicketSetup(interaction, context) {
             { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
         ]);
     };
-
+    
     if(!setupChannel) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the ticket embed in', []);
     if(!ticketCategory) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a category to put the tickets in', []);
     if(!archiveChannel) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the transcripts in', []);

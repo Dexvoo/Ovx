@@ -28,7 +28,7 @@ module.exports = async function LogsSetup(interaction) {
             .setColor(Colors.Blurple)
             .setTitle('Test Log')
             .setDescription(`This is a test log for \`${type}\` logs`)
-            .setFooter({ text: `Tested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
+            .setFooter({ text: `Tested by @${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
             .setTimestamp();
 
         const sentMessage = await channel.send({ embeds: [testEmbed] });

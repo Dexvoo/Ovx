@@ -46,86 +46,46 @@ module.exports = {
             .setFooter({ text: `UID: ${newMember.id}` })
             .setTimestamp();
 
-        const [changes, newEmbed] = detectMemberChanges(oldMember, newMember, LogEmbed);
+        if (oldMember.nickname !== newMember.nickname) LogEmbed.addFields({ name: 'Nickname', value:`\`${oldMember.nickname || oldMember.displayName}\` → \`${newMember.nickname || newMember.displayName}\``, inline: false})
 
-        if(changes.length === 0) return consoleLogData('Member Updated', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username} | No Changes (timeouts are expected)`, 'error');
+        // Per-server avatar change
+        if (oldMember.avatar !== newMember.avatar) LogEmbed.addFields({ name: 'Server Avatar', value:`Updated`, inline: false}) && LogEmbed.setThumbnail(newMember.avatar);
 
+        // Global username
+        if (oldMember.user.username !== newMember.user.username) LogEmbed.addFields({ name: 'Username', value:`\`${oldMember.user.username}\` → \`${newMember.user.username}\``, inline: false})
 
+        // Global display name (new username system)
+        if (oldMember.user.globalName !== newMember.user.globalName) LogEmbed.addFields({ name: 'Display Name', value:`\`${oldMember.user.globalName || 'None'}\` → \`${newMember.user.globalName || 'None'}\``, inline: false})
 
-        logChannel.send({ embeds: [newEmbed] })
+        // Global avatar
+        if (oldMember.user.avatar !== newMember.user.avatar) LogEmbed.addFields({ name: 'Server Avatar', value:`Updated`, inline: false});
+
+        if (oldMember.premiumSinceTimestamp !== newMember.premiumSinceTimestamp) {
+            if (newMember.premiumSince) LogEmbed.addFields({ name: 'Sever Boost', value:`${Timestamp(newMember.premiumSince)}`, inline: false});
+            else LogEmbed.addFields({ name: 'Sever Boost', value:`Stopped Boosting`, inline: false});
+        }
+
+        if (oldMember.pending !== newMember.pending) if (!newMember.pending) LogEmbed.addFields({ name: 'Membership Screening', value:`Completed`, inline: false});
+
+        // Role changes
+        const oldRoles = [...oldMember.roles.cache.keys()];
+        const newRoles = [...newMember.roles.cache.keys()];
+
+        const addedRoles = newRoles.filter(r => !oldRoles.includes(r));
+        const removedRoles = oldRoles.filter(r => !newRoles.includes(r));
+
+        if (addedRoles.length > 0 || removedRoles.length > 0) {
+            const added = addedRoles.map(r => `<@&${r}>`).join(', ');
+            const removed = removedRoles.map(r => `<@&${r}>`).join(', ');
+
+            if (added) LogEmbed.addFields({ name: `Added Roles`, value: `${added.substring(0, 1024)}`});
+            if (removed) LogEmbed.addFields({ name: `Removed Roles`, value: `${removed.substring(0, 1024)}`});
+        }
+
+        if(LogEmbed.data.fields.length === 0) return consoleLogData('Member Updated', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username} | No Changes (timeouts are expected)`, 'error');
+
+        logChannel.send({ embeds: [LogEmbed] })
             .then(() => consoleLogData('Member Updated', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username}`, 'info'))
             .catch(err => consoleLogData('Member Updated', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
-
-
-
     }
 };
-
-
-/**
- * @param {GuildMember} oldMember
- * @param {GuildMember} newMember
- * @param {EmbedBuilder} embed 
- * @returns {string[]} Array of formatted change descriptions
- */
-function detectMemberChanges(oldMember, newMember, embed) {
-    const changes = [];
-
-    if (oldMember.nickname !== newMember.nickname) {
-        changes.push(`• **Nickname:** \`${oldMember.nickname || oldMember.displayName}\` → \`${newMember.nickname || newMember.displayName}\``);
-    }
-
-    // Per-server avatar change
-    if (oldMember.avatar !== newMember.avatar) {
-        embed.setThumbnail(newMember.avatar);
-        changes.push(`• **Server Avatar:** Changed`);
-    }
-
-    // Global username
-    if (oldMember.user.username !== newMember.user.username) {
-        changes.push(`• **Username:** \`${oldMember.user.username}\` → \`${newMember.user.username}\``);
-    }
-
-    // Global display name (new username system)
-    if (oldMember.user.globalName !== newMember.user.globalName) {
-        changes.push(`• **Display Name:** \`${oldMember.user.globalName || 'None'}\` → \`${newMember.user.globalName || 'None'}\``);
-    }
-
-    // Global avatar
-    if (oldMember.user.avatar !== newMember.user.avatar) {
-        changes.push(`• **Avatar:** Changed`);
-    }
-
-    // Boosting status
-    if (oldMember.premiumSince?.getTime() !== newMember.premiumSince?.getTime()) {
-        if (newMember.premiumSince) {
-            changes.push(`• **Started Boosting** at <t:${Math.floor(newMember.premiumSince.getTime() / 1000)}:F>`);
-        } else {
-            changes.push(`• **Stopped Boosting**`);
-        }
-    }
-
-    // Pending screening status
-    if (oldMember.pending !== newMember.pending) {
-        if (!newMember.pending) {
-            changes.push(`• **Completed Membership Screening**`);
-        }
-    }
-
-    // Role changes
-    const oldRoles = [...oldMember.roles.cache.keys()];
-    const newRoles = [...newMember.roles.cache.keys()];
-
-    const addedRoles = newRoles.filter(r => !oldRoles.includes(r));
-    const removedRoles = oldRoles.filter(r => !newRoles.includes(r));
-
-    if (addedRoles.length > 0 || removedRoles.length > 0) {
-        const added = addedRoles.map(r => `<@&${r}>`).join(', ');
-        const removed = removedRoles.map(r => `<@&${r}>`).join(', ');
-
-        if (added) changes.push(`• **Roles Added:** ${added}`);
-        if (removed) changes.push(`• **Roles Removed:** ${removed}`);
-    }
-
-    return [changes, embed]
-}

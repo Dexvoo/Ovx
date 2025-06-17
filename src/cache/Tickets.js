@@ -1,4 +1,5 @@
 const { TicketConfig, TicketConfigType } = require('../models/GuildSetups');
+const { consoleLogData } = require('../utils/LoggingData')
 const NodeCache = require('node-cache');
 
 class TicketsCache {
@@ -19,20 +20,20 @@ class TicketsCache {
      */
     async get(guildId) {
         if (this.cache.has(guildId)) {
-            console.log(`[TicketsCache] HIT: ${guildId}`);
+            consoleLogData(`TicketsCache`, `HIT: ${guildId}`, 'info');
             return this.cache.get(guildId);
         }
 
         let config = await TicketConfig.findOne({ guildId }).lean();
 
         if (!config) {
-            console.log(`[TicketsCache] MISS & INIT: ${guildId}`);
+            consoleLogData(`TicketsCache`, `MISS & INIT: ${guildId}`, 'info');
             config = {
                 guildId,
                 enabled: false,
             };
         } else {
-            console.log(`[TicketsCache] MISS & FOUND: ${guildId}`);
+            consoleLogData(`TicketsCache`, `MISS & FOUND: ${guildId}`, 'info');
         }
 
         this.cache.set(guildId, config);

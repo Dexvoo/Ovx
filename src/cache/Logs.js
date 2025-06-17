@@ -1,4 +1,5 @@
 const { LogsConfig, LogsConfigType } = require('../models/GuildSetups');
+const { consoleLogData } = require('../utils/LoggingData')
 const NodeCache = require('node-cache');
 
 class LogCache {
@@ -19,17 +20,17 @@ class LogCache {
      */
     async get(guildId) {
         if (this.cache.has(guildId)) {
-            console.log(`[LogCache] HIT: ${guildId}`);
+            consoleLogData(`LogCache`, `HIT: ${guildId}`, 'info');
             return this.cache.get(guildId);
         }
 
         let config = await LogsConfig.findOne({ guildId }).lean();
 
         if (!config) {
-            console.log(`[LogCache] MISS & INIT: ${guildId}`);
-            config = { guildId };
+            consoleLogData(`LogCache`, `MISS & INIT: ${guildId}`, 'info');
+            config = { guildId, enabled: false };
         } else {
-            console.log(`[LogCache] MISS & FOUND: ${guildId}`);
+            consoleLogData(`LogCache`, `MISS & FOUND: ${guildId}`, 'info');
         }
 
         this.cache.set(guildId, config);
@@ -59,14 +60,16 @@ class LogCache {
     async setType(guildId, type, newData) {
         const config = await this.get(guildId);
         if (!config) {
-            console.log(`[LogCache] No config found for guild: ${guildId}`);
-            return;
+            consoleLogData(`LogCache`, `No config found for guild: ${guildId}`, 'info');
+            return false;
         }
 
         config[type] = newData;
         await this.set(guildId, config);
         await LogsConfig.updateOne({ guildId }, { [type]: newData });
         this.cache.set(guildId, config);
+
+        return true
     }
 
     /**
