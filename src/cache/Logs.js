@@ -1,5 +1,5 @@
 const { LogsConfig, LogsConfigType } = require('../models/GuildSetups');
-const { consoleLogData } = require('../utils/LoggingData')
+const { LogData } = require('../utils/Functions/ConsoleLogs')
 const NodeCache = require('node-cache');
 
 class LogCache {
@@ -20,17 +20,17 @@ class LogCache {
      */
     async get(guildId) {
         if (this.cache.has(guildId)) {
-            consoleLogData(`LogCache`, `HIT: ${guildId}`, 'info');
+            LogData(`LogCache`, `HIT: ${guildId}`, 'info');
             return this.cache.get(guildId);
         }
 
         let config = await LogsConfig.findOne({ guildId }).lean();
 
         if (!config) {
-            consoleLogData(`LogCache`, `MISS & INIT: ${guildId}`, 'info');
+            LogData(`LogCache`, `MISS & INIT: ${guildId}`, 'info');
             config = { guildId, enabled: false };
         } else {
-            consoleLogData(`LogCache`, `MISS & FOUND: ${guildId}`, 'info');
+            LogData(`LogCache`, `MISS & FOUND: ${guildId}`, 'info');
         }
 
         this.cache.set(guildId, config);
@@ -60,7 +60,7 @@ class LogCache {
     async setType(guildId, type, newData) {
         const config = await this.get(guildId);
         if (!config) {
-            consoleLogData(`LogCache`, `No config found for guild: ${guildId}`, 'info');
+            LogData(`LogCache`, `No config found for guild: ${guildId}`, 'info');
             return false;
         }
 

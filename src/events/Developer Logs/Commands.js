@@ -1,5 +1,4 @@
 const { Events, EmbedBuilder, Colors, ApplicationCommandOptionType, ChatInputCommandInteraction } = require('discord.js');
-const { consoleLogData, SendEmbedLog } = require('../../utils/LoggingData.js');
 require('dotenv').config()
 
 module.exports = {
@@ -10,7 +9,7 @@ module.exports = {
 
     /**
      * 
-     * @param {ChatInputCommandInteraction} interaction 
+     * @param {import('../../types').CommandInputUtils} interaction 
      * @returns 
      */
 
@@ -34,12 +33,12 @@ module.exports = {
                 )
                 .setTimestamp();
 
-            await SendEmbedLog('command', interaction, LogEmbed);
+            await client.utils.EmbedDev('command', client, LogEmbed);
                 
 
         } catch (error) {
             console.error(error);
-            consoleLogData('Command Logs', 'Failed to send command log', 'error');
+            client.utils.LogData('Command Logs', 'Failed to send command log', 'error');
         }
     }
 };

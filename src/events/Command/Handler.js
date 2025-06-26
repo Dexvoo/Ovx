@@ -1,5 +1,4 @@
-const { Events, CommandInteraction, Colors } = require('discord.js');
-const { SendEmbed } = require('../../utils/LoggingData');
+const { Events, Colors } = require('discord.js');
 require('dotenv').config()
 
 const handlers = {
@@ -12,7 +11,7 @@ module.exports = {
 	nickname: 'Command Handler',
 
 	/**
-	 * @param {CommandInteraction} interaction
+	 * @param {import('../../types').CommandInputUtils} interaction
 	 */
 
 	async execute(interaction) {
@@ -24,7 +23,7 @@ module.exports = {
 			await handler(interaction);
 		} catch (error) {
 			console.error(error);
-            SendEmbed(interaction, Colors.Red, 'Command Handler', `Error: \`${error.message}\``);
+            interaction.client.utils.Embed(interaction, Colors.Red, 'Command Handler', `Error: \`${error.message}\``);
 		};
 		
 	},

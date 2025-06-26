@@ -43,24 +43,36 @@ function ExpForLevel(level) {
 
 
 /**
-* @param {Number} exp - The amount of experience points
-* @returns {[Number, Number]} - A tuple containing the level and the amount of experience points left over
-*/
-
+ * @param {number} exp - Total cumulative XP
+ * @returns {[number, number, number]} - [level, currentXPInLevel, xpForNextLevel]
+ */
 function LevelForExp(exp) {
-    if (exp <= 0) return [0, 0]; // Level 0 for 0 XP
-    
-    let level = 0;
-    let xpLeftOver = exp;
+    if (exp <= 0) return [0, 0, ExpForLevel(1)];
 
-    while (xpLeftOver >= ExpForLevel(level + 1)) {
+    let level = 0;
+    let totalRequired = 0;
+
+    while (exp >= ExpForLevel(level + 1)) {
         level++;
     }
 
-    xpLeftOver -= ExpForLevel(level);
+    const xpForCurrentLevel = ExpForLevel(level);
+    const xpIntoCurrentLevel = exp - xpForCurrentLevel;
+    const xpForNextLevel = ExpForLevel(level + 1) - xpForCurrentLevel;
 
-    return [level, xpLeftOver];
+    return [level, xpIntoCurrentLevel, xpForNextLevel];
 }
 
 
-module.exports = { MessageXP, VoiceXP, ExpForLevel, LevelForExp };
+/**
+ * @param {number} current - Current XP into level
+ * @param {number} required - XP needed for next level
+ * @returns {string} - e.g. "34 / 125 (27%)"
+ */
+function progressBar(current, required) {
+    const percent = ((current / required) * 100).toFixed(1);
+    return `${current} / ${required} (${percent}%)`;
+}
+
+
+module.exports = { MessageXP, VoiceXP, ExpForLevel, LevelForExp, progressBar };

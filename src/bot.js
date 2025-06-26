@@ -1,13 +1,13 @@
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const { GatewayIntentBits, Collection } = require('discord.js');
+const OvxClient = require('./structures/OvxClient')
 const path = require('node:path');
 const fsPromises = require('node:fs').promises;
-const { consoleLog, consoleLogData } = require('./utils/LoggingData');
 require('dotenv').config();
 const { DeveloperMode, PublicToken, DevToken } = process.env;
 
 
 // Creating Client
-const client = new Client({
+const client = new OvxClient({
     intents: [
         GatewayIntentBits.Guilds, // Guild create/update/delete events (roles, channels, threads)
 		GatewayIntentBits.GuildMembers, // Member add/update/remove events
@@ -32,7 +32,6 @@ const client = new Client({
 });
 
 client.commands = new Collection();
-client.cooldowns = new Collection();
 
 // Initialise bot with commands/models/events
 const initialise = async () => {
@@ -40,16 +39,15 @@ const initialise = async () => {
     const directories = ['commands', 'models', 'events'];
 
     for (let i = 0; i < directories.length; i++) {
-        consoleLog(`Loading ${directories[i]}`);
+        client.utils.Log(`Loading ${directories[i]}`);
 		const currentDirectory = path.join(__dirname, directories[i]);
 		await crawlDirectory(currentDirectory, directories[i]);
     }
 
-	consoleLog('Completed Initialisation');
+	client.utils.Log('Completed Initialisation');
 };
 
 initialise();
-
 
 
 async function crawlDirectory(currentDirectory, type) {
@@ -66,20 +64,20 @@ async function crawlDirectory(currentDirectory, type) {
 			case 'commands':
 				const command = await require(newPath);
 				if('data' in command && 'execute' in command) {
-					consoleLogData(command.data.name, command.data.description, 'info');
+					client.utils.LogData(command.data.name, command.data.description, 'info');
 					client.commands.set(command.data.name, command);
 				} else {
-					consoleLogData(directory.name, ' ', 'error');
+					client.utils.LogData(directory.name, ' ', 'error');
 				};
 				break;
 			case 'models':
 				const model = await require(newPath);
 				if(model.length > 0 ) {
-					consoleLogData('Models', model[0], 'error');
+					client.utils.LogData('Models', model[0], 'error');
 				} else {
 					for (const key in model) {
 						if (model.hasOwnProperty(key)) {
-							consoleLogData('Models', key, 'info');
+							client.utils.LogData('Models', key, 'info');
 						}
 					}
 				};
@@ -92,9 +90,9 @@ async function crawlDirectory(currentDirectory, type) {
 					} else {
 						client.on(event.name, (...args) => event.execute(...args));
 					}
-					consoleLogData(event.name, event.nickname, 'info');
+					client.utils.LogData(event.name, event.nickname, 'info');
 				} else {
-					consoleLogData(directory.name, ' ', 'error');
+					client.utils.LogData(directory.name, ' ', 'error');
 				}
 				break
 		

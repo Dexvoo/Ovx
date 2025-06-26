@@ -1,12 +1,8 @@
-const { Colors, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
-const { SendEmbed, ShortTimestamp } = require('../../utils/LoggingData');
-const { permissionCheck } = require('../../utils/Permissions');
+const { Colors, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 require('dotenv').config()
 
-const { DeveloperIDs } = process.env;
-
 /**
- * @param {ChatInputCommandInteraction} interaction
+ * @param {import('../../types').CommandInputUtils} interaction
  */
 module.exports = async function LogsSetup(interaction) {
     const { client, options, guildId } = interaction;
@@ -15,13 +11,13 @@ module.exports = async function LogsSetup(interaction) {
     const enabled = options.getBoolean('enabled');
     const channel = options.getChannel('channel') || null;
     
-    if(type === 'server') return SendEmbed(interaction, Colors.Blurple, `Failed Setup | Unavailable`, `Server logs will be coming soon!`);
-    if(!channel && enabled) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the logs to', []);
+    if(type === 'server') return client.utils.Embed(interaction, Colors.Blurple, `Failed Setup | Unavailable`, `Server logs will be coming soon!`);
+    if(!channel && enabled) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the logs to');
 
     if(enabled) {
         const botPermissionsInMessage = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-        const [hasMessagePermissions, missingMessagePermissions] = permissionCheck(channel, botPermissionsInMessage, client);
-        if(!hasMessagePermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingMessagePermissions.join(', ')}\` in ${channel}`, []);
+        const [hasMessagePermissions, missingMessagePermissions] = client.utils.PermCheck(channel, botPermissionsInMessage, client);
+        if(!hasMessagePermissions) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingMessagePermissions.join(', ')}\` in ${channel}`);
 
 
         const testEmbed = new EmbedBuilder() 
@@ -32,10 +28,10 @@ module.exports = async function LogsSetup(interaction) {
             .setTimestamp();
 
         const sentMessage = await channel.send({ embeds: [testEmbed] });
-        if(!sentMessage) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Failed to send a test log in ${channel}`, []);
+        if(!sentMessage) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Failed to send a test log in ${channel}`);
     };
 
     const Cache_Logs = require('../../cache/Logs');
     Cache_Logs.setType(guildId, type, { enabled, channelId: channel ? channel.id : null });
-    SendEmbed(interaction, Colors.Blurple, 'Logs Setup', `Successfully ${enabled ? 'enabled' : 'disabled'} \`${type}\` logs`);
+    client.utils.Embed(interaction, Colors.Blurple, 'Logs Setup', `Successfully ${enabled ? 'enabled' : 'disabled'} \`${type}\` logs`);
 };

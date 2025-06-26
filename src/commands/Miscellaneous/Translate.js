@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 const translate = require('@iamtraction/google-translate');
 require('dotenv').config();
 
@@ -40,7 +40,7 @@ module.exports = {
         ),
 
     /**
-     * @param {CommandInteraction} interaction
+     * @param {import('../../types').CommandInputUtils} interaction
      */
 
     async execute(interaction) {

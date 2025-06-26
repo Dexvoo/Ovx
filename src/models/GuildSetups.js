@@ -36,7 +36,8 @@ const TicketInstanceSchema = new Schema({
     locked: { type: Boolean, default: false },
     transcriptURL: { type: String, default: null },
     createdAt: { type: Date, default: Date.now },
-    closedAt: { type: Date, default: null }
+    closedAt: { type: Date, default: null },
+    closedBy: { type: String, default: null}
 });
 
 

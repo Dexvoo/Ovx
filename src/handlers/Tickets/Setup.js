@@ -1,10 +1,9 @@
-const { Colors, ButtonInteraction, GuildMember, ButtonStyle, ButtonBuilder, ActionRowBuilder, CommandInteraction, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
+const { Colors, GuildMember, ButtonStyle, ButtonBuilder, ActionRowBuilder, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 const { TicketInstance, TicketConfig } = require('../../models/GuildSetups');
-const { SendEmbed } = require('../../utils/LoggingData');
 const TicketCache = require('../../cache/Tickets');
 
 /**
- * @param {CommandInteraction} interaction
+ * @param {import('../../types').CommandInputUtils} interaction
  * @param {{ TicketData: TicketInstance, TicketConfigData: TicketConfig, isAdmin: boolean, isMod: boolean, ticketOwner: GuildMember | null }} context
  */
 module.exports = async function TicketSetup(interaction, context) {
@@ -19,39 +18,39 @@ module.exports = async function TicketSetup(interaction, context) {
     const adminRole = options.getRole('admin-role') || null;
     const botMember = guild.members.me;
 
-    if(!member.permissions.has(PermissionsBitField.Flags.ManageGuild)) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `User Missing Permissions | \`ManageGuild\``, []);
+    if(!member.permissions.has(PermissionsBitField.Flags.ManageGuild)) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `User Missing Permissions | \`ManageGuild\``);
 
     if(!enabled) {
         const GuildTicketConfig = await TicketConfig.findOne({ guildId: guild.id });
-        if(!GuildTicketConfig) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Tickets are not setup on this server, `/ticket setup` to enable tickets', []);
+        if(!GuildTicketConfig) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'Tickets are not setup on this server, `/ticket setup` to enable tickets');
         
         GuildTicketConfig.enabled = false;
         await GuildTicketConfig.save();
 
-        return SendEmbed(interaction, Colors.Blurple, 'Ticket System Disabled', `Ticket system has been disabled`, [
+        return client.utils.Embed(interaction, Colors.Blurple, 'Ticket System Disabled', `Ticket system has been disabled`, [
             { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
         ]);
     };
     
-    if(!setupChannel) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the ticket embed in', []);
-    if(!ticketCategory) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a category to put the tickets in', []);
-    if(!archiveChannel) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the transcripts in', []);
-    if(!supportRole) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a support role to ping when a ticket is created', []);
-    if(!adminRole) return SendEmbed(interaction, Colors.Red, 'Failed Setup', 'Please provide a admin role to ping when a ticket is created', []);
+    if(!setupChannel) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the ticket embed in');
+    if(!ticketCategory) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'Please provide a category to put the tickets in');
+    if(!archiveChannel) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the transcripts in');
+    if(!supportRole) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'Please provide a support role to ping when a ticket is created');
+    if(!adminRole) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'Please provide a admin role to ping when a ticket is created');
 
     const botPermissionsInSetUp = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.ManageChannels];
-    const [hasSetupPermissions, missingSetupPermissions] = permissionCheck(setupChannel, botPermissionsInSetUp, client);
-    if(!hasSetupPermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingSetupPermissions.join(', ')}\` in ${setupChannel}`, []);
+    const [hasSetupPermissions, missingSetupPermissions] = client.utils.PermCheck(setupChannel, botPermissionsInSetUp, client);
+    if(!hasSetupPermissions) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingSetupPermissions.join(', ')}\` in ${setupChannel}`);
 
     const botPermissionsInArchive = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks];
-    const [hasArchivePermissions, missingArchivePermissions] = permissionCheck(archiveChannel, botPermissionsInArchive, client);
-    if(!hasArchivePermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingArchivePermissions.join(', ')}\` in ${archiveChannel}`, []);
+    const [hasArchivePermissions, missingArchivePermissions] = client.utils.PermCheck(archiveChannel, botPermissionsInArchive, client);
+    if(!hasArchivePermissions) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingArchivePermissions.join(', ')}\` in ${archiveChannel}`);
 
     const botPermissionsInCategory = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageRoles];
-    const [hasCategoryPermissions, missingCategoryPermissions] = permissionCheck(ticketCategory, botPermissionsInCategory, client);
-    if(!hasCategoryPermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`, []);
+    const [hasCategoryPermissions, missingCategoryPermissions] = client.utils.PermCheck(ticketCategory, botPermissionsInCategory, client);
+    if(!hasCategoryPermissions) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`);
 
-    if(supportRole.position >= botMember.roles.highest.position || adminRole.position >= botMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Support roles are higher than the bot\'s role.`, []);
+    if(supportRole.position >= botMember.roles.highest.position || adminRole.position >= botMember.roles.highest.position) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Support roles are higher than the bot\'s role.`);
 
     const ticketsEmbedSuccess = new EmbedBuilder()
         .setColor(Colors.Blurple)
@@ -79,7 +78,7 @@ module.exports = async function TicketSetup(interaction, context) {
         maxTicketsPerUser: TicketConfigData?.maxTicketsPerUser || 3
     });
 
-    return SendEmbed(interaction, Colors.Blurple, 'Ticket System Setup', `Ticket system has been setup successfully`, [
+    client.utils.Embed(interaction, Colors.Blurple, 'Ticket System Setup', `Ticket system has been setup successfully`, [
         { name: 'Setup Channel', value: setupChannel.toString(), inline: true },
         { name: 'Ticket Category', value: ticketCategory.toString(), inline: true },
         { name: 'Archive Channel', value: archiveChannel.toString(), inline: true },
@@ -87,5 +86,5 @@ module.exports = async function TicketSetup(interaction, context) {
         { name: 'Admin Role', value: adminRole.toString(), inline: true },
         { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: false }
     ]);
-
+    return;
 };

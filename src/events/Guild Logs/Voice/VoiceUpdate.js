@@ -1,7 +1,5 @@
 const { Events, EmbedBuilder, Colors, PermissionFlagsBits, GuildMember, VoiceState } = require('discord.js');
-const { consoleLogData, Timestamp, getOrdinalSuffix } = require('../../../utils/LoggingData.js');
 const LogsCache = require('../../../cache/Logs.js');
-const { permissionCheck } = require('../../../utils/Permissions.js');
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -11,8 +9,8 @@ module.exports = {
 
     /**
      * 
-     * @param {VoiceState} oldState
-     * @param {VoiceState} newState
+     * @param {import('../../../types.js').VoiceUtils} oldState
+     * @param {import('../../../types.js').VoiceUtils} newState
      */
 
     async execute(oldState, newState) {
@@ -21,22 +19,22 @@ module.exports = {
         if(!guild) return;
 
         const LogsData = await LogsCache.get(guild.id);
-        if(!LogsData) return consoleLogData('Voice Updated', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!LogsData) return client.utils.LogData('Voice Updated', `Guild: ${guild.name} | Disabled`, 'warning');
 
         const joinLogData = LogsData.voice;
-        if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return consoleLogData('Voice Updated', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return client.utils.LogData('Voice Updated', `Guild: ${guild.name} | Disabled`, 'warning');
         
         const logChannel = guild.channels.cache.get(joinLogData.channelId);
         if(!logChannel) {
             await LogsCache.setType(guild.id, 'voice', { enabled: false, channelId: null });
-            return consoleLogData('Voice Updated', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+            return client.utils.LogData('Voice Updated', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
         };
 
         const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-        const [hasPermission, missingPermissions] = permissionCheck(logChannel, botPermissions, client);
+        const [hasPermission, missingPermissions] = client.utils.PermCheck(logChannel, botPermissions, client);
         if(!hasPermission) {
             await LogsCache.setType(guild.id, 'voice', { enabled: false, channelId: null });
-            return consoleLogData('Voice Updated', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+            return client.utils.LogData('Voice Updated', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
         };
     
         const LogEmbed = new EmbedBuilder()
@@ -50,8 +48,8 @@ module.exports = {
             LogEmbed.setColor(Colors.Green)
             LogEmbed.setDescription(`${newState.channel}`)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Joined New', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel ? channel.name : 'Not Found'}`, 'info'))
-                .catch(err => consoleLogData('Voice Joined New', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Joined New', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel ? channel.name : 'Not Found'}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Joined New', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         };
 
         if(oldState.channel && !newState.channel) {
@@ -59,16 +57,16 @@ module.exports = {
             LogEmbed.setColor(Colors.Red)
             LogEmbed.setDescription(`${oldState.channel}`)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Left', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${oldState.channel ? oldState.channel.name : 'Not Found'}`, 'info'))
-                .catch(err => consoleLogData('Voice Left', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Left', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${oldState.channel ? oldState.channel.name : 'Not Found'}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Left', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         };
 
         if(!channel) {
             LogEmbed.setTitle(`Member Left Voice Channel`)
             LogEmbed.setColor(Colors.Red)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Left', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username}`, 'info'))
-                .catch(err => consoleLogData('Voice Left', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Left', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Left', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         };
 
         if(oldState.channel && newState.channel && oldState.channel.id !== newState.channel.id) {
@@ -76,8 +74,8 @@ module.exports = {
             LogEmbed.setColor(Colors.Green)
             LogEmbed.setDescription(`${oldState.channel} => ${newState.channel}`)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Switched', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${oldState.channel.name} => #${channel.name}`, 'info'))
-                .catch(err => consoleLogData('Voice Switched', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Switched', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${oldState.channel.name} => #${channel.name}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Switched', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         };
 
         if(oldState.serverDeaf && !newState.serverDeaf) {
@@ -85,8 +83,8 @@ module.exports = {
             LogEmbed.setColor(Colors.Green)
             LogEmbed.setDescription(`${oldState.channel}`)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Undeafened', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
-                .catch(err => consoleLogData('Voice Undeafened', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Undeafened', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Undeafened', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         };
 
         if(!oldState.serverDeaf && newState.serverDeaf) {
@@ -94,8 +92,8 @@ module.exports = {
             LogEmbed.setColor(Colors.Red)
             LogEmbed.setDescription(`${newState.channel}`)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Deafened', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
-                .catch(err => consoleLogData('Voice Deafened', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Deafened', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Deafened', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         };
 
         if(oldState.serverMute && !newState.serverMute) {
@@ -103,8 +101,8 @@ module.exports = {
             LogEmbed.setColor(Colors.Green)
             LogEmbed.setDescription(`${oldState.channel}`)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Unmuted', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
-                .catch(err => consoleLogData('Voice Unmuted', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Unmuted', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Unmuted', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         };
 
         if(!oldState.serverMute && newState.serverMute) {
@@ -112,8 +110,8 @@ module.exports = {
             LogEmbed.setColor(Colors.Red)
             LogEmbed.setDescription(`${newState.channel}`)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Muted', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
-                .catch(err => consoleLogData('Voice Muted', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Muted', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Muted', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         };
 
         if(oldState.selfVideo && !newState.selfVideo) {
@@ -121,8 +119,8 @@ module.exports = {
             LogEmbed.setColor(Colors.Red)
             LogEmbed.setDescription(`${oldState.channel}`)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Disable Video', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
-                .catch(err => consoleLogData('Voice Disable Video', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Disable Video', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Disable Video', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         }
 
         if(!oldState.selfVideo && newState.selfVideo) {
@@ -130,12 +128,12 @@ module.exports = {
             LogEmbed.setColor(Colors.Green)
             LogEmbed.setDescription(`${newState.channel}`)
             return logChannel.send({ embeds: [LogEmbed] })
-                .then(() => consoleLogData('Voice Enable Video', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
-                .catch(err => consoleLogData('Voice Enable Video', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                .then(() => client.utils.LogData('Voice Enable Video', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username} | Channel: #${channel.name}`, 'info'))
+                .catch(err => client.utils.LogData('Voice Enable Video', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
         }
 
 
-        consoleLogData('Voice Update Logs', `Should not get here, if so im missing events`, 'error')
+        client.utils.LogData('Voice Update Logs', `Should not get here, if so im missing events`, 'error')
 
 
 

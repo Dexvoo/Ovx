@@ -1,5 +1,5 @@
 const { LevelConfig, LevelConfigType } = require('../models/GuildSetups');
-const { consoleLogData } = require('../utils/LoggingData')
+const { LogData } = require('../utils/Functions/ConsoleLogs')
 const NodeCache = require('node-cache');
 
 class LevelsCache {
@@ -20,29 +20,17 @@ class LevelsCache {
      */
     async get(guildId) {
         if (this.cache.has(guildId)) {
-            consoleLogData(`LevelsCache`, `HIT: ${guildId}`, 'info');
+            LogData(`LevelsCache`, `HIT: ${guildId}`, 'info');
             return this.cache.get(guildId);
         }
 
         let config = await LevelConfig.findOne({ guildId }).lean();
 
         if (!config) {
-            consoleLogData(`LevelsCache`, `MISS & INIT: ${guildId}`, 'info');
-            config = {
-                guildId,
-                enabled: false,
-                channelId: null,
-                blacklisted: { roleIds: [], channelIds: [] },
-                rewards: [],
-                removePastRewards: false,
-                xpMultiplier: 1,
-                messageCooldown: 60,
-                maxLevel: 100,
-                levelUpMessage: '{user}, you just gained a level! Current Level: **{level}**!',
-                roleMultipliers: []
-            };
+            LogData(`LevelsCache`, `MISS & INIT: ${guildId}`, 'info');
+            config = (await LevelConfig.create({ guildId})).toObject();
         } else {
-            consoleLogData(`LevelsCache`, `MISS & FOUND: ${guildId}`, 'info');
+            LogData(`LevelsCache`, `MISS & FOUND: ${guildId}`, 'info');
         }
 
         this.cache.set(guildId, config);

@@ -1,29 +1,27 @@
-const { Colors, EmbedBuilder, ButtonInteraction, GuildMember, ChannelType, PermissionsBitField, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Colors, EmbedBuilder, GuildMember, ChannelType, PermissionsBitField, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { TicketInstance, TicketConfigType } = require('../../models/GuildSetups');
-const { SendEmbed } = require('../../utils/LoggingData');
-const { permissionCheck } = require('../../utils/Permissions');
 const TicketsCache = require('../../cache/Tickets');
 
 /**
- * @param {ButtonInteraction} interaction
+ * @param {import('../../types').ButtonUtils | import('../../types').CommandInputUtils} interaction
  * @param {{ TicketData: TicketInstance, TicketConfigData: Partial<TicketConfigType>, isAdmin: boolean, isMod: boolean, ticketOwner: GuildMember | null }} context
  */
 module.exports = async function TicketCreate(interaction, context) {
     const { client, guild, channel, member, user } = interaction;
     const { TicketData, TicketConfigData, isAdmin, isMod, ticketOwner } = context;
 
-    if(!TicketConfigData?.enabled) return SendEmbed(interaction, Colors.Red, 'Tickets | Not Enabled', 'Tickets are not enabled on this server. Please contact an admin.');
+    if(!TicketConfigData?.enabled) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Not Enabled', 'Tickets are not enabled on this server. Please contact an admin.');
 
     const userTickets = await TicketInstance.find({ memberId: user.id, guildId: guild.id });
     const openTickets = userTickets.filter(ticket => guild.channels.cache.has(ticket.channelId) && ticket.open);
-    if(openTickets?.length >= TicketConfigData.maxTicketsPerUser) return SendEmbed(interaction, Colors.Red, 'Tickets | Limit Reached', `You have reached the maximum number of tickets (${TicketConfigData.maxTicketsPerUser}) allowed.`);
+    if(openTickets?.length >= TicketConfigData.maxTicketsPerUser) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Limit Reached', `You have reached the maximum number of tickets (${TicketConfigData.maxTicketsPerUser}) allowed.`);
 
     const ticketCategory = guild.channels.cache.get(TicketConfigData.ticketCategoryId);
-    if (!ticketCategory) return SendEmbed(interaction, Colors.Red, 'Tickets | Category Not Found', 'The ticket category is not set up correctly. Please contact an admin.');
+    if (!ticketCategory) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Category Not Found', 'The ticket category is not set up correctly. Please contact an admin.');
 
     const botPermissionsInCategory = [PermissionsBitField.Flags.ManageChannels, PermissionsBitField.Flags.ManageRoles];
-    const [hasCategoryPermissions, missingCategoryPermissions] = permissionCheck(ticketCategory, botPermissionsInCategory, client);
-    if(!hasCategoryPermissions) return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`, []);
+    const [hasCategoryPermissions, missingCategoryPermissions] = client.utils.PermCheck(ticketCategory, botPermissionsInCategory, client);
+    if(!hasCategoryPermissions) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`, []);
 
     TicketConfigData.lastTicketId += 1;
     
@@ -100,6 +98,6 @@ module.exports = async function TicketCreate(interaction, context) {
     });
 
     await newTicket.save();
-    return SendEmbed(interaction, Colors.Blurple, 'Ticket Created', `Your ticket has been created: ${ticketChannel}`);
+    return client.utils.Embed(interaction, Colors.Blurple, 'Ticket Created', `Your ticket has been created: ${ticketChannel}`);
 
 };

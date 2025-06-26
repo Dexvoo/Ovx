@@ -1,13 +1,11 @@
-const { SlashCommandBuilder, Colors, CommandInteraction, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, GuildMember, Client, User, MessageFlags, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, ChatInputCommandInteraction, PermissionsBitField } = require('discord.js');
-const { SendEmbed, consoleLogData, ShortTimestamp } = require('../../utils/LoggingData')
+const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, GuildMember, Client, User, MessageFlags, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, ChatInputCommandInteraction, PermissionsBitField } = require('discord.js');
 require('dotenv').config();
 const ms = require('ms');
-const { DeveloperIDs } = process.env;
 const { TicketConfig, TicketInstance } = require('../../models/GuildSetups');
-const { permissionCheck } = require('../../utils/Permissions');
 
 const handlers = {
     setup: require('../../handlers/Levels/Setup'),
+    rank: require('../../handlers/Levels/Rank'),
     settings: {
         'xp-multiplier': require('../../handlers/Levels/Settings/XPMultiplier'),
         'message-cooldown': require('../../handlers/Levels/Settings/MessageCooldown'),
@@ -42,6 +40,22 @@ module.exports = {
                 .setRequired(false)
             )
         )
+
+        .addSubcommand((subcommand) => subcommand
+			.setName('leaderboard')
+			.setDescription('Displays the most active users in a leaderboard')
+
+			.addStringOption((option) => option
+			    .setName('type')
+			    .setDescription('The type of leaderboard to show')
+			    .setRequired(true)
+			    .addChoices(
+                    { name: 'Levels', value: 'levels' },
+			    	{ name: 'Messages', value: 'messages' },
+			    	{ name: 'Voice', value: 'voice' }
+			    )
+			)
+		)
         
         .addSubcommand(subcommand => subcommand
             .setName('setup')
@@ -69,9 +83,9 @@ module.exports = {
                 .setDescription('Set the XP multiplier for this server.')
                 .addNumberOption(option => option
                     .setName('multiplier')
-                    .setDescription('Multiplier value (e.g. 1 = normal, 2 = double XP)')
+                    .setDescription('Multiplier value (e.g. 1 = normal, 2 = double XP) (5 = Max)')
                     .setMinValue(0)
-                    .setMaxValue(100)
+                    .setMaxValue(5)
                     .setRequired(true)
                 )
             )
@@ -169,7 +183,7 @@ module.exports = {
             )
         ),
     /**
-     * @param {ChatInputCommandInteraction} interaction
+     * @param {import('../../types').CommandInputUtils } interaction
      */
     async execute(interaction) {
         const subcommandGroup = interaction.options.getSubcommandGroup(false); // false = not required
@@ -182,7 +196,7 @@ module.exports = {
         }
 
         if (!handler) {
-            return SendEmbed(interaction, Colors.Red, 'Level | Not Found', `Handler for \`${subcommandGroup ? `${subcommandGroup} ${subcommand}` : subcommand}\` not found.`);
+            return interaction.client.utils.Embed(interaction, Colors.Red, 'Level | Not Found', `Handler for \`${subcommandGroup ? `${subcommandGroup} ${subcommand}` : subcommand}\` not found.`);
         }
 
         try {
@@ -196,7 +210,7 @@ module.exports = {
             await handler(interaction, context);
         } catch (error) {
             console.error(error);
-            SendEmbed(interaction, Colors.Red, 'Level | Error', `Error: \`${error.message}\``);
+            interaction.client.utils.Embed(interaction, Colors.Red, 'Level | Error', `Error: \`${error.message}\``);
         }
     }
 };

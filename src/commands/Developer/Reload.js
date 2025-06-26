@@ -1,8 +1,7 @@
-const { SlashCommandBuilder, Colors, CommandInteraction, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, Events } = require('discord.js');
+const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, Events } = require('discord.js');
 const path = require('node:path');
 const fsPromises = require('node:fs').promises;
 require('dotenv').config();
-const { DeveloperIDs } = process.env;
 
 module.exports = {
     cooldown: 0,
@@ -40,59 +39,39 @@ module.exports = {
     },
 
     /**
-    * @param {CommandInteraction} interaction
+    * @param {import('../../types').CommandInputUtils} interaction
     */
 
     async execute(interaction) {
-        const { options, client } = interaction;
+        const { options, client, user, member } = interaction;
 
-        if(!DeveloperIDs.includes(interaction.user.id)) {
-            const Embed = new EmbedBuilder()
-                .setColor(Colors.Red)
-                .setDescription('You do not have permission to use this command');
-            return interaction.reply({ embeds: [Embed] });
-        }
+        if(!client.utils.DevCheck(user.id)) return client.utils.Embed(interaction, Colors.Red, 'Command Failed', `User Missing Permission: \`Developer\``);
         
-        client.emit(Events.GuildMemberAdd, interaction.member);
-        client.emit(Events.GuildMemberRemove, interaction.member);
+        client.emit(Events.GuildMemberAdd, member);
+        client.emit(Events.GuildMemberRemove, member);
 
         
         const commandName = options.getString('command').toLowerCase();
         const command = client.commands.get(commandName);
 
-        if(!command) {
-            const Embed = new EmbedBuilder()
-                .setColor(Colors.Red)
-                .setDescription(`There is no command with the name \`${commandName}\``);
-            return interaction.reply({ embeds: [Embed] });
-        }
+        if(!command) return client.utils.Embed(interaction, Colors.Red, `There is no command with the name \`${commandName}\``);
 
 
         const commandPath = path.join(__dirname, '..', '..', 'commands');
         const url = await crawlDirectory(commandPath, commandName);
         
-        if(!url) {
-            const Embed = new EmbedBuilder()
-                .setColor(Colors.Red)
-                .setDescription(`Failed to find command file for \`${commandName}\``);
-            return interaction.reply({ embeds: [Embed] });
-        }
+        if(!url) return client.utils.Embed(interaction, Colors.Red, `Failed to find command file for \`${commandName}\``);
 
         delete require.cache[require.resolve(url)];
 
         try {
             const newCommand = require(url);
             client.commands.set(newCommand.data.name, newCommand);
-            const Embed = new EmbedBuilder()
-                .setColor(Colors.Green)
-                .setDescription(`Successfully reloaded \`${commandName}\``);
-            return interaction.reply({ embeds: [Embed] });
+
+            client.utils.Embed(interaction, Colors.Green, `Successfully reloaded \`${commandName}\``);
         } catch (error) {
             console.error(error);
-            const Embed = new EmbedBuilder()
-                .setColor(Colors.Red)
-                .setDescription(`Failed to reload \`${commandName}\``);
-            return interaction.reply({ embeds: [Embed] });
+            client.utils.Embed(interaction, Colors.Red, `Failed to reload \`${commandName}\``);
         }
         
     }

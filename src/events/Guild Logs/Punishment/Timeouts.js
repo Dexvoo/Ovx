@@ -1,7 +1,5 @@
-const { Events, EmbedBuilder, Colors, PermissionFlagsBits, GuildMember } = require('discord.js');
-const { consoleLogData, Timestamp, getOrdinalSuffix } = require('../../../utils/LoggingData.js');
+const { Events, EmbedBuilder, Colors, PermissionFlagsBits } = require('discord.js');
 const LogsCache = require('../../../cache/Logs.js');
-const { permissionCheck } = require('../../../utils/Permissions.js');
 
 module.exports = {
     name: Events.GuildMemberUpdate,
@@ -11,8 +9,8 @@ module.exports = {
 
     /**
      * 
-     * @param {GuildMember} oldMember
-     * @param {GuildMember} newMember
+     * @param {import('../../../types.js').MemberUtils} oldMember
+     * @param {import('../../../types.js').MemberUtils} newMember
      */
 
     async execute(oldMember, newMember) {
@@ -22,22 +20,22 @@ module.exports = {
 
         if(oldMember.communicationDisabledUntilTimestamp !== newMember.communicationDisabledUntilTimestamp) {
             const LogsData = await LogsCache.get(guild.id);
-            if(!LogsData) return consoleLogData('Punishment Timeout', `Guild: ${guild.name} | Disabled`, 'warning');
+            if(!LogsData) return client.utils.LogData('Punishment Timeout', `Guild: ${guild.name} | Disabled`, 'warning');
 
             const joinLogData = LogsData.punishment
-            if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return consoleLogData('Punishment Timeout', `Guild: ${guild.name} | Disabled`, 'warning');
+            if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return client.utils.LogData('Punishment Timeout', `Guild: ${guild.name} | Disabled`, 'warning');
             
             const logChannel = guild.channels.cache.get(joinLogData.channelId);
             if(!logChannel) {
                 await LogsCache.setType(guild.id, 'punishment', { enabled: false, channelId: null });
-                return consoleLogData('Punishment Timeout', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+                return client.utils.LogData('Punishment Timeout', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
             }
 
             const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-            const [hasPermission, missingPermissions] = permissionCheck(logChannel, botPermissions, client);
+            const [hasPermission, missingPermissions] = client.utils.PermCheck(logChannel, botPermissions, client);
             if(!hasPermission) {
                 await LogsCache.setType(guild.id, 'punishment', { enabled: false, channelId: null });
-                return consoleLogData('Punishment Timeout', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+                return client.utils.LogData('Punishment Timeout', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
             }
 
             if(newMember.communicationDisabledUntilTimestamp === null) {
@@ -55,13 +53,13 @@ module.exports = {
 
 
                 logChannel.send({ embeds: [LogEmbed] })
-                    .then(() => consoleLogData('Punishment Timeout Removed', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username}`, 'info'))
-                    .catch(err => consoleLogData('Punishment Timeout Removed', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+                    .then(() => client.utils.LogData('Punishment Timeout Removed', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username}`, 'info'))
+                    .catch(err => client.utils.LogData('Punishment Timeout Removed', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
                 
             } else {
                 const description = [
                     `User: ${newMember}`,
-                    `Timeout Until: ${Timestamp(newMember.communicationDisabledUntil)}`
+                    `Timeout Until: ${client.utils.Timestamp(newMember.communicationDisabledUntil)}`
                 ];
 
                 const LogEmbed = new EmbedBuilder()
@@ -73,16 +71,9 @@ module.exports = {
                     .setTimestamp();
 
                 logChannel.send({ embeds: [LogEmbed] })
-                    .then(() => consoleLogData('Punishment Timeout Added', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username}`, 'info'))
-                    .catch(err => consoleLogData('Punishment Timeout Added', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
-
+                    .then(() => client.utils.LogData('Punishment Timeout Added', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username}`, 'info'))
+                    .catch(err => client.utils.LogData('Punishment Timeout Added', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
             }
-
-
-    
         }
-
-
-
     }
 };

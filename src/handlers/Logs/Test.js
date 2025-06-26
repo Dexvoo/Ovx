@@ -1,28 +1,23 @@
-const { Colors, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
-const { SendEmbed, ShortTimestamp } = require('../../utils/LoggingData');
-const { permissionCheck } = require('../../utils/Permissions');
-require('dotenv').config()
-
-const { DeveloperIDs } = process.env;
+const { Colors, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 
 /**
- * @param {ChatInputCommandInteraction} interaction
+ * @param {import('../../types').CommandInputUtils} interaction
  */
 module.exports = async function LogsTest(interaction) {
-    const { options, guildId } = interaction;
+    const { options, guildId, client } = interaction;
     
     const type = options.getString('log-type');
 
     const Cache_Logs = require('../../cache/Logs');
     const currentConfig = await Cache_Logs.get(guildId);
 
-    if(!currentConfig) {
-        return SendEmbed(interaction, Colors.Red, 'Logs Setup', `No configuration found for \`${type}\` logs`);
-    }
+    if(!currentConfig) return client.utils.Embed(interaction, Colors.Red, 'Logs Setup', `No configuration found for \`${type}\` logs`);
 
     if(type === 'all') {
         const successfulLogs = [];
         const failedLogs = [];
+
+        client.utils.Embed(interaction, Colors.Blurple, 'Logs Testing In Progress', `User: ${interaction.member}`);
         for(const [logType, config] of Object.entries(currentConfig)) {
             if(!config.enabled) continue;
 
@@ -36,7 +31,7 @@ module.exports = async function LogsTest(interaction) {
             }
 
             const botPermissionsInMessage = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-            const [hasMessagePermissions, missingMessagePermissions] = permissionCheck(channel, botPermissionsInMessage, interaction.client);
+            const [hasMessagePermissions, missingMessagePermissions] = client.utils.PermCheck(channel, botPermissionsInMessage, interaction.client);
             if(!hasMessagePermissions) {
                 await Cache_Logs.deleteType(guildId, logType);
                 failedLogs.push(logType);
@@ -53,34 +48,33 @@ module.exports = async function LogsTest(interaction) {
             if(!sentMessage) {
                 await Cache_Logs.deleteType(guildId, logType);
                 failedLogs.push(logType);
-                return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Failed to send a test log in ${channel}`, []);
+                return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Failed to send a test log in ${channel}`);
             }
 
             successfulLogs.push(logType);
         }
 
-        return SendEmbed(interaction, Colors.Blurple, 'Logs Test', `Successfully sent test logs for all configured log types.`, [
-            { name: 'Successful Logs', value: successfulLogs.length > 0 ? successfulLogs.join(', ') : 'None', inline: true },
-            { name: 'Failed Logs', value: failedLogs.length > 0 ? failedLogs.join(', ') : 'None', inline: true }
-        ], false);
+        client.utils.Embed(interaction, Colors.Blurple, 'Logs Test Complete', `User: ${interaction.member}\nSuccessful: \`${successfulLogs.length > 0 ? successfulLogs.join(', ') : 'None'}\`\nFailed: \`${failedLogs.length > 0 ? failedLogs.join(', ') : 'None'}\``, false);
+
+        return
     }
 
     const config = currentConfig[type];
     if(!config) {
-        return SendEmbed(interaction, Colors.Red, 'Logs Setup', `No configuration found for \`${type}\` logs`);
+        return client.utils.Embed(interaction, Colors.Red, 'Logs Setup', `No configuration found for \`${type}\` logs`);
     }
 
     const channel = interaction.guild.channels.cache.get(config.channelId) || await interaction.guild.channels.fetch(config.channelId).catch(() => null);
     if(!channel) {
         await Cache_Logs.deleteType(guildId, type);
-        return SendEmbed(interaction, Colors.Red, 'Logs Setup', `Log channel for \`${type}\` not found. Please check the configuration.`);
+        return client.utils.Embed(interaction, Colors.Red, 'Logs Setup', `Log channel for \`${type}\` not found. Please check the configuration.`);
     }
 
     const botPermissionsInMessage = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-    const [hasMessagePermissions, missingMessagePermissions] = permissionCheck(channel, botPermissionsInMessage, interaction.client);
+    const [hasMessagePermissions, missingMessagePermissions] = client.utils.PermCheck(channel, botPermissionsInMessage, interaction.client);
     if(!hasMessagePermissions) {
         await Cache_Logs.deleteType(guildId, type);
-        return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingMessagePermissions.join(', ')}\` in ${channel}`, []);
+        return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingMessagePermissions.join(', ')}\` in ${channel}`);
     }
 
     const testEmbed = new EmbedBuilder() 
@@ -93,8 +87,8 @@ module.exports = async function LogsTest(interaction) {
     const sentMessage = await channel.send({ embeds: [testEmbed] });
     if(!sentMessage) {
         await Cache_Logs.deleteType(guildId, type);
-        return SendEmbed(interaction, Colors.Red, 'Failed Setup', `Failed to send a test log in ${channel}`, []);
+        return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Failed to send a test log in ${channel}`);
     }
 
-    return SendEmbed(interaction, Colors.Blurple, 'Logs Test', `Successfully sent a test log for \`${type}\` logs in ${channel}`);
+    return client.utils.Embed(interaction, Colors.Blurple, 'Logs Test', `Successfully sent a test log for \`${type}\` logs in ${channel}`);
 };

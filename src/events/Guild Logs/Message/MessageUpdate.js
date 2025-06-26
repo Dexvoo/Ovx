@@ -1,7 +1,5 @@
 const { Events, EmbedBuilder, Colors, Message, PermissionFlagsBits } = require('discord.js');
-const { consoleLogData } = require('../../../utils/LoggingData.js');
 const LogsCache = require('../../../cache/Logs.js');
-const { permissionCheck } = require('../../../utils/Permissions.js');
 
 module.exports = {
     name: Events.MessageUpdate,
@@ -11,8 +9,8 @@ module.exports = {
 
     /**
      * 
-     * @param {Message} oldMessage
-     * @param {Message} newMessage
+     * @param {import('../../../types.js').MessageUtils} oldMessage
+     * @param {import('../../../types.js').MessageUtils} newMessage
      * @returns 
      */
 
@@ -22,22 +20,22 @@ module.exports = {
         if(author.bot || !guild || oldMessage.content === newMessage.content) return;
 
         const LogsData = await LogsCache.get(guild.id)
-        if(!LogsData) return consoleLogData('Message Updated', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!LogsData) return client.utils.LogData('Message Updated', `Guild: ${guild.name} | Disabled`, 'warning');
 
         const messageLogData = LogsData.message
-        if(!messageLogData || !messageLogData.enabled || messageLogData.channelId === null) return consoleLogData('Member Left', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!messageLogData || !messageLogData.enabled || messageLogData.channelId === null) return client.utils.LogData('Member Left', `Guild: ${guild.name} | Disabled`, 'warning');
         
         const logChannel = guild.channels.cache.get(messageLogData.channelId);
         if(!logChannel) {
             await LogsCache.setType(guild.id, 'message', { enabled: false, channelId: null });
-            return consoleLogData('Message Updated', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+            return client.utils.LogData('Message Updated', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
         }
 
         const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-        const [hasPermission, missingPermissions] = permissionCheck(logChannel, botPermissions, client);
+        const [hasPermission, missingPermissions] = client.utils.PermCheck(logChannel, botPermissions, client);
         if(!hasPermission) {
             await LogsCache.setType(guild.id, 'message', { enabled: false, channelId: null });
-            return consoleLogData('Message Updated', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+            return client.utils.LogData('Message Updated', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
         }
         
         const description = [
@@ -60,8 +58,8 @@ module.exports = {
             .setTimestamp();
 
         logChannel.send({ embeds: [LogEmbed] })
-            .then(() => consoleLogData('Message Updated', `Guild: ${guild.name} | Message by ${author.tag} updated in #${channel.name}`, 'info'))
-            .catch(err => consoleLogData('Message Updated', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+            .then(() => client.utils.LogData('Message Updated', `Guild: ${guild.name} | Message by ${author.tag} updated in #${channel.name}`, 'info'))
+            .catch(err => client.utils.LogData('Message Updated', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
 
 
 

@@ -1,4 +1,5 @@
 const { ChatInputCommandInteraction, GuildMember, Client, GuildChannel, ThreadChannel, PermissionFlagsBits, PermissionsBitField } = require("discord.js");
+const { PublicClientID, TopggAPIKey, DeveloperIDs } = process.env
 
 /**
  * @param {ChatInputCommandInteraction | GuildChannel | ThreadChannel} interactionChannel - Interaction or Channel
@@ -6,7 +7,7 @@ const { ChatInputCommandInteraction, GuildMember, Client, GuildChannel, ThreadCh
  * @param {GuildMember | Client} member - GuildMember or Client
  * @returns {[boolean, string[]?]} Array with a boolean indicating success and an optional array of missing permissions
  */
-function permissionCheck(interactionChannel, permissions, member) {
+function PermCheck(interactionChannel, permissions, member) {
     if (!interactionChannel) throw new Error('No channel or interaction provided.');
     if (!Array.isArray(permissions)) throw new Error('No permissions provided or invalid format.');
     if (!member) throw new Error('No member provided.');
@@ -36,4 +37,27 @@ function permissionCheck(interactionChannel, permissions, member) {
     return missingPermissions.length > 0 ? [false, missingPermissions] : [true];
 }
 
-module.exports = { permissionCheck };
+
+/**
+ * @param {String} userId - Userid 
+ * @returns {Promise<Boolean>} Boolean if voted or not
+ */
+async function hasVotedTGG(userId) {
+    const hasVoted = await fetch(`https://top.gg/api/bots/${PublicClientID}/check?userId=${userId}`, {
+        headers: {
+            'Authorization': TopggAPIKey
+        }}).then(res => res.json()).then(json => json.voted);
+    return hasVoted;
+}
+
+
+/**
+ * @param {String} userId - Userid 
+ * @returns {Boolean} Boolean if dev or not
+ */
+function DevCheck(userId) {
+    if(DeveloperIDs.includes(userId)) return true;
+    return false;
+}
+
+module.exports = { PermCheck, hasVotedTGG, DevCheck };

@@ -1,7 +1,5 @@
-const { Events, EmbedBuilder, Colors, PermissionFlagsBits, GuildChannel, PermissionsBitField, ChannelType } = require('discord.js');
-const { consoleLogData } = require('../../../utils/LoggingData.js');
+const { Events, EmbedBuilder, Colors, PermissionFlagsBits, PermissionsBitField, ChannelType } = require('discord.js');
 const LogsCache = require('../../../cache/Logs.js');
-const { permissionCheck } = require('../../../utils/Permissions.js');
 
 module.exports = {
     name: Events.ChannelUpdate,
@@ -9,29 +7,27 @@ module.exports = {
     nickname: 'Channel Update | Logs',
 
     /**
-     * @param {GuildChannel} oldChannel
-     * @param {GuildChannel} newChannel
+     * @param {import('../../../types.js').ChannelUtils} oldChannel
+     * @param {import('../../../types.js').ChannelUtils} newChannel
      */
     async execute(oldChannel, newChannel) {
         const { client, guild } = newChannel;
         if (!guild) return;
 
         const LogsData = await LogsCache.get(guild.id);
-        if (!LogsData?.channel?.enabled || !LogsData.channel.channelId) {
-            return consoleLogData('Channel Updated', `Guild: ${guild.name} | Disabled`, 'warning');
-        }
+        if (!LogsData?.channel?.enabled || !LogsData.channel.channelId) return client.utils.LogData('Channel Updated', `Guild: ${guild.name} | Disabled`, 'warning');
 
         const logChannel = guild.channels.cache.get(LogsData.channel.channelId);
         if (!logChannel) {
             await LogsCache.setType(guild.id, 'channel', { enabled: false, channelId: null });
-            return consoleLogData('Channel Updated', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+            return client.utils.LogData('Channel Updated', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
         }
 
         const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-        const [hasPermission] = permissionCheck(logChannel, botPermissions, client);
+        const [hasPermission] = client.utils.PermCheck(logChannel, botPermissions, client);
         if (!hasPermission) {
             await LogsCache.setType(guild.id, 'channel', { enabled: false, channelId: null });
-            return consoleLogData('Channel Updated', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+            return client.utils.LogData('Channel Updated', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
         }
 
         const description = [];
@@ -109,11 +105,11 @@ module.exports = {
             description.push(...changedPerms);
         }
 
-        if (positionChanged && description.length === 1) return consoleLogData('Channel Updated', `Guild: ${guild.name} | Position change only - skipped`, 'info');
+        if (positionChanged && description.length === 1) return client.utils.LogData('Channel Updated', `Guild: ${guild.name} | Position change only - skipped`, 'info');
 
         // No meaningful change
         if (description.length === 0) {
-            return consoleLogData('Channel Updated', `Guild: ${guild.name} | No significant changes`, 'info');
+            return client.utils.LogData('Channel Updated', `Guild: ${guild.name} | No significant changes`, 'info');
         }
 
         const embed = new EmbedBuilder()
@@ -124,8 +120,8 @@ module.exports = {
             .setTimestamp();
 
         logChannel.send({ embeds: [embed] })
-            .then(() => consoleLogData('Channel Updated', `Guild: ${guild.name} | Logged changes in #${newChannel.name}`, 'info'))
-            .catch(err => consoleLogData('Channel Updated', `Guild: ${guild.name} | Failed to send log: ${err.message}`, 'error'));
+            .then(() => client.utils.LogData('Channel Updated', `Guild: ${guild.name} | Logged changes in #${newChannel.name}`, 'info'))
+            .catch(err => client.utils.LogData('Channel Updated', `Guild: ${guild.name} | Failed to send log: ${err.message}`, 'error'));
     }
 };
 

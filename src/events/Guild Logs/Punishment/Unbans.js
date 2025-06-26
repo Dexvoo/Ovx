@@ -1,7 +1,5 @@
-const { Events, EmbedBuilder, Colors, PermissionFlagsBits, GuildBan } = require('discord.js');
-const { consoleLogData, Timestamp, getOrdinalSuffix } = require('../../../utils/LoggingData.js');
+const { Events, EmbedBuilder, Colors, PermissionFlagsBits } = require('discord.js');
 const LogsCache = require('../../../cache/Logs.js');
-const { permissionCheck } = require('../../../utils/Permissions.js');
 
 module.exports = {
     name: Events.GuildBanRemove,
@@ -11,7 +9,7 @@ module.exports = {
 
     /**
      * 
-     * @param {GuildBan} ban
+     * @param {import('../../../types.js').BanUtils} ban
      */
 
     async execute(ban) {
@@ -20,22 +18,22 @@ module.exports = {
         if(!guild) return;
 
         const LogsData = await LogsCache.get(guild.id);
-        if(!LogsData) return consoleLogData('Punishment Unban', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!LogsData) return client.utils.LogData('Punishment Unban', `Guild: ${guild.name} | Disabled`, 'warning');
 
         const joinLogData = LogsData.punishment
-        if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return consoleLogData('Punishment Unban', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return client.utils.LogData('Punishment Unban', `Guild: ${guild.name} | Disabled`, 'warning');
         
         const logChannel = guild.channels.cache.get(joinLogData.channelId);
         if(!logChannel) {
             await LogsCache.setType(guild.id, 'punishment', { enabled: false, channelId: null });
-            return consoleLogData('Punishment Unban', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+            return client.utils.LogData('Punishment Unban', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
         }
 
         const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-        const [hasPermission, missingPermissions] = permissionCheck(logChannel, botPermissions, client);
+        const [hasPermission, missingPermissions] = client.utils.PermCheck(logChannel, botPermissions, client);
         if(!hasPermission) {
             await LogsCache.setType(guild.id, 'punishment', { enabled: false, channelId: null });
-            return consoleLogData('Punishment Unban', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+            return client.utils.LogData('Punishment Unban', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
         }
         
 
@@ -54,8 +52,8 @@ module.exports = {
 
 
         logChannel.send({ embeds: [LogEmbed] })
-            .then(() => consoleLogData('Punishment Unban', `Guild: ${guild.name} | ${user.bot ? '🤖 Bot' : '👤 User'} @${user.username}`, 'info'))
-            .catch(err => consoleLogData('Punishment Unban', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+            .then(() => client.utils.LogData('Punishment Unban', `Guild: ${guild.name} | ${user.bot ? '🤖 Bot' : '👤 User'} @${user.username}`, 'info'))
+            .catch(err => client.utils.LogData('Punishment Unban', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
 
 
 

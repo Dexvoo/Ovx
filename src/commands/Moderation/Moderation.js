@@ -1,10 +1,7 @@
-const { SlashCommandBuilder, Colors, CommandInteraction, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, GuildMember, Client, User, MessageFlags } = require('discord.js');
-const { SendEmbed, consoleLogData, ShortTimestamp } = require('../../utils/LoggingData')
+const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, GuildMember, Client, User, MessageFlags } = require('discord.js');
 require('dotenv').config();
 const ms = require('ms');
-const { DeveloperIDs } = process.env;
 const LogsCache = require('../../cache/Logs');
-const { permissionCheck } = require('../../utils/Permissions');
 
 module.exports = {
     cooldown: 0,
@@ -124,7 +121,7 @@ module.exports = {
 
         ,
     /**
-    * @param {CommandInteraction} interaction
+    * @param {import('../../types').CommandInputUtils} interaction
     */
 
     async execute(interaction) {
@@ -154,8 +151,8 @@ module.exports = {
                 await NicknameUser(interaction);
                 break;
             default: 
-                consoleLogData('Moderation Command', `Unknown subcommand`, `error`)
-                SendEmbed(interaction, Colors.Red, 'Failed Command', 'Unknown subcommand')
+                interaction.client.utils.LogData('Moderation Command', `Unknown subcommand`, `error`)
+                interaction.client.utils.Embed(interaction, Colors.Red, 'Failed Command', 'Unknown subcommand')
             break;
         };
 
@@ -163,7 +160,7 @@ module.exports = {
 };
 
 /**
-* @param {CommandInteraction} interaction
+* @param {import('../../types').CommandInputUtils} interaction
 */
 async function BanUser(interaction) {
     const { options, guild, client, member } = interaction;
@@ -175,21 +172,21 @@ async function BanUser(interaction) {
     const botMember = guild.members.me;
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `User Missing Permissions | \`BanMembers\``);
-    if(!botMember.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`BanMembers\``);
+    if(!member.permissions.has(PermissionFlagsBits.BanMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', `User Missing Permissions | \`BanMembers\``);
+    if(!botMember.permissions.has(PermissionFlagsBits.BanMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`BanMembers\``);
 
     
     // Checks
-    if(targetUser.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Ban', 'I can\'t ban myself');
-    if(targetUser.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Ban', 'You can\'t ban yourself');
+    if(targetUser.id === client.user.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', 'I can\'t ban myself');
+    if(targetUser.id === member.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', 'You can\'t ban yourself');
     if(targetMember) {
-        if (!targetMember.bannable) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`RoleHierarchy\``);
-        if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `You can\'t ban a member with a higher role than you`);
+        if (!targetMember.bannable) return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`RoleHierarchy\``);
+        if(member.roles.highest.position <= targetMember.roles.highest.position) return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', `You can\'t ban a member with a higher role than you`);
     };
 
     // Get Ban
     const isBanned = await guild.bans.fetch(targetUser.id).catch(() => null);
-    if (isBanned) return SendEmbed(interaction, Colors.Red, 'Failed Ban', `User already banned`);
+    if (isBanned) return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', `User already banned`);
 
     // If user is in the discord, DM them
     if(targetMember){
@@ -217,13 +214,10 @@ async function BanUser(interaction) {
     try {
         await guild.bans.create(targetUser.id, { reason: `Banned by @${member.user.username} for: ${reason}`, deleteMessageSeconds: preserveMessages ? 0 : 7 });
     } catch (error) {
-        return SendEmbed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`Unknown\``);
+        return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`Unknown\``);
     };
 
-    SendEmbed(interaction, Colors.Blurple, 'Ban Successful', `You banned ${targetUser} from the server`, [
-        { name: 'Reason', value: reason },
-        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
-    ]);
+    client.utils.Embed(interaction, Colors.Blurple, 'Ban Successful', `User: ${targetUser}\nReason: \`${reason}\`\nModerator: @${member.user.username} | (${member})`);
 
 };
 
@@ -231,7 +225,7 @@ async function BanUser(interaction) {
 
 
 /**
-* @param {CommandInteraction} interaction
+* @param {import('../../types').CommandInputUtils} interaction
 */
 async function UnbanUser(interaction) {
     const { options, guild, client, member } = interaction;
@@ -240,18 +234,18 @@ async function UnbanUser(interaction) {
     const botMember = guild.members.me;
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Unban', `User Missing Permissions | \`BanMembers\``, []);
-    if(!botMember.permissions.has(PermissionFlagsBits.BanMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Unban', `Bot Missing Permissions | \`BanMembers\``, []);
+    if(!member.permissions.has(PermissionFlagsBits.BanMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Unban', `User Missing Permissions | \`BanMembers\``);
+    if(!botMember.permissions.has(PermissionFlagsBits.BanMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Unban', `Bot Missing Permissions | \`BanMembers\``);
 
     // Get Ban
     const isBanned = await guild.bans.fetch(targetUser.id).catch(() => null);
-    if (!isBanned) return SendEmbed(interaction, Colors.Red, 'Failed Unban', `User is not banned`, []);
+    if (!isBanned) return client.utils.Embed(interaction, Colors.Red, 'Failed Unban', `User is not banned`);
 
     // Unban user
     try {
         await guild.bans.remove(targetUser.id, `Unbanned by @${member.user.username}`);
     } catch (error) {
-        return SendEmbed(interaction, Colors.Red, 'Failed Unban', `Bot Missing Permissions | \`${error}\``, []);
+        return client.utils.Embed(interaction, Colors.Red, 'Failed Unban', `Bot Missing Permissions | \`${error}\``);
     };
 
     // If user is in a common discord server with bot, DM them
@@ -274,15 +268,13 @@ async function UnbanUser(interaction) {
         interaction.followUp({ embeds: [FailedDMEmbed], flags: [MessageFlags.Ephemeral] });
     })
 
-    SendEmbed(interaction, Colors.Blurple, 'Unban Successful', `Unbanned ${targetUser} from the server`, [
-        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
-    ]);
+    client.utils.Embed(interaction, Colors.Blurple, 'Unban Successful', `User: ${targetUser}\nModerator: @${member.user.username} | (${member})`);
 
 };
 
 
 /**
-* @param {CommandInteraction} interaction
+* @param {import('../../types').CommandInputUtils} interaction
 */
 async function KickUser(interaction) {
     const { options, guild, client, member } = interaction;
@@ -292,18 +284,18 @@ async function KickUser(interaction) {
     const reason = options.getString('reason') || 'No reason provided';
     const botMember = guild.members.me;
 
-    if(!targetMember) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `User is not in the server`, []);
+    if(!targetMember) return client.utils.Embed(interaction, Colors.Red, 'Failed Kick', `User is not in the server`);
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.KickMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `User Missing Permissions | \`KickMembers\``, []);
-    if(!botMember.permissions.has(PermissionFlagsBits.KickMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `Bot Missing Permissions | \`KickMembers\``, []);
+    if(!member.permissions.has(PermissionFlagsBits.KickMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Kick', `User Missing Permissions | \`KickMembers\``);
+    if(!botMember.permissions.has(PermissionFlagsBits.KickMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Kick', `Bot Missing Permissions | \`KickMembers\``);
 
     
     // Checks
-    if(targetUser.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Kick', 'I can\'t kick myself', []);
-    if(targetUser.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Kick', 'You can\'t kick yourself', []);
-    if(!targetMember.kickable) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `Bot Missing Permissions | \`RoleHierarchy\``, []);
-    if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Kick', `You can\'t kick a member with a higher role than you`, []);
+    if(targetUser.id === client.user.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Kick', 'I can\'t kick myself');
+    if(targetUser.id === member.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Kick', 'You can\'t kick yourself');
+    if(!targetMember.kickable) return client.utils.Embed(interaction, Colors.Red, 'Failed Kick', `Bot Missing Permissions | \`RoleHierarchy\``);
+    if(member.roles.highest.position <= targetMember.roles.highest.position) return client.utils.Embed(interaction, Colors.Red, 'Failed Kick', `You can\'t kick a member with a higher role than you`);
 
     
     // If user is in the discord, DM them
@@ -329,31 +321,28 @@ async function KickUser(interaction) {
     try {
         await targetMember.kick({ reason: `Kicked by @${member.user.username} for: ${reason}` })
     } catch (error) {
-        return SendEmbed(interaction, Colors.Red, 'Failed Kick', `Could not kick user : ${error}`);
+        return client.utils.Embed(interaction, Colors.Red, 'Failed Kick', `Could not kick user : ${error}`);
     }
 
-    SendEmbed(interaction, Colors.Blurple, 'Kick Successful', `You Kicked ${targetUser} from the server`, [
-        { name: 'Reason', value: reason },
-        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
-    ]);
+    client.utils.Embed(interaction, Colors.Blurple, 'Kick Successful', `User: ${targetUser}\nReason: \`${reason}\`\nModerator: @${member.user.username} | (${member})`);
 
     const LogsData = await LogsCache.get(guild.id);
-    if(!LogsData) return consoleLogData('Punishment Kick', `Guild: ${guild.name} | Disabled`, 'warning');
+    if(!LogsData) return client.utils.LogData('Punishment Kick', `Guild: ${guild.name} | Disabled`, 'warning');
 
     const joinLogData = LogsData.punishment
-    if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return consoleLogData('Punishment Kick', `Guild: ${guild.name} | Disabled`, 'warning');
+    if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return client.utils.LogData('Punishment Kick', `Guild: ${guild.name} | Disabled`, 'warning');
 
     const logChannel = guild.channels.cache.get(joinLogData.channelId);
     if(!logChannel) {
         await LogsCache.setType(guild.id, 'punishment', { enabled: false, channelId: null });
-        return consoleLogData('Punishment Kick', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+        return client.utils.LogData('Punishment Kick', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
     }
 
     const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-    const [hasPermission, missingPermissions] = permissionCheck(logChannel, botPermissions, client);
+    const [hasPermission, missingPermissions] = client.utils.PermCheck(logChannel, botPermissions, client);
     if(!hasPermission) {
         await LogsCache.setType(guild.id, 'punishment', { enabled: false, channelId: null });
-        return consoleLogData('Punishment Kick', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+        return client.utils.LogData('Punishment Kick', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
     }
 
     const description = [
@@ -370,13 +359,13 @@ async function KickUser(interaction) {
         .setTimestamp();
 
     logChannel.send({ embeds: [LogEmbed] })
-        .then(() => consoleLogData('Punishment Kick', `Guild: ${guild.name} | ${targetUser.bot ? '🤖 Bot' : '👤 User'} @${targetUser.username}`, 'info'))
-        .catch(err => consoleLogData('Punishment Kick', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+        .then(() => client.utils.LogData('Punishment Kick', `Guild: ${guild.name} | ${targetUser.bot ? '🤖 Bot' : '👤 User'} @${targetUser.username}`, 'info'))
+        .catch(err => client.utils.LogData('Punishment Kick', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
 };
 
 
 /**
-* @param {CommandInteraction} interaction
+* @param {import('../../types').CommandInputUtils} interaction
 */
 async function MuteUser(interaction) {
     const { options, guild, client, member } = interaction;
@@ -387,21 +376,21 @@ async function MuteUser(interaction) {
     const reason = options.getString('reason') || 'No reason provided';
     const botMember = guild.members.me;
 
-    if(!targetMember) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `User is not in the server`, []);
+    if(!targetMember) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', `User is not in the server`);
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.ModerateMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `User Missing Permissions | \`ModerateMembers\``, []);
-    if(!botMember.permissions.has(PermissionFlagsBits.ModerateMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `Bot Missing Permissions | \`ModerateMembers\``, []);
+    if(!member.permissions.has(PermissionFlagsBits.ModerateMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', `User Missing Permissions | \`ModerateMembers\``);
+    if(!botMember.permissions.has(PermissionFlagsBits.ModerateMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', `Bot Missing Permissions | \`ModerateMembers\``);
 
     
     // Checks
-    if(targetUser.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Mute', 'I can\'t mute myself', []);
-    if(targetUser.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Mute', 'You can\'t mute yourself', []);
-    if(targetMember.isCommunicationDisabled()) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `${targetMember} is already muted, It ends ${ShortTimestamp(targetMember.communicationDisabledUntil)}`, []);
-    if(!targetMember.moderatable) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `Bot Missing Permissions | \`RoleHierarchy\``, []);
-    if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `You can\'t mute a member with a higher role than you`, []);
-    if(!duration) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `Please provide a valid duration of time e.g. 10m, 1h, 1d`, []);
-    if(duration > 28 * 24 * 60 * 60 * 1000) return SendEmbed(interaction, Colors.Red, 'Failed Mute', `You can't mute a user for longer than 28 days`, []);
+    if(targetUser.id === client.user.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', 'I can\'t mute myself');
+    if(targetUser.id === member.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', 'You can\'t mute yourself');
+    if(targetMember.isCommunicationDisabled()) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', `${targetMember} is already muted, It ends ${client.utils.Timestamp(targetMember.communicationDisabledUntil)}`);
+    if(!targetMember.moderatable) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', `Bot Missing Permissions | \`RoleHierarchy\``);
+    if(member.roles.highest.position <= targetMember.roles.highest.position) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', `You can\'t mute a member with a higher role than you`);
+    if(!duration) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', `Please provide a valid duration of time e.g. 10m, 1h, 1d`);
+    if(duration > 28 * 24 * 60 * 60 * 1000) return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', `You can't mute a user for longer than 28 days`);
 
     
     // If user is in the discord, DM them
@@ -428,19 +417,15 @@ async function MuteUser(interaction) {
     try {
         await targetMember.disableCommunicationUntil(Date.now() + duration, `Muted by @${member.user.username} for: ${reason}`);
     } catch (error) {
-        return SendEmbed(interaction, Colors.Red, 'Failed Mute', `Could not mute user : ${error}`);
+        return client.utils.Embed(interaction, Colors.Red, 'Failed Mute', `Could not mute user : ${error}`);
     }
 
-    SendEmbed(interaction, Colors.Blurple, 'Mute Successful', `You muted ${targetUser}`, [
-        { name: 'Reason', value: reason, inline: false },
-        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true },
-        { name: 'Duration', value: ms(duration, { long: true }), inline: true }
-    ]);
+    client.utils.Embed(interaction, Colors.Blurple, 'Mute Successful', `User: ${targetUser}\nReason: \`${reason}\`\nModerator: @${member.user.username} | (${member})\nDuration: ${ms(duration, { long: true })}`);
 };
 
 
 /**
-* @param {CommandInteraction} interaction
+* @param {import('../../types').CommandInputUtils} interaction
 */
 async function UnmuteUser(interaction) {
     const { options, guild, client, member } = interaction;
@@ -449,19 +434,19 @@ async function UnmuteUser(interaction) {
     const targetMember = options.getMember('user');
     const botMember = guild.members.me;
 
-    if(!targetMember) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `User is not in the server`, []);
+    if(!targetMember) return client.utils.Embed(interaction, Colors.Red, 'Failed Unmute', `User is not in the server`);
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.ModerateMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `User Missing Permissions | \`ModerateMembers\``, []);
-    if(!botMember.permissions.has(PermissionFlagsBits.ModerateMembers)) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `Bot Missing Permissions | \`ModerateMembers\``, []);
+    if(!member.permissions.has(PermissionFlagsBits.ModerateMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Unmute', `User Missing Permissions | \`ModerateMembers\``);
+    if(!botMember.permissions.has(PermissionFlagsBits.ModerateMembers)) return client.utils.Embed(interaction, Colors.Red, 'Failed Unmute', `Bot Missing Permissions | \`ModerateMembers\``);
 
     
     // Checks
-    if(targetUser.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', 'I can\'t unmute myself', []);
-    if(targetUser.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', 'You can\'t mute yourself', []);
-    if(!targetMember.isCommunicationDisabled()) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `${targetMember} is not muted`, []);
-    if(!targetMember.moderatable) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `Bot Missing Permissions | \`RoleHierarchy\``, []);
-    if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `You can\'t unmute a member with a higher role than you`, []);
+    if(targetUser.id === client.user.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Unmute', 'I can\'t unmute myself');
+    if(targetUser.id === member.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Unmute', 'You can\'t mute yourself');
+    if(!targetMember.isCommunicationDisabled()) return client.utils.Embed(interaction, Colors.Red, 'Failed Unmute', `${targetMember} is not muted`);
+    if(!targetMember.moderatable) return client.utils.Embed(interaction, Colors.Red, 'Failed Unmute', `Bot Missing Permissions | \`RoleHierarchy\``);
+    if(member.roles.highest.position <= targetMember.roles.highest.position) return client.utils.Embed(interaction, Colors.Red, 'Failed Unmute', `You can\'t unmute a member with a higher role than you`);
 
     
     // If user is in the discord, DM them
@@ -486,16 +471,14 @@ async function UnmuteUser(interaction) {
     try {
         await targetMember.disableCommunicationUntil(null);
     } catch (error) {
-        return SendEmbed(interaction, Colors.Red, 'Failed Unmute', `Could not unmute user : ${error}`);
+        return client.utils.Embed(interaction, Colors.Red, 'Failed Unmute', `Could not unmute user : ${error}`);
     }
 
-    SendEmbed(interaction, Colors.Blurple, 'Unmute Successful', `You unmuted ${targetUser}`, [
-        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
-    ]);
+    client.utils.Embed(interaction, Colors.Blurple, 'Unmute Successful', `User: ${targetUser}\nModerator: @${member.user.username} | (${member})`);
 };
 
 /**
-* @param {CommandInteraction} interaction
+* @param {import('../../types').CommandInputUtils} interaction
 */
 async function PurgeMessages(interaction) {
     const { options, guild, client, member, channel } = interaction;
@@ -504,8 +487,8 @@ async function PurgeMessages(interaction) {
     const amount = options.getInteger('amount');
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.ManageGuild)) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `User Missing Permissions | \`ManageGuild\``, []);
-    if(!botMember.permissions.has(PermissionFlagsBits.ManageMessages)) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `Bot Missing Permissions | \`ManageMessages\``, []);
+    if(!member.permissions.has(PermissionFlagsBits.ManageGuild)) return client.utils.Embed(interaction, Colors.Red, 'Failed Purge', `User Missing Permissions | \`ManageGuild\``);
+    if(!botMember.permissions.has(PermissionFlagsBits.ManageMessages)) return client.utils.Embed(interaction, Colors.Red, 'Failed Purge', `Bot Missing Permissions | \`ManageMessages\``);
     
     // Purge Messages
     let deletedMessages;
@@ -513,18 +496,16 @@ async function PurgeMessages(interaction) {
         deletedMessages = await channel.bulkDelete(amount, true);
 
     } catch (error) {
-        return SendEmbed(interaction, Colors.Red, 'Failed Purge', `Could not unmute user : ${error}`);
+        return client.utils.Embed(interaction, Colors.Red, 'Failed Purge', `Could not unmute user : ${error}`);
     }
 
-    if(deletedMessages.size === 0) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `You purged ${deletedMessages.size} messages\n\n-# ℹ️ : Bots can only delete messages that are up to 2 weeks old`, []);
-    SendEmbed(interaction, Colors.Blurple, 'Successful Purge', `You purged ${deletedMessages.size} messages`, [
-            { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
-    ]);
+    if(deletedMessages.size === 0) return client.utils.Embed(interaction, Colors.Red, 'Failed Purge', `You purged ${deletedMessages.size} messages\n\n-# ℹ️ : Bots can only delete messages that are up to 2 weeks old`);
+    client.utils.Embed(interaction, Colors.Blurple, 'Purge Successful', `Messages Deleted: ${deletedMessages.size}\nModerator: @${member.user.username} | (${member})`);
 };
 
 
 /**
-* @param {CommandInteraction} interaction
+* @param {import('../../types').CommandInputUtils} interaction
 */
 async function NicknameUser(interaction) {
     const { options, guild, client, member, channel } = interaction;
@@ -534,26 +515,23 @@ async function NicknameUser(interaction) {
     const targetMember = options.getMember('user-id');
 
     // Permissions
-    if(!member.permissions.has(PermissionFlagsBits.ManageGuild)) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `User Missing Permissions | \`ManageGuild\``, []);
-    if(!botMember.permissions.has(PermissionFlagsBits.ManageMessages)) return SendEmbed(interaction, Colors.Red, 'Failed Purge', `Bot Missing Permissions | \`ManageMessages\``, []);
+    if(!member.permissions.has(PermissionFlagsBits.ManageGuild)) return client.utils.Embed(interaction, Colors.Red, 'Failed Purge', `User Missing Permissions | \`ManageGuild\``);
+    if(!botMember.permissions.has(PermissionFlagsBits.ManageMessages)) return client.utils.Embed(interaction, Colors.Red, 'Failed Purge', `Bot Missing Permissions | \`ManageMessages\``);
     
     
-    if(!targetMember) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `User is not in the server`, []);
+    if(!targetMember) return client.utils.Embed(interaction, Colors.Red, 'Failed Nickname', `User is not in the server`);
     const oldNickname = targetMember.nickname || targetMember.user.username;
 
     // Checks
-    if(targetMember.id === client.user.id) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', 'I can\'t change my own nickname', []);
-    if(targetMember.id === member.id) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', 'You can\'t change your own nickname', []);
-    if(!targetMember.moderatable) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `Bot Missing Permissions | \`RoleHierarchy\``, []);
-    if(member.roles.highest.position <= targetMember.roles.highest.position) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `You can\'t change the nickname of a member with a higher role than you`, []);
+    if(targetMember.id === client.user.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Nickname', 'I can\'t change my own nickname');
+    if(targetMember.id === member.id) return client.utils.Embed(interaction, Colors.Red, 'Failed Nickname', 'You can\'t change your own nickname');
+    if(!targetMember.moderatable) return client.utils.Embed(interaction, Colors.Red, 'Failed Nickname', `Bot Missing Permissions | \`RoleHierarchy\``);
+    if(member.roles.highest.position <= targetMember.roles.highest.position) return client.utils.Embed(interaction, Colors.Red, 'Failed Nickname', `You can\'t change the nickname of a member with a higher role than you`);
     
     if(!newNickname) {
         await targetMember.setNickname('', `Changed by @${interaction.user.tag}`).catch(console.error);
 
-        SendEmbed(interaction, Colors.Blurple, 'Nickname Changed', `You removed the nickname of ${targetMember}`, [
-            { name: 'Old Nickname', value: oldNickname, inline: true },
-            { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: false }
-        ]);
+        client.utils.Embed(interaction, Colors.Blurple, 'Nickname Successful', `User: ${targetUser}\nOld Nickname: \`${oldNickname}\`\nModerator: @${member.user.username} | (${member})`);
 
         const DMEmbed = new EmbedBuilder()
             .setColor(Colors.Blurple)
@@ -577,16 +555,12 @@ async function NicknameUser(interaction) {
         return;
     }
 
-    if(newNickname.length > 32) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `New nickname is too long`, []);
-    if(newNickname === oldNickname) return SendEmbed(interaction, Colors.Red, 'Failed Nickname', `New nickname is the same as the old nickname`, []);
+    if(newNickname.length > 32) return client.utils.Embed(interaction, Colors.Red, 'Failed Nickname', `New nickname is too long`);
+    if(newNickname === oldNickname) return client.utils.Embed(interaction, Colors.Red, 'Failed Nickname', `New nickname is the same as the old nickname`);
     
     await targetMember.setNickname(newNickname, `Changed by @${interaction.user.username}`).catch(console.error);
 
-    await SendEmbed(interaction, Colors.Blurple, 'Nickname Changed', `You changed the nickname of ${targetMember}`, [
-        { name: 'Old Nickname', value: oldNickname, inline: true },
-        { name: 'New Nickname', value: newNickname, inline: true },
-        { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: false }
-    ]);
+    client.utils.Embed(interaction, Colors.Blurple, 'Nickname Successful', `User: ${targetUser}\nOld Nickname: \`${oldNickname}\`\nNew Nickname: \`${newNickname}\`\nModerator: @${member.user.username} | (${member})`);
 
 
     const DMEmbed = new EmbedBuilder()

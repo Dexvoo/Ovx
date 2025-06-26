@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
 require('dotenv').config();
 const { DeveloperMode, SupportServerUrl } = process.env;
 
@@ -14,7 +14,7 @@ module.exports = {
         .setContexts( InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ),
 
     /**
-     * @param {CommandInteraction} interaction
+     * @param {import('../../types').CommandInputUtils} interaction
      */
 
     async execute(interaction) {

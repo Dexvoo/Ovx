@@ -1,7 +1,5 @@
 const { Events, EmbedBuilder, Colors, PermissionFlagsBits, Role } = require('discord.js');
-const { consoleLogData } = require('../../../utils/LoggingData.js');
 const LogsCache = require('../../../cache/Logs.js');
-const { permissionCheck } = require('../../../utils/Permissions.js');
 
 module.exports = {
     name: Events.GuildRoleCreate,
@@ -11,7 +9,7 @@ module.exports = {
 
     /**
      * 
-     * @param {Role} role
+     * @param {import('../../../types.js').RoleUtils} role
      * @returns 
      */
 
@@ -21,23 +19,23 @@ module.exports = {
         if(!guild) return;
 
         const LogsData = await LogsCache.get(guild.id)
-        if(!LogsData) return consoleLogData('Role Created', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!LogsData) return client.utils.LogData('Role Created', `Guild: ${guild.name} | Disabled`, 'warning');
 
 
         const roleLogData = LogsData.role
-        if(!roleLogData || !roleLogData.enabled || roleLogData.channelId === null) return consoleLogData('Role Created', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!roleLogData || !roleLogData.enabled || roleLogData.channelId === null) return client.utils.LogData('Role Created', `Guild: ${guild.name} | Disabled`, 'warning');
         
         const logChannel = guild.channels.cache.get(roleLogData.channelId);
         if(!logChannel) {
             await LogsCache.setType(guild.id, 'role', { enabled: false, channelId: null });
-            return consoleLogData('Role Created', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+            return client.utils.LogData('Role Created', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
         }
 
         const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-        const [hasPermission, missingPermissions] = permissionCheck(logChannel, botPermissions, client);
+        const [hasPermission, missingPermissions] = client.utils.PermCheck(logChannel, botPermissions, client);
         if(!hasPermission) {
             await LogsCache.setType(guild.id, 'role', { enabled: false, channelId: null });
-            return consoleLogData('Role Created', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+            return client.utils.LogData('Role Created', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
         }
         
         const description = [
@@ -52,10 +50,7 @@ module.exports = {
             .setTimestamp();
 
         logChannel.send({ embeds: [LogEmbed] })
-            .then(() => consoleLogData('Role Created', `Guild: ${guild.name} | @${role.name} `, 'info'))
-            .catch(err => consoleLogData('Role Created', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
-
-
-
+            .then(() => client.utils.LogData('Role Created', `Guild: ${guild.name} | @${role.name} `, 'info'))
+            .catch(err => client.utils.LogData('Role Created', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
     }
 };

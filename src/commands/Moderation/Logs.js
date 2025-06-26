@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, ChannelType, ChatInputCommandInteraction } = require('discord.js');
-const { SendEmbed } = require('../../utils/LoggingData')
 
 const logChoices = [
     { name: 'Message', value: 'message' },
@@ -77,13 +76,13 @@ module.exports = {
             )
         ),
     /**
-    * @param {ChatInputCommandInteraction} interaction
+    * @param {import('../../types').CommandInputUtils} interaction
     */
 
     async execute(interaction) {
 
         const subcommand = interaction.options.getSubcommand();
-        if(!handlers[`ovx-logs-${subcommand}`]) return SendEmbed(interaction, Colors.Red, 'Logs | Not Found', `The subcommand \`${subcommand}\` does not exist.`);
+        if(!handlers[`ovx-logs-${subcommand}`]) return interaction.client.utils.Embed(interaction, Colors.Red, 'Logs | Not Found', `The subcommand \`${subcommand}\` does not exist.`);
 
         const handler = handlers[`ovx-logs-${subcommand}`];
 
@@ -91,7 +90,7 @@ module.exports = {
             await handler(interaction);
         } catch (error) {
             console.error(error);
-            SendEmbed(interaction, Colors.Red, 'Logs | Error', `There was an error while executing this command: \`${error.message}\``);
+            interaction.client.utils.Embed(interaction, Colors.Red, 'Logs | Error', `There was an error while executing this command: \`${error.message}\``);
         }
     }
 };

@@ -1,12 +1,10 @@
 const { Colors, EmbedBuilder, ChatInputCommandInteraction, Collection } = require('discord.js');
-const { SendEmbed, ShortTimestamp } = require('../../utils/LoggingData');
-const { permissionCheck } = require('../../utils/Permissions');
 require('dotenv').config()
-
-const { DeveloperIDs } = process.env;
+const { CooldownManager, CooldownType } = require('../../utils/Classes/cooldowns');
+const cooldowns = new CooldownManager();
 
 /**
- * @param {ChatInputCommandInteraction} interaction
+ * @param {import('../../types').CommandInputUtils} interaction
  */
 module.exports = async function CommandExecute(interaction) {
     const { guild, commandName, client, user, member } = interaction;
@@ -14,7 +12,8 @@ module.exports = async function CommandExecute(interaction) {
     const command = client.commands.get(commandName);
     if(!command) return;
 
-    await commandCooldown(interaction, command);
+
+    if(!commandCooldown(interaction, command)) return console.log('oncooldown')
 
     
     await permissions(interaction, command);
@@ -31,7 +30,7 @@ module.exports = async function CommandExecute(interaction) {
 				.setDescription('There was an error while executing this command!')
 			await interaction.followUp({ embeds: [Embed] });
         } else {
-            SendEmbed(interaction, Colors.Red, 'Command Failure', 'There was an error while executing this command!');
+            client.utils.Embed(interaction, Colors.Red, 'Command Failure', 'There was an error while executing this command!');
         };
     };
 
@@ -39,45 +38,36 @@ module.exports = async function CommandExecute(interaction) {
 };
 
 /**
- * @param {ChatInputCommandInteraction} interaction
+ * @param {import('../../types').CommandInputUtils} interaction
  */
-async function commandCooldown(interaction, command) {
+function commandCooldown(interaction, command) {
     const { client, commandName, user } = interaction;
-    const { cooldowns } = client;
-    if(!cooldowns.has(commandName)) cooldowns.set(commandName, new Collection());
+    if(cooldowns.has('Command', user.id, commandName)) {
+        const timeLeft = cooldowns.getRemaining('Command', user.id, commandName)
+        client.utils.Embed(interaction, Colors.Red, 'Command Cooldown', `\`/${command.data.name}\` ${client.utils.Timestamp(timeLeft)}`);
+        return false;
+    }
 
-    const now = Date.now();
-    const timestamps = cooldowns.get(commandName);
-    const cooldownAmount = (command.cooldown || 5) * 1000;
-
-    if(timestamps.has(user.id)) {
-        const expirationTime = timestamps.get(user.id) + cooldownAmount;
-        if(now < expirationTime) return SendEmbed(interaction, Colors.Red, 'Command Cooldown', 'You are on cooldown!', 
-            [
-                { name: 'Command', value: `\`/${command.data.name}\``,inline: true}, 
-                { name: 'Cooldown Ends', value: ShortTimestamp(expirationTime), inline: true }
-            ]);
-    };
-
-    // if(!DeveloperIDs.includes(user.id)) timestamps.set(user.id, now) && setTimeout(() => timestamps.delete(user.id), cooldownAmount);
-    timestamps.set(user.id, now) && setTimeout(() => timestamps.delete(user.id), cooldownAmount);
+    const cooldownAmount = (command.cooldown || 5);
+    cooldowns.add('Command', user.id, cooldownAmount, commandName)
+    return true;
 };
 
 
 /**
- * @param {ChatInputCommandInteraction} interaction
+ * @param {import('../../types').CommandInputUtils} interaction
  */
 async function permissions(interaction, command) {
     const { guild, member, client } = interaction;
     if(guild) {
         if(command.botpermissions) {
-            const [hasPermissions, missingPermissions] = permissionCheck(interaction, command.botpermissions, client);
-            if(!hasPermissions) return SendEmbed(interaction, Colors.Red, 'Missing Permissions', `Bot Missing Permissions: \`${missingPermissions}\``);
+            const [hasPermissions, missingPermissions] = client.utils.PermCheck(interaction, command.botpermissions, client);
+            if(!hasPermissions) return client.utils.Embed(interaction, Colors.Red, 'Missing Permissions', `Bot Missing Permissions: \`${missingPermissions}\``);
         };
 
         if(command.userpermissions) {
-            const [hasPermissions, missingPermissions] = permissionCheck(interaction, command.userpermissions, member);
-            if(!hasPermissions) return SendEmbed(interaction, Colors.Red, 'Missing Permissions', `User Missing Permissions: \`${missingPermissions}\``);
+            const [hasPermissions, missingPermissions] = client.utils.PermCheck(interaction, command.userpermissions, member);
+            if(!hasPermissions) return client.utils.Embed(interaction, Colors.Red, 'Missing Permissions', `User Missing Permissions: \`${missingPermissions}\``);
         };
     };
 };

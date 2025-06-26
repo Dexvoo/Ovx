@@ -1,10 +1,7 @@
 const { SlashCommandBuilder, Colors, CommandInteraction, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, GuildMember, Client, User, MessageFlags, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, ChatInputCommandInteraction, PermissionsBitField } = require('discord.js');
-const { SendEmbed, consoleLogData, ShortTimestamp } = require('../../utils/LoggingData')
 require('dotenv').config();
 const ms = require('ms');
-const { DeveloperIDs } = process.env;
 const { TicketConfig, TicketInstance } = require('../../models/GuildSetups');
-const { permissionCheck } = require('../../utils/Permissions');
 
 const handlers = {
     'ovx-ticket-create': require('../../handlers/Tickets/Create'),
@@ -97,19 +94,19 @@ module.exports = {
             .setDescription('Unlock a ticket')
         ),
     /**
-    * @param {ChatInputCommandInteraction} interaction
+    * @param {import('../../types').CommandInputUtils} interaction
     */
 
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();
 
-        if(!handlers[`ovx-ticket-${subcommand}`]) return SendEmbed(interaction, Colors.Red, 'Tickets | Not Found', `The subcommand \`${subcommand}\` does not exist.`);
+        if(!handlers[`ovx-ticket-${subcommand}`]) return interaction.client.utils.Embed(interaction, Colors.Red, 'Tickets | Not Found', `The subcommand \`${subcommand}\` does not exist.`);
 
         const { client, guild, channel, member } = interaction;
 
         const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageRoles, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks];
-        const [hasPermission, missingPermissions] = permissionCheck(channel, botPermissions, client);
-        if (!hasPermission) return SendEmbed(interaction, Colors.Red, 'Tickets | Missing Permissions', `Bot Missing Permissions: \`${missingPermissions}\` in ${channel}`);
+        const [hasPermission, missingPermissions] = client.utils.PermCheck(channel, botPermissions, client);
+        if (!hasPermission) return interaction.client.utils.Embed(interaction, Colors.Red, 'Tickets | Missing Permissions', `Bot Missing Permissions: \`${missingPermissions}\` in ${channel}`);
 
         const TicketData = await TicketInstance.findOne({ channelId: channel.id, guildId: guild.id });
         const TicketConfigData = await TicketCache.get(guild.id);
@@ -126,7 +123,7 @@ module.exports = {
             await handler(interaction, context);
         } catch (error) {
             console.error(error);
-            SendEmbed(interaction, Colors.Red, 'Tickets | Error', `Error: \`${error.message}\``);
+            interaction.client.utils.Embed(interaction, Colors.Red, 'Tickets | Error', `Error: \`${error.message}\``);
             
         }
 

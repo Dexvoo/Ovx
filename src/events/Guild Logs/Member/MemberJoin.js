@@ -1,7 +1,6 @@
-const { Events, EmbedBuilder, Colors, PermissionFlagsBits, GuildMember } = require('discord.js');
-const { consoleLogData, Timestamp, getOrdinalSuffix } = require('../../../utils/LoggingData.js');
+const { Events, EmbedBuilder, Colors, PermissionFlagsBits } = require('discord.js');
+const { getOrdinalSuffix } = require('../../../utils/Functions/LoggingData.js');
 const LogsCache = require('../../../cache/Logs.js');
-const { permissionCheck } = require('../../../utils/Permissions.js');
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -11,7 +10,7 @@ module.exports = {
 
     /**
      * 
-     * @param {GuildMember} member
+     * @param {import('../../../types.js').MemberUtils} member
      */
 
     async execute(member) {
@@ -21,29 +20,29 @@ module.exports = {
 
         const LogsData = await LogsCache.get(guild.id);
 
-        if(!LogsData) return consoleLogData('Member Joined', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!LogsData) return client.utils.LogData('Member Joined', `Guild: ${guild.name} | Disabled`, 'warning');
 
         const joinLogData = LogsData.join
-        if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return consoleLogData('Member Joined', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return client.utils.LogData('Member Joined', `Guild: ${guild.name} | Disabled`, 'warning');
         
         const logChannel = guild.channels.cache.get(joinLogData.channelId);
         if(!logChannel) {
             await LogsCache.setType(guild.id, 'join', { enabled: false, channelId: null });
-            return consoleLogData('Member Joined', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+            return client.utils.LogData('Member Joined', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
         }
 
         const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-        const [hasPermission, missingPermissions] = permissionCheck(logChannel, botPermissions, client);
+        const [hasPermission, missingPermissions] = client.utils.PermCheck(logChannel, botPermissions, client);
         if(!hasPermission) {
             await LogsCache.setType(guild.id, 'join', { enabled: false, channelId: null });
-            return consoleLogData('Member Joined', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+            return client.utils.LogData('Member Joined', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
         }
         
         const memberCount = guild.memberCount;
 
         const description = [
             `${member}, ${memberCount}${getOrdinalSuffix(guild.memberCount)} to join`,
-            `Created: ${Timestamp(member.user.createdAt, 'F')} (${Timestamp(member.user.createdAt, 'R')})`,
+            `Created: ${client.utils.Timestamp(member.user.createdAt, 'F')} (${client.utils.Timestamp(member.user.createdAt, 'R')})`,
         ];
 
         const LogEmbed = new EmbedBuilder()
@@ -56,8 +55,8 @@ module.exports = {
 
 
         logChannel.send({ embeds: [LogEmbed] })
-            .then(() => consoleLogData('Member Joined', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username}`, 'info'))
-            .catch(err => consoleLogData('Member Joined', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+            .then(() => client.utils.LogData('Member Joined', `Guild: ${guild.name} | ${member.user.bot ? '🤖 Bot' : '👤 User'} @${member.user.username}`, 'info'))
+            .catch(err => client.utils.LogData('Member Joined', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
 
 
 

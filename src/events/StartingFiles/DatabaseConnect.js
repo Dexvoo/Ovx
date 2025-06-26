@@ -1,5 +1,4 @@
 const { Events, Client } = require('discord.js');
-const { consoleLogData } = require('../../utils/LoggingData.js');
 const mongoose = require('mongoose');
 require('dotenv').config();
 const { MongoDB } = process.env;
@@ -16,7 +15,7 @@ module.exports = {
 	async execute(client) {
 		mongoose.set('strictQuery', false);
 		await mongoose.connect(MongoDB)
-			.then(() => consoleLogData(`Client: ${client.user.tag} | Shard: #${client.shard.ids}`, 'Database Connected', 'success'))
-			.catch((err) => consoleLogData(`Client: ${client.user.tag} | Shard: #${client.shard.ids}`, err, 'error'));
+			.then(() => client.utils.LogData(`Client: ${client.user.tag} | Shard: #${client.shard.ids}`, 'Database Connected', 'success'))
+			.catch((err) => client.utils.LogData(`Client: ${client.user.tag} | Shard: #${client.shard.ids}`, err, 'error'));
 	}
 }

@@ -1,12 +1,11 @@
-const { Colors, EmbedBuilder, ButtonInteraction, GuildMember, MessageFlags } = require('discord.js');
+const { Colors, EmbedBuilder, GuildMember, MessageFlags } = require('discord.js');
 const { TicketInstance, TicketConfig } = require('../../models/GuildSetups');
 const { createTranscript } = require('discord-html-transcripts');
-const { SendEmbed } = require('../../utils/LoggingData');
 
 const CLOSE_DELAY = 10_000;
 
 /**
- * @param {ButtonInteraction} interaction
+ * @param {import('../../types').ButtonUtils | import('../../types').CommandInputUtils} interaction
  * @param {{ TicketData: TicketInstance, TicketConfigData: TicketConfig, isAdmin: boolean, isMod: boolean, ticketOwner: GuildMember | null }} context
  */
 module.exports = async function TicketClose(interaction, context) {
@@ -14,9 +13,9 @@ module.exports = async function TicketClose(interaction, context) {
     const { TicketData, TicketConfigData, isAdmin, isMod, ticketOwner } = context;
     const isOwner = TicketData?.memberId === member.id;
 
-    if(!TicketConfigData?.enabled) return SendEmbed(interaction, Colors.Red, 'Tickets | Not Enabled', 'Tickets are not enabled on this server. Please contact an admin.');
-    if(!TicketData?.open) return SendEmbed(interaction, Colors.Red, 'Tickets | Already Closed', 'This ticket is already closed.');
-    if(!isAdmin && !isMod && !isOwner) return SendEmbed(interaction, Colors.Red, 'Tickets | Permission Denied', 'You do not have permission to close this ticket.');
+    if(!TicketConfigData?.enabled) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Not Enabled', 'Tickets are not enabled on this server. Please contact an admin.');
+    if(!TicketData?.open) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Already Closed', 'This ticket is already closed.');
+    if(!isAdmin && !isMod && !isOwner) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Permission Denied', 'You do not have permission to close this ticket.');
 
     let transcript;
     try {
@@ -30,7 +29,7 @@ module.exports = async function TicketClose(interaction, context) {
         });
     } catch (error) {
         console.error('Transcript creation failed:', error);
-        return SendEmbed(interaction, Colors.Red, 'Tickets | Error', 'Failed to create transcript.');
+        return client.utils.Embed(interaction, Colors.Red, 'Tickets | Error', 'Failed to create transcript.');
     }
 
     const transcriptEmbed = new EmbedBuilder()
@@ -38,7 +37,7 @@ module.exports = async function TicketClose(interaction, context) {
         .setDescription(`Guild: ${guild.name} | Ticket ID: ${TicketData.ticketId} | Opened by: ${ticketOwner} | Closed by: ${member}`)
         .setColor(Colors.Blurple);
 
-    SendEmbed(interaction, Colors.Blurple, 'Tickets | Close Ticket', `This ticket will be closed in 10 seconds, enable DMs for the ticket transcript`, [], false);
+    client.utils.Embed(interaction, Colors.Blurple, 'Tickets | Close Ticket', `This ticket will be closed in 10 seconds, enable DMs for the ticket transcript`, [], false);
 
     const archiveLogChannel = await guild.channels.fetch(TicketConfigData.archiveChannelId).catch(async () => {
         const noArchiveEmbed = new EmbedBuilder()
@@ -70,6 +69,7 @@ module.exports = async function TicketClose(interaction, context) {
             
         TicketData.open = false;
         TicketData.closedAt = new Date();
+        TicketData.closedBy = member.id
         TicketData.transcriptURL = transcriptURL
         await TicketData.save();
     }, CLOSE_DELAY);

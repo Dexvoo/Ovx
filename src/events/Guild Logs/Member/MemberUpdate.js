@@ -1,7 +1,6 @@
 const { Events, EmbedBuilder, Colors, PermissionFlagsBits, GuildMember } = require('discord.js');
-const { consoleLogData, Timestamp, getOrdinalSuffix } = require('../../../utils/LoggingData.js');
+const { getOrdinalSuffix } = require('../../../utils/Functions/LoggingData.js');
 const LogsCache = require('../../../cache/Logs.js');
-const { permissionCheck } = require('../../../utils/Permissions.js');
 
 module.exports = {
     name: Events.GuildMemberUpdate,
@@ -11,8 +10,8 @@ module.exports = {
 
     /**
      * 
-     * @param {GuildMember} oldMember
-     * @param {GuildMember} newMember
+     * @param {import('../../../types.js').MemberUtils} oldMember
+     * @param {import('../../../types.js').MemberUtils} newMember
      */
 
     async execute(oldMember, newMember) {
@@ -21,22 +20,22 @@ module.exports = {
         if(!guild) return;
 
         const LogsData = await LogsCache.get(guild.id);
-        if(!LogsData) return consoleLogData('Member Updated', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!LogsData) return client.utils.LogData('Member Updated', `Guild: ${guild.name} | Disabled`, 'warning');
 
         const joinLogData = LogsData.member
-        if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return consoleLogData('Member Updated', `Guild: ${guild.name} | Disabled`, 'warning');
+        if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return client.utils.LogData('Member Updated', `Guild: ${guild.name} | Disabled`, 'warning');
         
         const logChannel = guild.channels.cache.get(joinLogData.channelId);
         if(!logChannel) {
             await LogsCache.setType(guild.id, 'member', { enabled: false, channelId: null });
-            return consoleLogData('Member Updated', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
+            return client.utils.LogData('Member Updated', `Guild: ${guild.name} | Log Channel not found, disabling logs`, 'error');
         }
 
         const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks];
-        const [hasPermission, missingPermissions] = permissionCheck(logChannel, botPermissions, client);
+        const [hasPermission, missingPermissions] = client.utils.PermCheck(logChannel, botPermissions, client);
         if(!hasPermission) {
             await LogsCache.setType(guild.id, 'member', { enabled: false, channelId: null });
-            return consoleLogData('Member Updated', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
+            return client.utils.LogData('Member Updated', `Guild: ${guild.name} | Bot missing permissions in log channel, disabling logs`, 'error');
         }
         
         const LogEmbed = new EmbedBuilder()
@@ -61,7 +60,7 @@ module.exports = {
         if (oldMember.user.avatar !== newMember.user.avatar) LogEmbed.addFields({ name: 'Server Avatar', value:`Updated`, inline: false});
 
         if (oldMember.premiumSinceTimestamp !== newMember.premiumSinceTimestamp) {
-            if (newMember.premiumSince) LogEmbed.addFields({ name: 'Sever Boost', value:`${Timestamp(newMember.premiumSince)}`, inline: false});
+            if (newMember.premiumSince) LogEmbed.addFields({ name: 'Sever Boost', value:`${client.utils.Timestamp(newMember.premiumSince)}`, inline: false});
             else LogEmbed.addFields({ name: 'Sever Boost', value:`Stopped Boosting`, inline: false});
         }
 
@@ -82,10 +81,10 @@ module.exports = {
             if (removed) LogEmbed.addFields({ name: `Removed Roles`, value: `${removed.substring(0, 1024)}`});
         }
 
-        if(LogEmbed.data.fields.length === 0) return consoleLogData('Member Updated', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username} | No Changes (timeouts are expected)`, 'error');
+        if(LogEmbed.data.fields?.length === 0) return client.utils.LogData('Member Updated', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username} | No Changes (timeouts are expected)`, 'error');
 
         logChannel.send({ embeds: [LogEmbed] })
-            .then(() => consoleLogData('Member Updated', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username}`, 'info'))
-            .catch(err => consoleLogData('Member Updated', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
+            .then(() => client.utils.LogData('Member Updated', `Guild: ${guild.name} | ${newMember.user.bot ? '🤖 Bot' : '👤 User'} @${newMember.user.username}`, 'info'))
+            .catch(err => client.utils.LogData('Member Updated', `Guild: ${guild.name} | Failed to send log message: ${err.message}`, 'error'));
     }
 };

@@ -1,24 +1,18 @@
-const { Colors, ChatInputCommandInteraction, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
-const { SendEmbed, ShortTimestamp } = require('../../utils/LoggingData');
-const { permissionCheck } = require('../../utils/Permissions');
+const { Colors } = require('discord.js');
 require('dotenv').config()
 
-const { DeveloperIDs } = process.env;
-
 /**
- * @param {ChatInputCommandInteraction} interaction
+ * @param {import('../../types').CommandInputUtils} interaction
  */
 module.exports = async function LogsView(interaction) {
-    const { options, guildId } = interaction;
+    const { options, guildId, client } = interaction;
     
     const type = options.getString('log-type');
 
     const Cache_Logs = require('../../cache/Logs');
     const currentConfig = await Cache_Logs.get(guildId);
 
-    if(!currentConfig) {
-        return SendEmbed(interaction, Colors.Red, 'Logs Setup', `No configuration found for \`${type}\` logs`);
-    }
+    if(!currentConfig) return client.utils.Embed(interaction, Colors.Red, 'Logs Setup', `No configuration found for \`${type}\` logs`);
 
     if(type === 'all') {
         const embed = new EmbedBuilder()
@@ -42,7 +36,7 @@ module.exports = async function LogsView(interaction) {
 
     const config = currentConfig[type];
     if(!config) {
-        return SendEmbed(interaction, Colors.Red, 'Logs Setup', `No configuration found for \`${type}\` logs`);
+        return client.utils.Embed(interaction, Colors.Red, 'Logs Setup', `No configuration found for \`${type}\` logs`);
     }
 
     const embed = new EmbedBuilder()

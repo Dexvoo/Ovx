@@ -1,6 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, CommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionContextType, ApplicationIntegrationType, AutocompleteInteraction, ApplicationCommandOptionType, SlashCommandSubcommandGroupBuilder, SlashCommandSubcommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, InteractionContextType, ApplicationIntegrationType, AutocompleteInteraction, ApplicationCommandOptionType, SlashCommandSubcommandGroupBuilder, SlashCommandSubcommandBuilder } = require('discord.js');
 require('dotenv').config();
-const { DeveloperMode, SupportServerUrl } = process.env;
 
 module.exports = {
     cooldown: 5,
@@ -38,7 +37,7 @@ module.exports = {
     },
 
     /**
-     * @param {CommandInteraction} interaction
+     * @param {import('../../types').CommandInputUtils} interaction
      */
 
     async execute(interaction) {
@@ -95,12 +94,7 @@ module.exports = {
             embedDescription += formatOptions(command, command.commandTags);
         }
 
-        const Embed = new EmbedBuilder()
-            .setColor(Colors.Blurple)
-            .setTitle(`Command: ${commandName}`)
-            .setDescription(embedDescription);
-
-            await interaction.editReply({ embeds: [Embed]});
+        client.utils.Embed(interaction, Colors.Blurple, `Command: ${commandName}`, embedDescription)
         
     }
 };
@@ -119,7 +113,7 @@ function formatOptions(command, commandTags) {
 }
 
 function formatSubCommandGroup(option, commandTags) {
-    let desc = `\n# ${option.name} : *${option.description || 'No description'}*`;
+    let desc = `\n## ${option.name} : *${option.description || 'No description'}*`;
 
     for (const sub of option.options ?? []) {
         desc += formatSubCommand(sub, commandTags);

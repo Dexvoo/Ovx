@@ -1,5 +1,4 @@
-const { Events, Client, CommandInteraction, EmbedBuilder, Colors, Guild } = require('discord.js');
-const { consoleLogData } = require('../../utils/LoggingData.js');
+const { Events, EmbedBuilder, Colors } = require('discord.js');
 require('dotenv').config();
 
 const { DevGuildID, JoinGuildLogCID } = process.env;
@@ -12,7 +11,7 @@ module.exports = {
     nickname: 'Guild Join Logs',
 
     /**
-     * @param {Guild} guild - Discord Guild
+     * @param {import('../../types').GuildUtils} guild - Discord Guild
      */
     async execute(guild) {
         const { client, name, id, ownerId } = guild;
@@ -23,14 +22,10 @@ module.exports = {
             const memberCount = guild.memberCount.toLocaleString() || 'Unknown';
 
             const devGuild = client.guilds.cache.get(DevGuildID) || await client.guilds.fetch(DevGuildID);
-            if (!devGuild) {
-                return consoleLogData('Guild Join Logs', 'Guild not found', 'error');
-            }
+            if (!devGuild) return client.utils.LogData('Guild Join Logs', 'Guild not found', 'error');
 
             const devChannel = devGuild.channels.cache.get(JoinGuildLogCID) || await devGuild.channels.fetch(JoinGuildLogCID);
-            if (!devChannel) {
-                return consoleLogData('Guild Join Logs', 'Channel not found', 'error');
-            }
+            if (!devChannel) return client.utils.LogData('Guild Join Logs', 'Channel not found', 'error');
 
             const Embed = new EmbedBuilder()
                 .setTitle('Guild Joined')
@@ -44,7 +39,7 @@ module.exports = {
 
             await devChannel.send({ content: '<@387341502134878218>', embeds: [Embed] });
         } catch (error) {
-            consoleLogData('Command Logs', `Failed to send embed: ${error.message}`, 'error');
+            client.utils.LogData('Command Logs', `Failed to send embed: ${error.message}`, 'error');
         }
     }
 };

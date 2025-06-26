@@ -1,8 +1,5 @@
 const { Events, Client, Interaction, EmbedBuilder, Colors, ApplicationCommandOptionType, PermissionFlagsBits, ChannelType, PermissionsBitField, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { SendEmbed, consoleLogData, ShortTimestamp } = require('../../utils/LoggingData');
 const { TicketConfig, TicketInstance } = require('../../models/GuildSetups');
-const { permissionCheck } = require('../../utils/Permissions');
-const { createTranscript} = require('discord-html-transcripts');
 require('dotenv').config();
 const TicketsCache = require('../../cache/Tickets');
 
@@ -31,8 +28,8 @@ module.exports = {
         const { customId, client, guild, channel, member } = interaction;
 
         const botPermissions = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageRoles, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks];
-        const [hasPermission, missingPermissions] = permissionCheck(channel, botPermissions, client);
-        if (!hasPermission) return SendEmbed(interaction, Colors.Red, 'Tickets | Missing Permissions', `Bot Missing Permissions: \`${missingPermissions}\` in ${channel}`);
+        const [hasPermission, missingPermissions] = client.utils.PermCheck(channel, botPermissions, client);
+        if (!hasPermission) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Missing Permissions', `Bot Missing Permissions: \`${missingPermissions}\` in ${channel}`);
 
         const TicketData = await TicketInstance.findOne({ channelId: channel.id, guildId: guild.id });
         const TicketConfigData = await TicketsCache.get(guild.id);
@@ -47,7 +44,7 @@ module.exports = {
             await handler(interaction, context);
         } catch (error) {
             console.error(error);
-            SendEmbed(interaction, Colors.Red, 'Tickets | Error', `Error: \`${error.message}\``);
+            client.utils.Embed(interaction, Colors.Red, 'Tickets | Error', `Error: \`${error.message}\``);
         }
 
     }
