@@ -42,7 +42,7 @@ function PermCheck(interactionChannel, permissions, member) {
  * @param {String} userId - Userid 
  * @returns {Promise<Boolean>} Boolean if voted or not
  */
-async function hasVotedTGG(userId) {
+async function HasVotedTGG(userId) {
     const hasVoted = await fetch(`https://top.gg/api/bots/${PublicClientID}/check?userId=${userId}`, {
         headers: {
             'Authorization': TopggAPIKey
@@ -60,4 +60,4 @@ function DevCheck(userId) {
     return false;
 }
 
-module.exports = { PermCheck, hasVotedTGG, DevCheck };
+module.exports = { PermCheck, HasVotedTGG, DevCheck };

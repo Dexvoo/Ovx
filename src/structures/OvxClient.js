@@ -16,7 +16,7 @@ class OvxClient extends Client {
          *  EmbedDev: typeof Embeds.EmbedDev,
          *  PermCheck: typeof Permissions.PermCheck,
          *  DevCheck: typeof Permissions.DevCheck,
-         *  HasVotedTGG: typeof Permissions.hasVotedTGG,
+         *  HasVotedTGG: typeof Permissions.HasVotedTGG,
          *  Timestamp: typeof Timestamps.Timestamp,
          * 
          * 
