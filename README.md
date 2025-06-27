@@ -1,103 +1,92 @@
-# Ovx Discord Bot
+<h1 align="center">🤖 Ovx – The All-in-One Discord Bot</h1>
+<p align="center">Advanced moderation, tickets, logging, economy, XP, and more – optimized for performance and scalability</p>
 
-[![GitHub license](https://img.shields.io/github/license/Dexvoo/Ovx)](https://github.com/Dexvoo/Ovx/blob/main/license)
-[![Discord](https://img.shields.io/discord/1115336808834805780)](https://discord.gg/t7tF2Qs3Qc)
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-In%20Rewrite-orange?style=flat-square" />
+  <img src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Built%20With-discord.js%20v14-5865F2?logo=discord&logoColor=white&style=flat-square" />
+</p>
 
-## About
+---
 
-Ovx is a versatile Discord bot designed to make your server management and interaction with your community more enjoyable. It comes with a variety of features and commands to enhance your Discord server.
+## ✨ Features
 
-## Table of Contents
+- 🎫 **Tickets System** – Custom categories, claim buttons, logging, and auto-close options
+- 🔨 **Moderation Tools** – Ban, kick, mute, timeouts, custom punishment reasons
+- 📜 **Logging System** – Message edits/deletes, joins/leaves, channel/role updates, and more
+- 💰 **Economy** – Custom currencies, shop, daily/weekly rewards, sellable items
+- 🧠 **XP & Levels** – Voice + message XP, roles as rewards, cached performance
+- ⚙️ **Guild Configs** – Per-server settings with MongoDB + in-memory caching
+- 🧩 **Component v2 Support** – Modern Discord UI interaction with buttons & menus
+- 📊 **Sharded Deployment** – Ready for large-scale hosting with PM2 and ShardingManager
 
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+---
 
-## Getting Started
+## 🛠️ Tech Stack
 
-To get started with Ovx, follow these steps:
+- **Language:** Node.js (v24)
+- **Library:** [discord.js v14](https://discord.js.org)
+- **Database:** MongoDB + Mongoose
+- **Caching:** node-cache (TTL strategy)
+- **Deployment:** PM2 + ShardingManager
+- **Other:** dotenv, custom logging, permission guard, internal utils
 
-### Prerequisites
+---
 
-Make sure you have the following software and resources installed:
+## 🚧 Current Status
 
-- Node.js 14+
-- Discord API Token (get it from the [Discord Developer Portal](https://discord.com/developers/applications))
-- Other dependencies...
+Ovx is undergoing a full rewrite focused on:
 
-### Installation
+- 🧱 Code structure & modularization
+- ⚡ Performance (less DB reads, more caching)
+- 🔐 Security & permission checks
+- 📦 Command and event loading improvements
 
-1. Clone the repository:
+---
 
-   ```cmd
-   git clone https://github.com/Dexvoo/Ovx.git
+## 📸 Preview *(Coming Soon)*
 
-2. Install the dependencies:
+> Screenshots, UI examples, and embed previews will be added in future updates.
 
-   ```cmd
-   npm install
+---
 
-3. Please rename the `example.env` file provided to `.env` and fill out the information
+## 📄 License
 
-4. Start the bot in developer mode:
+This bot is open-source under  
+**Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**  
+[View License →](https://creativecommons.org/licenses/by-nc/4.0/)
 
-   ```cmd
-   npm run dev
+> 🚫 Commercial use is strictly prohibited.  
+> ✅ You can fork, modify, and self-host for personal or educational purposes.
 
-# Usage
-Use Ovx to manage your server and engage with your community. Here's an example command:
+---
 
-   ```cmd
-    /botcommand arg1 arg2
-   ```
-For a full list of available commands and usage instructions, consult the bot's documentation.
+## 📦 Setup Instructions (Advanced Users)
 
-# Contributing
-If you'd like to contribute to the project, please follow these steps:
+```bash
+# Clone the repo
+git clone https://github.com/dexvoo/Ovx.git
+cd Ovx
 
-  1. Fork the repository.
-  2. Create a new branch for your feature or bug fix.
-  3. Make your changes and commit them with a descriptive commit message.
-  4. Push your changes to your forked repository.
-  5. Submit a pull request to the main repository.
+# Install dependencies
+npm install
 
-Be sure to follow our [Code of Conduct](https://www.google.com/) and [Contributing Guidelines](https://www.google.com/).
+# Create a .env file with your bot settings
+cp .env.example .env
 
-# Dependencies
-Package | Required | Reason
---- | --- | ---
-**@discordjs/rest** | `true` | `Rest Function To Delete/Add Commands`
-**@iamtraction/google-translate** | `true` | `Translates Text In Translate Command`
-**cpu-stat** | `true` | `Gives Information On Machine That Is Hosting The Bot`
-**discord.js** | `true` | `Discord Imports`
-**dotenv** | `true` | `Access Hidden Variables `
-**mongoose** | `true` | `Database Connect`
-**os** | `true` | `Gives Information On Operating System On The /Information Bot Command`
-**eslint** | `false` | `Code Syntax Highlighting`
-**prettier** | `false` | `Code Formatting`
+# Start the bot
+node index.js
+```
 
-# Moderation Commands
-Command | User Permission | Bot Permission
---- | --- | ---
-**/automod** | `Administrator` | `ManageGuild`
-**/ban [user] [string]** | `BanMembers` | `BanMembers`
-**/kick [user] [string]** | `KickMembers` | `KickMembers`
-**/nickname [user] [string]** | `ManageNicknames` | `ManageNicknames`
-**/purge [integer]** | `ManageMessages` | `ManageMessages`
-**/setup** | `Administrator` | `ManageRoles`
-**/sim [option]** | `Administrator` | `None`
-**/takeemoji [emoji]** | `ManageGuildExpressions` | `ManageGuildExpressions`
-**/timeout [user]** | `ManageMessages` | `ModerateMembers`
-**/unban [userid]** | `BanMembers` | `BanMembers`
+---
 
-# Miscellaneous Commands
-Command | Usage
---- | --- 
-**/afk** | `Set your status as AFK; the bot will respond to @Tags indicating you're AFK`
-**/avatar [user]** | `Gets an avatar of your choice`
-**/information [choice]** | `Displays information on the bot, server, role, user`
-**/invite** | `Generate a invite to the support server or the bot to your server`
-**/translate [string] [Language]** | `Translate text to another language`
+## 🙌 Credits
+
+- Developed by [@dexvoo](https://github.com/dexvoo)
+- Built with ❤️ for the Discord community
+
+---
+
+## 📬 Want to Contribute?
+
+Right now, the bot isn't accepting external contributions while the rewrite is underway. Stay tuned for updates and a contribution guide!
