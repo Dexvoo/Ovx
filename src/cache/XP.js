@@ -1,5 +1,6 @@
 const NodeCache = require('node-cache');
 const { UserLevels, UserLevelsType } = require('../models/UserSetups'); // Adjust path if needed
+const OvxClient = require('../structures/OvxClient')
 const { LogData } = require('../utils/Functions/ConsoleLogs')
 
 class XPCache {
@@ -78,6 +79,56 @@ class XPCache {
     clearGuild(guildId) {
         const keys = this.cache.keys().filter(key => key.startsWith(`${guildId}:`));
         this.cache.del(keys);
+    }
+
+
+    /**
+     * Get top users by a stat type (e.g., messages, voicetime, levels, xp).
+     * @param {string} guildId 
+     * @param {'xp' | 'messages' | 'voicetime' | 'level'} type 
+     * @param {OvxClient} client 
+     * @returns {Promise<UserLevelsType[]>}
+     */
+    async getTopUsers(guildId, type, client) {
+        const limit = 15;
+        const allKeys = this.cache.keys().filter(key => key.startsWith(`${guildId}:`));
+    
+        const users = allKeys
+            .map(key => this.cache.get(key))
+            .filter(user => {
+                if (!user) return false;
+                if (type === 'level') return typeof user.level === 'number' && typeof user.xp === 'number';
+                return typeof user[type] === 'number';
+            });
+        
+        if (users.length >= limit) {
+            const sorted = [...users].sort((a, b) => {
+                if (type === 'level') {
+                    return (b.level ?? 0) - (a.level ?? 0) || (b.xp ?? 0) - (a.xp ?? 0);
+                } else {
+                    return (b[type] ?? 0) - (a[type] ?? 0);
+                }
+            });
+            return sorted.slice(0, limit);
+        }
+    
+        // Fallback to DB
+        const sortQuery = type === 'level'
+            ? { level: -1, xp: -1 }
+            : { [type]: -1 };
+    
+        const topFromDB = await UserLevels
+            .find({ guildId })
+            .sort(sortQuery)
+            .limit(limit)
+            .lean();
+    
+        for (const user of topFromDB) {
+            const key = `${guildId}:${user.userId}`;
+            this.cache.set(key, user);
+        }
+    
+        return topFromDB;
     }
 }
 

@@ -112,7 +112,7 @@ const LogsConfigSchema = new Schema({
 const LevelConfigSchema = new Schema({
     guildId: { type: String, required: true },
     enabled: { type: Boolean, default: false },
-    channelId: { type: String, required: true },
+    channelId: { type: String, default: null },
     blacklisted: { roleIds: { type: [String], default: [] }, channelIds: { type: [String], default: [] }},
     rewards: { type: Array, default: [] },
     removePastRewards: { type: Boolean, default: false },
@@ -124,7 +124,7 @@ const LevelConfigSchema = new Schema({
 });
 
 module.exports = {
-    TicketInstance: model('Guild-Tickets', TicketInstanceSchema),
+    TicketInstance: model('Guild-Tickets-Users', TicketInstanceSchema),
     TicketConfig: model('Guild-Tickets-Config', TicketConfigSchema),
     TicketConfigType: TicketConfigSchema,
 

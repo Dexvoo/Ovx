@@ -3,6 +3,7 @@ const ConsoleLogs = require('../utils/Functions/ConsoleLogs');
 const Embeds = require('../utils/Functions/Embeds');
 const Permissions = require('../utils/Functions/Permissions');
 const Timestamps = require('../utils/Functions/Timestamps');
+const customEmojis = require('../utils/Classes/CustomEmojis.json')
 
 class OvxClient extends Client {
     constructor(options) {
@@ -28,6 +29,8 @@ class OvxClient extends Client {
             ...Permissions, 
             ...Timestamps
         };
+
+        this.CustomEmojis = customEmojis;
     }
 }
 

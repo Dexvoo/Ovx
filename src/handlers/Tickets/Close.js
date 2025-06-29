@@ -14,7 +14,18 @@ module.exports = async function TicketClose(interaction, context) {
     const isOwner = TicketData?.memberId === member.id;
 
     if(!TicketConfigData?.enabled) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Not Enabled', 'Tickets are not enabled on this server. Please contact an admin.');
-    if(!TicketData?.open) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Already Closed', 'This ticket is already closed.');
+    if(!TicketData?.open) {
+        //
+        if(TicketData.channelId !== null) {
+            const ticketChannel = client.channels.cache.get(TicketData.channelId) || await client.channels.fetch(TicketData.channelId).catch(() => {return false});
+
+            if(ticketChannel) {
+                await ticketChannel.delete()
+                console.log('Deleting ticket channel because supposed to be closed')
+                
+            }
+        }
+    }
     if(!isAdmin && !isMod && !isOwner) return client.utils.Embed(interaction, Colors.Red, 'Tickets | Permission Denied', 'You do not have permission to close this ticket.');
 
     let transcript;

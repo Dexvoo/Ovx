@@ -6,6 +6,7 @@ const { TicketConfig, TicketInstance } = require('../../models/GuildSetups');
 const handlers = {
     setup: require('../../handlers/Levels/Setup'),
     rank: require('../../handlers/Levels/Rank'),
+    leaderboard: require('../../handlers/Levels/Leaderboard'),
     settings: {
         'xp-multiplier': require('../../handlers/Levels/Settings/XPMultiplier'),
         'message-cooldown': require('../../handlers/Levels/Settings/MessageCooldown'),
@@ -44,13 +45,12 @@ module.exports = {
         .addSubcommand((subcommand) => subcommand
 			.setName('leaderboard')
 			.setDescription('Displays the most active users in a leaderboard')
-
 			.addStringOption((option) => option
 			    .setName('type')
 			    .setDescription('The type of leaderboard to show')
 			    .setRequired(true)
 			    .addChoices(
-                    { name: 'Levels', value: 'levels' },
+                    { name: 'Levels', value: 'level' },
 			    	{ name: 'Messages', value: 'messages' },
 			    	{ name: 'Voice', value: 'voice' }
 			    )
@@ -201,10 +201,10 @@ module.exports = {
 
         try {
             const { guild } = interaction;
-            const LevelConfigData = await LevelCache.get(guild.id);
+            const guildConfig = await LevelCache.get(guild.id);
 
             const context = {
-                LevelConfigData,
+                guildConfig,
             };
 
             await handler(interaction, context);
