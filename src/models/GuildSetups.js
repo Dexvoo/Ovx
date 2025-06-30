@@ -123,6 +123,16 @@ const LevelConfigSchema = new Schema({
     roleMultipliers: [{ roleId: String, multiplier: Number }]
 });
 
+/**
+ * @typedef {Object} InviteDetectionType
+ * @property {string} guildId - The ID of the guild this configuration applies to.
+ * @property {boolean} enabled - Whether the leveling system is enabled.
+ */
+const InviteDetectionSchema = new Schema({
+	guildId: { type: String, required: true },
+    enabled: { type: Boolean, default: false },
+});
+
 module.exports = {
     TicketInstance: model('Guild-Tickets-Users', TicketInstanceSchema),
     TicketConfig: model('Guild-Tickets-Config', TicketConfigSchema),
@@ -133,5 +143,8 @@ module.exports = {
     
     LevelConfig: model('Guild-Level-Config', LevelConfigSchema),
     LevelConfigType: LevelConfigSchema,
+
+    InviteDetectionConfig: model('Guild-InviteDetection-Config', InviteDetectionSchema),
+    InviteDetectionType: InviteDetectionSchema,
 };
 

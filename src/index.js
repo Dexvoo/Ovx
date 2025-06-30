@@ -1,7 +1,7 @@
 const { ShardingManager } = require('discord.js');
 const { Log, LogData } = require('./utils/Functions/ConsoleLogs.js');
 require('dotenv').config();
-const { DeveloperMode, PublicToken, DevToken, TopggAPIKey } = process.env;
+const { DeveloperMode, PublicToken, DevToken, TopggAPIKey, TopggAuthorizationKey } = process.env;
 
 
 const { AutoPoster } = require('topgg-autoposter');
@@ -26,7 +26,7 @@ ShardManager.spawn();
 
 
 
-if(DeveloperMode === 'true') {
+if(DeveloperMode === 'false') {
     const ap = AutoPoster(TopggAPIKey, ShardManager);
 
     ap.on('posted', () => {
@@ -47,9 +47,10 @@ if(DeveloperMode === 'true') {
 		}));
 
 		app.listen(25500, () => {
-			client.utils.LogData(`Top GG Votes`, 'Listening on port 25500', 'success');
+			LogData(`Top GG Votes`, 'Listening on port 25500', 'success');
 		});
 
 }
 
 
+ 

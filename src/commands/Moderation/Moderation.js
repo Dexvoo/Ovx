@@ -13,7 +13,7 @@ module.exports = {
         .setDescription('Ban, unban, kick, mute, unmute, purge messages, or change the nickname of a user')
         .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
         .setContexts( InteractionContextType.Guild )
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild | PermissionFlagsBits.BanMembers | PermissionFlagsBits.KickMembers | PermissionFlagsBits.ModerateMembers)
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         
         .addSubcommand(subcommand => subcommand
             .setName('ban')
