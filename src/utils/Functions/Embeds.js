@@ -1,56 +1,67 @@
-const { EmbedBuilder, MessageFlags, Interaction, ChatInputCommandInteraction, GuildBasedChannel, TextChannel, Message, Client, TextDisplayBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, SectionBuilder, Colors, MessageMentions } = require('discord.js')
+const { EmbedBuilder, MessageFlags, Interaction, ChatInputCommandInteraction, GuildBasedChannel, TextChannel, Message, Client, TextDisplayBuilder, ContainerBuilder, SeparatorBuilder, Colors, BaseInteraction, RESTJSONErrorCodes, DiscordAPIError, GuildMember, User } = require('discord.js')
 const Global_Cache = require('../../cache/Global')
 require('dotenv').config()
 const { CommandCID, JoinGuildCID, LeaveGuildCID, UserLevelCID, DevGuildID } = process.env
 
 /**
-* @param {Interaction | TextChannel } interaction 
-* @param {Colors} colour
-* @param {String} title 
-* @param {String} description
-* @param {Array} fields  
-* @param {Boolean} ephemeral
-*/
-const Embed = async (interaction, colour, title, description, fields = [], ephemeral = true) => {
-    if (!interaction) throw new Error('No interaction provided.');
-    if (!colour) throw new Error('No colour provided.');
-    if (!title) throw new Error('No title provided.');
-    if (!description) throw new Error('No description provided.');
+ * A robust utility to create and send an embed.
+ * Can send to a TextChannel, DM a User/GuildMember, or reply to an Interaction.
+ *
+ * @param {BaseInteraction | TextChannel | User | GuildMember} target The interaction, channel, user, or member to send the embed to.
+ * @param {Colors} color The color of the embed's side strip.
+ * @param {string} title The title of the embed.
+ * @param {string} description The main text of the embed.
+ * @param {object} [options={}] Optional parameters.
+ * @param {import('discord.js').APIEmbedField[]} [options.fields=[]] An array of embed fields.
+ * @param {boolean} [options.ephemeral=true] Whether the reply should be ephemeral (for interactions ONLY).
+ * @returns {Promise<Message|null>} The sent message, or null if sending failed.
+ */
+async function Embed(target, color, title, description, { fields = [], ephemeral = true } = {}) {
+    if (!target) {
+        console.error('Embed Util Error: No target (interaction, channel, or user) was provided.');
+        return null;
+    }
+    if (!color || !title || !description) {
+        console.error('Embed Util Error: Missing one of required parameters: color, title, or description.');
+        return null;
+    }
 
     const embed = new EmbedBuilder()
-        .setColor(colour)
+        .setColor(color)
         .setTitle(title)
         .setDescription(description);
 
-    if (Array.isArray(fields) && fields.length > 0) embed.addFields(fields);
-
-    if(interaction instanceof ChatInputCommandInteraction) {
-        // Check if the channel exists and is accessible
-        if (!interaction.channel) {
-            // try to fetch the channel if it doesn't exist
-            try {
-                await interaction.guild.channels.fetch(interaction.channelId);
-            } catch (error) {
-                return console.error('Channel not found or inaccessible:', error);
-            }
-        }
-
-        try {
-            if (interaction.replied || interaction.deferred) {
-                return await interaction.editReply({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined });
-            } else {
-                return await interaction.reply({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined });
-            }
-        } catch (error) {
-            console.error('Failed to send embed:', error);
-        }
-    } else if (interaction instanceof TextChannel) {
-            interaction.send({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : undefined})
-        
+    if (Array.isArray(fields) && fields.length > 0) {
+        embed.setFields(fields);
     }
 
-    
-}
+    try {
+        if (target instanceof BaseInteraction) {
+            if (target.replied || target.deferred) {
+                return await target.editReply({ embeds: [embed], components: [] });
+            } else {
+                return await target.reply({ embeds: [embed], flags: [MessageFlags.Ephemeral = ephemeral] });
+            }
+        }
+        else if (target instanceof User || target instanceof GuildMember) {
+            return await target.send({ embeds: [embed] });
+        }
+        else if (target instanceof TextChannel) {
+            return await target.send({ embeds: [embed] });
+        }
+        else {
+            console.error(`Embed Util Error: Unsupported target type provided: ${target.constructor.name}`);
+            return null;
+        }
+    } catch (error) {
+        if (error instanceof DiscordAPIError && error.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser) {
+            console.error(`Embed Util Error: Failed to send DM to user ${target.id}. They may have DMs disabled or have the bot blocked.`);
+        } else {
+            console.error(`Embed Util Error: Failed to send embed to target '${target.id}':`, error);
+        }
+        return null;
+    }
+};
 
 
 

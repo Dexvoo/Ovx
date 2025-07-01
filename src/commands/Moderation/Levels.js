@@ -15,7 +15,7 @@ const handlers = {
         'remove-past-rewards': require('../../handlers/Levels/Settings/RewardsRemovePast'),
         'add-reward': require('../../handlers/Levels/Settings/RewardAdd'),
         'remove-reward': require('../../handlers/Levels/Settings/RewardRemove'),
-        'list-rewards': require('../../handlers/Levels/Settings/RewardsList'),
+        'view-rewards': require('../../handlers/Levels/Settings/RewardsList'),
     },
 };
 
@@ -178,7 +178,7 @@ module.exports = {
         
             // Level Reward - List
             .addSubcommand(subcommand => subcommand
-                .setName('list-rewards')
+                .setName('view-rewards')
                 .setDescription('List all level reward roles.')
             )
         ),

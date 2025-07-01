@@ -17,9 +17,11 @@ module.exports = {
     */
 
     async execute(interaction) {
-        const { options, client, user } = interaction;
+        const { options, client, user, member } = interaction;
 
         if(!client.utils.DevCheck(user.id)) return client.utils.Embed(interaction, Colors.Red, 'Command Failed', `User Missing Permission: \`Developer\``);
+
+        await client.utils.Embed(user, Colors.Green, 'Command Executed', `Command: \`/test\`\nExecuted by: <@${user.id}>`);
         
         SendEmbedv2(
             interaction, 
@@ -80,7 +82,7 @@ const SendEmbedv2 = async (messageTarget, title, description, footer, thumbnail)
 
     // containerComponent.addSectionComponents(sectionComponent)
     if(messageTarget instanceof (CommandInteraction)) {
-        console.log(messageTarget)
+        // console.log(messageTarget)
 
         // Check if the channel exists and is accessible
         if (!messageTarget.channel) {

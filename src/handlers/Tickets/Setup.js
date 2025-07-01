@@ -27,9 +27,9 @@ module.exports = async function TicketSetup(interaction, context) {
         GuildTicketConfig.enabled = false;
         await GuildTicketConfig.save();
 
-        return client.utils.Embed(interaction, Colors.Blurple, 'Ticket System Disabled', `Ticket system has been disabled`, [
+        return client.utils.Embed(interaction, Colors.Blurple, 'Ticket System Disabled', `Ticket system has been disabled`, { fields: [
             { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: true }
-        ]);
+        ]});
     };
     
     if(!setupChannel) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'Please provide a channel to send the ticket embed in');
@@ -78,13 +78,13 @@ module.exports = async function TicketSetup(interaction, context) {
         maxTicketsPerUser: TicketConfigData?.maxTicketsPerUser || 3
     });
 
-    client.utils.Embed(interaction, Colors.Blurple, 'Ticket System Setup', `Ticket system has been setup successfully`, [
+    client.utils.Embed(interaction, Colors.Blurple, 'Ticket System Setup', `Ticket system has been setup successfully`, { fields: [
         { name: 'Setup Channel', value: setupChannel.toString(), inline: true },
         { name: 'Ticket Category', value: ticketCategory.toString(), inline: true },
         { name: 'Archive Channel', value: archiveChannel.toString(), inline: true },
         { name: 'Support Role', value: supportRole.toString(), inline: true },
         { name: 'Admin Role', value: adminRole.toString(), inline: true },
         { name: 'Moderator', value: `@${member.user.username} | (${member})`, inline: false }
-    ]);
+    ]});
     return;
 };

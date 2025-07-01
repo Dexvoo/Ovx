@@ -21,7 +21,7 @@ module.exports = async function TicketCreate(interaction, context) {
 
     const botPermissionsInCategory = [PermissionsBitField.Flags.ManageChannels, PermissionsBitField.Flags.ManageRoles];
     const [hasCategoryPermissions, missingCategoryPermissions] = client.utils.PermCheck(ticketCategory, botPermissionsInCategory, client);
-    if(!hasCategoryPermissions) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`, []);
+    if(!hasCategoryPermissions) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`);
 
     TicketConfigData.lastTicketId += 1;
     

@@ -43,7 +43,7 @@ module.exports = async function TicketLock(interaction, context) {
         await buttonMessageLock.edit({ components: [buttonRow] }).catch(() => { });
     };
     
-    client.utils.Embed(interaction, Colors.Blurple, `Tickets | Lock Ticket`, `This ticket has been locked by ${member}. Only admins can unlock it now.`, [], false);    
+    client.utils.Embed(interaction, Colors.Blurple, `Tickets | Lock Ticket`, `This ticket has been locked by ${member}. Only admins can unlock it now.`, { ephemeral: false });    
     
     TicketData.locked = true;
     await TicketData.save();
