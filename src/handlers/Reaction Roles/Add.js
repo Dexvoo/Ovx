@@ -1,4 +1,4 @@
-const { Colors, PermissionFlagsBits, EmbedBuilder, StringSelectMenuBuilder, parseEmoji, ActionRowBuilder} = require('discord.js');
+const { Colors, PermissionFlagsBits, EmbedBuilder, StringSelectMenuBuilder, parseEmoji, ActionRowBuilder, MessageFlags} = require('discord.js');
 require('dotenv').config()
 const { ReactionRoles } = require('../../models/GuildSetups');
 
@@ -13,12 +13,16 @@ module.exports = async function LogsSetup(interaction) {
     const messageId = options.getString('messageid');
     const title = options.getString('title') || null;
 
-    let message
+    const parsedEmoji = parseEmoji(emoji);
+    const unicodeEmojiRegex = /\p{Emoji}/u;
+    if (!parsedEmoji?.id && !unicodeEmojiRegex.test(emoji)) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', 'The emoji you provided is not valid. Please provide a standard Discord emoji or a custom emoji from this server.');
+
+    let message;
     if(!messageId) {
         const Embed = new EmbedBuilder()
             .setColor(Colors.Blurple)
-            .setTitle(title || 'Reaction Roles')
-        message = await channel.send({ embeds: [Embed] }).catch(() => {return false});
+            .setTitle(title || 'Reaction Roles');
+        message = await client.utils.Embed(interaction, Colors.Blurple, title || 'Reaction Roles', '', { ephemeral: false })
 
         if(!message) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', 'Failed to send the message in the current channel. Please try again later.');
     } else {
@@ -38,7 +42,7 @@ module.exports = async function LogsSetup(interaction) {
             roles: []
         });
 
-        await reactionRoleData.save();
+        // No need to save here, we'll save after adding the role.
     }
 
     if(reactionRoleData.roles?.length > 0) {
@@ -47,7 +51,7 @@ module.exports = async function LogsSetup(interaction) {
 
     reactionRoleData.roles.push({
         roleId: role.id,
-        emoji: emoji
+        roleEmoji: emoji // Store the original emoji string
     });
 
     await reactionRoleData.save();
@@ -57,14 +61,26 @@ module.exports = async function LogsSetup(interaction) {
         .setPlaceholder('Select a role')
         .setMinValues(0)
         .setMaxValues(reactionRoleData.roles.length)
-        .addOptions(reactionRoleData.roles.map(role => {
-            return { label: guild.roles.cache.get(role.roleId).name, value: role.roleId, emoji: role.roleEmoji };
+        .addOptions(reactionRoleData.roles.map(r => {
+            // We use the already validated emoji string here
+            const currentEmoji = parseEmoji(r.roleEmoji);
+            const roleName = guild.roles.cache.get(r.roleId)?.name || 'Deleted Role';
+            
+            return { 
+                label: roleName, 
+                value: r.roleId, 
+                // The emoji property in options handles both formats correctly
+                emoji: {
+                    id: currentEmoji.id,
+                    name: currentEmoji.name,
+                    animated: currentEmoji.animated,
+                }
+            };
         }));
 
     const actionRow = new ActionRowBuilder().addComponents(roleMenu);
 
     await message.edit({ components: [actionRow] }).catch(() => {return false});
 
-    client.utils.Embed(interaction, Colors.Green, 'Reaction Roles | Success', `The role \`${role.name}\` has been added to the reaction roles for this message.`);
-    
+    return client.utils.Embed(interaction, Colors.Green, 'Reaction Roles | Success', `The role \`${role.name}\` has been added to the reaction roles for this message.`);
 };

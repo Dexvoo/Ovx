@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, MessageFlags } = require('discord.js');
 
 const handlers = {
     'ovx-reactionroles-add': require('../../handlers/Reaction Roles/Add'),
@@ -67,6 +67,8 @@ module.exports = {
     */
 
     async execute(interaction) {
+
+        await interaction.deferReply({ flags: [MessageFlags.Ephemeral] }).catch(() => {return false});
 
         const subcommand = interaction.options.getSubcommand();
         if(!handlers[`ovx-reactionroles-${subcommand}`]) return interaction.client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Not Found', `The subcommand \`${subcommand}\` does not exist.`);
