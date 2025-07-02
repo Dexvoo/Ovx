@@ -1,4 +1,4 @@
-const { Colors, PermissionFlagsBits, EmbedBuilder, StringSelectMenuBuilder, parseEmoji, ActionRowBuilder, MessageFlags} = require('discord.js');
+const { Colors, PermissionFlagsBits, EmbedBuilder, StringSelectMenuBuilder, parseEmoji, ActionRowBuilder} = require('discord.js');
 require('dotenv').config()
 const { ReactionRoles } = require('../../models/GuildSetups');
 
@@ -22,7 +22,7 @@ module.exports = async function LogsSetup(interaction) {
         const Embed = new EmbedBuilder()
             .setColor(Colors.Blurple)
             .setTitle(title || 'Reaction Roles');
-        message = await client.utils.Embed(interaction, Colors.Blurple, title || 'Reaction Roles', '', { ephemeral: false })
+        message = await client.utils.Embed(channel, Colors.Blurple, title || 'Reaction Roles', '', { ephemeral: false });
 
         if(!message) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', 'Failed to send the message in the current channel. Please try again later.');
     } else {
@@ -41,17 +41,16 @@ module.exports = async function LogsSetup(interaction) {
             title: title,
             roles: []
         });
-
-        // No need to save here, we'll save after adding the role.
     }
 
     if(reactionRoleData.roles?.length > 0) {
         if(reactionRoleData.roles.find(r => r.roleId === role.id)) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', `The role \`${role.name}\` is already set for this reaction role.`);
+        if(reactionRoleData.roles?.length >= 10) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', 'You can only set up a maximum of 10 separate roles per reaction role. Please remove some roles before adding new ones.');
     }
 
     reactionRoleData.roles.push({
         roleId: role.id,
-        roleEmoji: emoji // Store the original emoji string
+        roleEmoji: emoji
     });
 
     await reactionRoleData.save();
@@ -62,14 +61,12 @@ module.exports = async function LogsSetup(interaction) {
         .setMinValues(0)
         .setMaxValues(reactionRoleData.roles.length)
         .addOptions(reactionRoleData.roles.map(r => {
-            // We use the already validated emoji string here
             const currentEmoji = parseEmoji(r.roleEmoji);
             const roleName = guild.roles.cache.get(r.roleId)?.name || 'Deleted Role';
             
             return { 
                 label: roleName, 
                 value: r.roleId, 
-                // The emoji property in options handles both formats correctly
                 emoji: {
                     id: currentEmoji.id,
                     name: currentEmoji.name,

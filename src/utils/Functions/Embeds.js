@@ -41,7 +41,7 @@ async function Embed(target, color, title, description, { fields = [], ephemeral
             if (target.replied || target.deferred) {
                 return await target.editReply({ embeds: [embed], components: [] });
             } else {
-                return await target.reply({ embeds: [embed], flags: [MessageFlags.Ephemeral = ephemeral] });
+                return await target.reply({ embeds: [embed], flags: ephemeral ? [MessageFlags.Ephemeral] : [] });
             }
         }
         else if (target instanceof User || target instanceof GuildMember) {

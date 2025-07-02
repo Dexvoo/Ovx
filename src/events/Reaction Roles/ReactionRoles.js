@@ -1,6 +1,5 @@
-const { Events, EmbedBuilder, Colors, PermissionFlagsBits, MessageFlags } = require('discord.js');
+const { Events, Colors, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { ReactionRoles } = require('../../models/GuildSetups');
-require('dotenv').config();
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -76,16 +75,7 @@ module.exports = {
 
             const finalColor = failedRoles.length > 0 ? Colors.Yellow : Colors.Green;
 
-            return await client.utils.Embed(
-                interaction,
-                finalColor,
-                '',
-                '',
-                {
-                    fields: fields,
-                    ephemeral: true
-                }
-            );
+            return await client.utils.Embed( interaction, finalColor, '', '', { fields: fields, ephemeral: true });
 
         } catch (error) {
             console.error(`[Reaction Roles] Error during interaction for user ${interaction.user.id} in guild ${guild.id}:`, error);

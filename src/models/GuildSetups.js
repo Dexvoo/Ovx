@@ -182,7 +182,7 @@ module.exports = {
     InviteDetectionConfig: model('Guild-InviteDetection-Config', InviteDetectionSchema),
     InviteDetectionType: InviteDetectionSchema,
 
-    ReactionRoles: model('Guild-ReactionRoles', ReactionRolesSchema),
-    ReactionRolesType: InviteDetectionSchema,
+    ReactionRoles: model('Guild-Reaction-Roles', ReactionRolesSchema),
+    ReactionRolesType: ReactionRolesSchema,
 };
 
