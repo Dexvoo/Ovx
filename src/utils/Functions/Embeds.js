@@ -21,15 +21,16 @@ async function Embed(target, color, title, description, { fields = [], ephemeral
         console.error('Embed Util Error: No target (interaction, channel, or user) was provided.');
         return null;
     }
-    if (!color || !title || !description) {
+    if (!color || !title && title !== '' || !description && description !== '') {
         console.error('Embed Util Error: Missing one of required parameters: color, title, or description.');
         return null;
     }
 
     const embed = new EmbedBuilder()
-        .setColor(color)
-        .setTitle(title)
-        .setDescription(description);
+        .setColor(color);
+
+    title ? embed.setTitle(title) : null
+    description ? embed.setDescription(description) : null
 
     if (Array.isArray(fields) && fields.length > 0) {
         embed.setFields(fields);

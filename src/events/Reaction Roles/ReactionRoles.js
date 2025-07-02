@@ -56,36 +56,41 @@ module.exports = {
             }
 
             if (rolesToAdd.length === 0 && rolesToRemove.length === 0 && failedRoles.length === 0) {
-                return interaction.editReply({
-                    embeds: [new EmbedBuilder().setColor(Colors.Orange).setDescription('Your roles are already up to date!')]
-                });
+                return await client.utils.Embed(interaction, Colors.Orange, 'Reaction Roles | No Changes', 'Your roles are already up to date! No changes were made.');
             }
-
-            const addPromises = rolesToAdd.map(r => member.roles.add(r));
-            const removePromises = rolesToRemove.map(r => member.roles.remove(r));
+            
+            const addPromises = rolesToAdd.map(r => member.roles.add(r).catch(() => { /* ignore error, will be handled by failedRoles logic */ }));
+            const removePromises = rolesToRemove.map(r => member.roles.remove(r).catch(() => { /* ignore error */ }));
             await Promise.all([...addPromises, ...removePromises]);
-
-            const replyEmbed = new EmbedBuilder().setTitle('Roles Updated').setColor(Colors.Green);
-
+            
+            const fields = [];
             if (rolesToAdd.length > 0) {
-                replyEmbed.addFields({ name: '✅ Added Roles', value: rolesToAdd.map(r => r).join('\n'), inline: true });
+                fields.push({ name: '✅ Added Roles', value: rolesToAdd.map(r => r).join('\n'), inline: true });
             }
             if (rolesToRemove.length > 0) {
-                replyEmbed.addFields({ name: '❌ Removed Roles', value: rolesToRemove.map(r => r).join('\n'), inline: true });
+                fields.push({ name: '❌ Removed Roles', value: rolesToRemove.map(r => r).join('\n'), inline: true });
             }
             if (failedRoles.length > 0) {
-                replyEmbed.setColor(Colors.Yellow);
-                replyEmbed.addFields({ name: '⚠️ Failed Roles', value: failedRoles.map(f => `<@&${f.id}> (${f.reason})`).join('\n'), inline: false });
+                fields.push({ name: '⚠️ Failed Roles', value: failedRoles.map(f => `<@&${f.id}> (${f.reason})`).join('\n'), inline: false });
             }
 
-            await interaction.editReply({ embeds: [replyEmbed] });
+            const finalColor = failedRoles.length > 0 ? Colors.Yellow : Colors.Green;
+
+            return await client.utils.Embed(
+                interaction,
+                finalColor,
+                '',
+                '',
+                {
+                    fields: fields,
+                    ephemeral: true
+                }
+            );
 
         } catch (error) {
             console.error(`[Reaction Roles] Error during interaction for user ${interaction.user.id} in guild ${guild.id}:`, error);
             try {
-                await interaction.editReply({
-                    embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription('An unexpected error occurred while processing your request.')]
-                });
+                await client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', 'An unexpected error occurred while processing your request.', { ephemeral: true });
             } catch (e) {
                 // Interaction likely expired
             }
