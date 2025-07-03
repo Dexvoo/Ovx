@@ -15,7 +15,7 @@ module.exports = {
 	async execute(client) {
 		mongoose.set('strictQuery', false);
 		await mongoose.connect(MongoDB)
-			.then(() => client.utils.LogData(`Client: ${client.user.tag} | Shard: #${client.shard.ids}`, 'Database Connected', 'success'))
-			.catch((err) => client.utils.LogData(`Client: ${client.user.tag} | Shard: #${client.shard.ids}`, err, 'error'));
+			.then(() => client.utils.LogData(`Client: ${client.user.tag}`, `Shard: #${client.shard.ids} | Database Connected`, 'success'))
+			.catch((err) => client.utils.LogData(`Client: ${client.user.tag}`, `Shard: #${client.shard.ids} | ${err}`, 'error'));
 	}
 }

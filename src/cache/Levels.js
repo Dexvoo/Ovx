@@ -45,9 +45,7 @@ class LevelsCache {
      */
     async setType(guildId, key, value) {
         await LevelConfig.updateOne({ guildId }, { [key]: value }, { upsert: true });
-        const config = await this.get(guildId);
-        config[key] = value;
-        this.cache.set(guildId, config);
+        this.cache.del(guildId);
     }
 }
 

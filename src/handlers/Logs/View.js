@@ -1,4 +1,4 @@
-const { Colors } = require('discord.js');
+const { Colors, EmbedBuilder } = require('discord.js');
 require('dotenv').config()
 
 /**

@@ -34,11 +34,11 @@ class InviteDetectionCache {
 	/**
 	 * Set (or update) the cache entry for a guild
 	 * @param {string} guildId
-	 * @param {InviteDetectionType} data
+	 * @param {Partial<InviteDetectionType>} data
 	 */
 	async set(guildId, data) {
-		await InviteDetectionConfig.updateOne({guildId}, {enabled: data.enabled})
-		this.cache.set(guildId, data);
+		await InviteDetectionConfig.updateOne({ guildId }, { $set: data }, { upsert: true });
+		this.cache.del(guildId);
 	}
 
 	/**

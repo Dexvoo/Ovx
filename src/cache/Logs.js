@@ -45,8 +45,8 @@ class LogCache {
      * @returns {Promise<void>}
      */
     async set(guildId, newData) {
-        await LogsConfig.updateOne({ guildId }, newData, { upsert: true });
-        this.cache.set(guildId, newData);
+        await LogsConfig.updateOne({ guildId }, { $set: newData }, { upsert: true });
+        this.cache.del(guildId);
     }
 
 
@@ -55,21 +55,12 @@ class LogCache {
      * @param {string} guildId
      * @param {keyof LogsConfigType} type
      * @param {Partial<LogsConfigType[keyof LogsConfigType]>} newData
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
     async setType(guildId, type, newData) {
-        const config = await this.get(guildId);
-        if (!config) {
-            LogData(`LogCache`, `No config found for guild: ${guildId}`, 'info');
-            return false;
-        }
-
-        config[type] = newData;
-        await this.set(guildId, config);
-        await LogsConfig.updateOne({ guildId }, { [type]: newData });
-        this.cache.set(guildId, config);
-
-        return true
+        await LogsConfig.updateOne({ guildId }, { $set: { [type]: newData } }, { upsert: true });
+        this.cache.del(guildId);
+        return true;
     }
 
     /**
@@ -78,12 +69,10 @@ class LogCache {
      * @param {keyof LogsConfigType} type
      */
     async deleteType(guildId, type) {
-        const config = await this.get(guildId);
-        if(!config || !config[type]) return false;
-
-        delete config[type];
-        await this.set(guildId, config);
-        await LogsConfig.updateOne({ guildId }, { $unset: { [type]: "" } });
+        const { matchedCount } = await LogsConfig.updateOne({ guildId }, { $unset: { [type]: "" } });
+        if (matchedCount > 0) {
+            this.cache.del(guildId);
+        }
     }
 
 

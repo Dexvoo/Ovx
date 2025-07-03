@@ -47,8 +47,8 @@ class TicketsCache {
      * @returns {Promise<void>}
      */
     async set(guildId, newData) {
-        await TicketConfig.updateOne({ guildId }, newData, { upsert: true });
-        this.cache.set(guildId, newData);
+        await TicketConfig.updateOne({ guildId }, { $set: newData }, { upsert: true });
+        this.cache.del(guildId);
     }
 }
 
