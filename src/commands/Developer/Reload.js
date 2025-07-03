@@ -1,7 +1,6 @@
-const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, Events } = require('discord.js');
+const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits } = require('discord.js');
 const path = require('node:path');
-const fsPromises = require('node:fs').promises;
-require('dotenv').config();
+const fs = require('node:fs');
 
 module.exports = {
     cooldown: 0,
@@ -10,96 +9,74 @@ module.exports = {
     botpermissions: [],
     data: new SlashCommandBuilder()
         .setName('reload')
-        .setDescription('(Developer) Reloads a command')
-        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
-        .setContexts( InteractionContextType.Guild )
+        .setDescription('(Developer) Reloads a command.')
+        .setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
+        .setContexts([InteractionContextType.Guild])
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-        
         .addStringOption(option =>
             option.setName('command')
-                .setDescription('The command to reload')
+                .setDescription('The command to reload.')
                 .setAutocomplete(true)
                 .setRequired(true)
         ),
 
-    /**
-    * @param {AutocompleteInteraction} interaction
-    */
     async autocomplete(interaction) {
-        const { options, client } = interaction;
-        const value = options.getFocused();
-        const commands =  client.commands;
+        const { client } = interaction;
+        const focusedValue = interaction.options.getFocused();
+        const choices = client.commands.map(command => command.data.name);
 
-        const choices =  commands.map(command => command.data.name);
-        const filteredChoices = choices.filter(choice => choice.toLowerCase().includes(value.toLocaleLowerCase())).slice(0, 25);
-
-        if(!interaction) return;
-
-        await interaction.respond(filteredChoices.map(choice => ({ name: choice, value: choice })));
+        console.log(`Autocomplete for command reload: focusedValue = ${focusedValue}, choices = ${choices}`);
+        const filtered = choices.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase())).slice(0, 25);
+        
+        await interaction.respond(
+            filtered.map(choice => ({ name: choice, value: choice }))
+        );
     },
 
-    /**
-    * @param {import('../../types').CommandInputUtils} interaction
-    */
-
     async execute(interaction) {
-        const { options, client, user, member } = interaction;
+        const { options, client, user } = interaction;
 
-        if(!client.utils.DevCheck(user.id)) return client.utils.Embed(interaction, Colors.Red, 'Command Failed', `User Missing Permission: \`Developer\``);
-        
-        client.emit(Events.GuildMemberAdd, member);
-        client.emit(Events.GuildMemberRemove, member);
+        if (!client.utils.DevCheck(user.id)) {
+            return client.utils.Embed(interaction, Colors.Red, 'Command Failed', 'User Missing Permission: `Developer`');
+        }
 
-        
-        const commandName = options.getString('command').toLowerCase();
+        const commandName = options.getString('command');
         const command = client.commands.get(commandName);
 
-        if(!command) return client.utils.Embed(interaction, Colors.Red, `There is no command with the name \`${commandName}\``);
+        if (!command) {
+            return client.utils.Embed(interaction, Colors.Red, 'Error', `There is no command with the name \`${commandName}\`.`);
+        }
 
+        const commandPath = findCommandPath(command.category, commandName);
 
-        const commandPath = path.join(__dirname, '..', '..', 'commands');
-        const url = await crawlDirectory(commandPath, commandName);
-        
-        if(!url) return client.utils.Embed(interaction, Colors.Red, `Failed to find command file for \`${commandName}\``);
+        if (!commandPath) {
+            return client.utils.Embed(interaction, Colors.Red, 'Error', `Could not find the file for command \`${commandName}\`.`);
+        }
 
-        delete require.cache[require.resolve(url)];
+        delete require.cache[require.resolve(commandPath)];
 
         try {
-            const newCommand = require(url);
+            const newCommand = require(commandPath);
             client.commands.set(newCommand.data.name, newCommand);
-
-            client.utils.Embed(interaction, Colors.Green, `Successfully reloaded \`${commandName}\``);
+            client.utils.Embed(interaction, Colors.Green, 'Success', `Successfully reloaded command \`${newCommand.data.name}\`.`);
         } catch (error) {
-            console.error(error);
-            client.utils.Embed(interaction, Colors.Red, `Failed to reload \`${commandName}\``);
+            console.error(`Error reloading command ${commandName}:`, error);
+            client.utils.Embed(interaction, Colors.Red, 'Error', `There was an error while reloading command \`${commandName}\`:\n\`${error.message}\``);
         }
-        
     }
 };
 
-
-async function crawlDirectory(currentDirectory, targetCommandName) {
-    const allDirectories = await fsPromises.readdir(currentDirectory, { withFileTypes: true });
-
-    for (const directory of allDirectories) {
-        const newPath = path.join(currentDirectory, directory.name);
-
-        if (directory.isDirectory()) {
-            const result = await crawlDirectory(newPath, targetCommandName);
-            if (result) return result;
+function findCommandPath(category, commandName) {
+    const categoryPath = path.join(__dirname, '..', '..', 'commands', category);
+    try {
+        const files = fs.readdirSync(categoryPath);
+        const commandFile = files.find(file => file.toLowerCase().startsWith(commandName.toLowerCase()) && file.endsWith('.js'));
+        if (commandFile) {
+            return path.join(categoryPath, commandFile);
         }
-
-        if (!directory.name.endsWith('.js')) continue;
-
-        const command = require(newPath);
-        if(!command) continue;
-
-        if ('data' in command && 'execute' in command) {
-            if (command.data.name === targetCommandName) {
-                return newPath;
-            }
-        }
+    } catch (error) {
+        // This can happen if the category directory doesn't exist, which is fine.
+        return null;
     }
-
-    return false;
+    return null;
 }

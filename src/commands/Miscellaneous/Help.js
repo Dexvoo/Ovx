@@ -51,7 +51,7 @@ module.exports = {
             const categories = [...new Set(commands.map(command => command.category).filter(category => category !== 'Developer'))];
 
             const fields = categories.map(category => {
-                const commandList = commands.filter(command => command.category === category).map(command => `${command.commandTags.join('\n')}`).join('\n');
+                const commandList = commands.filter(command => command.category === category).map(command => `${command.commandTags.join('\n')}`).join('\n').substring(0, 1024);
                 return { name: category, value: commandList || 'No commands found', inline: false };
             });
 
