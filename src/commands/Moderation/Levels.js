@@ -1,7 +1,6 @@
-const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, EmbedBuilder, AutocompleteInteraction, GuildMember, Client, User, MessageFlags, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder, ChatInputCommandInteraction, PermissionsBitField } = require('discord.js');
-require('dotenv').config();
-const ms = require('ms');
-const { TicketConfig, TicketInstance } = require('../../models/GuildSetups');
+const { SlashCommandBuilder, Colors, InteractionContextType, ApplicationIntegrationType, PermissionFlagsBits, ChannelType } = require('discord.js');
+
+const LevelCache = require('../../cache/Levels');
 
 const handlers = {
     setup: require('../../handlers/Levels/Setup'),
@@ -19,198 +18,117 @@ const handlers = {
     },
 };
 
-const LevelCache = require('../../cache/Levels');
-
 module.exports = {
     cooldown: 0,
-    category: 'Moderation',
-    userpermissions: [],
-    botpermissions: [],
+    category: 'Levels',
     data: new SlashCommandBuilder()
         .setName('level')
-        .setDescription('Get/enable level stats of a user/leaderboard')
-        .setIntegrationTypes( [ApplicationIntegrationType.GuildInstall] )
-        .setContexts( InteractionContextType.Guild )
-
+        .setDescription('Leveling system commands for ranks, leaderboards, and settings.')
+        .setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
+        .setContexts([InteractionContextType.Guild])
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .addSubcommand(subcommand => subcommand
             .setName('rank')
-            .setDescription('Shows your current level and XP in the guild')
+            .setDescription('Shows your or another user\'s current level and XP.')
             .addUserOption(option => option
                 .setName('user')
-                .setDescription('The user you want to check')
+                .setDescription('The user you want to check.')
                 .setRequired(false)
             )
         )
-
-        .addSubcommand((subcommand) => subcommand
-			.setName('leaderboard')
-			.setDescription('Displays the most active users in a leaderboard')
-			.addStringOption((option) => option
-			    .setName('type')
-			    .setDescription('The type of leaderboard to show')
-			    .setRequired(true)
-			    .addChoices(
+        .addSubcommand(subcommand => subcommand
+            .setName('leaderboard')
+            .setDescription('Displays the server leaderboard.')
+            .addStringOption(option => option
+                .setName('type')
+                .setDescription('The type of leaderboard to show.')
+                .setRequired(true)
+                .addChoices(
                     { name: 'Levels', value: 'level' },
-			    	{ name: 'Messages', value: 'messages' },
-			    	{ name: 'Voice', value: 'voice' }
-			    )
-			)
-		)
-        
+                    { name: 'Messages', value: 'messages' },
+                    { name: 'Voice', value: 'voice' }
+                )
+            )
+        )
         .addSubcommand(subcommand => subcommand
             .setName('setup')
-            .setDescription('Setup level system for your server.')
+            .setDescription('Enable or disable the leveling system for your server.')
             .addBooleanOption(option => option
                 .setName('enabled')
-                .setDescription('Enable or disable level system.')
+                .setDescription('Enable or disable the level system.')
                 .setRequired(true)
             )
             .addChannelOption(option => option
-                .setName('setup-channel')
+                .setName('levelup-channel')
                 .setDescription('Channel to send level-up messages.')
                 .addChannelTypes(ChannelType.GuildText)
                 .setRequired(false)
             )
         )
-
         .addSubcommandGroup(group => group
             .setName('settings')
-            .setDescription('Edit level system settings.')
-    
-            // XP Multiplier
+            .setDescription('Configure leveling system settings.')
             .addSubcommand(subcommand => subcommand
                 .setName('xp-multiplier')
-                .setDescription('Set the XP multiplier for this server.')
-                .addNumberOption(option => option
-                    .setName('multiplier')
-                    .setDescription('Multiplier value (e.g. 1 = normal, 2 = double XP) (5 = Max)')
-                    .setMinValue(0)
-                    .setMaxValue(5)
-                    .setRequired(true)
-                )
+                .setDescription('Set the server\'s XP multiplier (Max: 5).')
+                .addNumberOption(option => option.setName('multiplier').setDescription('Value from 0 to 5 (e.g., 2 for double XP).').setMinValue(0).setMaxValue(5).setRequired(true))
             )
-        
-            // Message Cooldown
             .addSubcommand(subcommand => subcommand
                 .setName('message-cooldown')
-                .setDescription('Set cooldown between XP gains in seconds.')
-                .addIntegerOption(option => option
-                    .setName('cooldown')
-                    .setDescription('Cooldown in seconds (e.g. 60 = 1 minute).')
-                    .setMinValue(20)
-                    .setMaxValue(3600)
-                    .setRequired(true)
-                )
+                .setDescription('Set the cooldown between XP gains in seconds.')
+                .addIntegerOption(option => option.setName('seconds').setDescription('Cooldown in seconds (20-3600).').setMinValue(20).setMaxValue(3600).setRequired(true))
             )
-        
-            // Max Level
             .addSubcommand(subcommand => subcommand
                 .setName('max-level')
                 .setDescription('Set the maximum level users can reach.')
-                .addIntegerOption(option => option
-                    .setName('level')
-                    .setDescription('Maximum level (e.g. 100).')
-                    .setMinValue(1)
-                    .setMaxValue(10000)
-                    .setRequired(true)
-                )
+                .addIntegerOption(option => option.setName('level').setDescription('Maximum level (1-10000).').setMinValue(1).setMaxValue(10000).setRequired(true))
             )
-        
-            // Level-Up Message
             .addSubcommand(subcommand => subcommand
                 .setName('levelup-message')
                 .setDescription('Set the custom level-up message.')
-                .addStringOption(option => option
-                    .setName('message')
-                    .setDescription('Custom message. Use {user} and {level} as placeholders.')
-                    .setMinLength(1)
-                    .setMaxLength(500)
-                    .setRequired(true)
-                )
+                .addStringOption(option => option.setName('message').setDescription('Use {user} and {level} as placeholders.').setMinLength(1).setMaxLength(500).setRequired(true))
             )
-        
-            // Remove Past Rewards
             .addSubcommand(subcommand => subcommand
                 .setName('remove-past-rewards')
-                .setDescription('Set whether to remove past level reward roles.')
-                .addBooleanOption(option => option
-                    .setName('enabled')
-                    .setDescription('True to remove old roles, (default: false) false to keep them.')
-                    .setRequired(true)
-                )
+                .setDescription('Set whether to remove a user\'s previous level-up role.')
+                .addBooleanOption(option => option.setName('enabled').setDescription('True to remove old roles, false to keep them.').setRequired(true))
             )
-
-            // Level Reward - Add
             .addSubcommand(subcommand => subcommand
                 .setName('add-reward')
-                .setDescription('Add a level reward.')
-                .addIntegerOption(option => option
-                    .setName('level')
-                    .setDescription('The level users must reach to get the role.')
-                    .setMinValue(1)
-                    .setMaxValue(10000)
-                    .setRequired(true)
-                )
-                .addRoleOption(option => option
-                    .setName('role')
-                    .setDescription('The role to give at that level.')
-                    .setRequired(true)
-                )
+                .setDescription('Add a role reward for reaching a certain level.')
+                .addIntegerOption(option => option.setName('level').setDescription('The level required to get the role.').setMinValue(1).setMaxValue(10000).setRequired(true))
+                .addRoleOption(option => option.setName('role').setDescription('The role to give at that level.').setRequired(true))
             )
-        
-            // Level Reward - Remove
             .addSubcommand(subcommand => subcommand
                 .setName('remove-reward')
                 .setDescription('Remove a level reward.')
-                .addIntegerOption(option => option
-                    .setName('level')
-                    .setDescription('The level you want to remove the reward for.')
-                    .setMinValue(1)
-                    .setMaxValue(10000)
-                    .setRequired(false)
-                )
-                .addRoleOption(option => option
-                    .setName('role')
-                    .setDescription('The role you want to remove the reward for.')
-                    .setRequired(false)
-                )
+                .addIntegerOption(option => option.setName('level').setDescription('The level whose reward you want to remove.').setMinValue(1).setMaxValue(10000).setRequired(true))
             )
-        
-            // Level Reward - List
             .addSubcommand(subcommand => subcommand
                 .setName('view-rewards')
-                .setDescription('List all level reward roles.')
+                .setDescription('List all configured level reward roles.')
             )
         ),
+
     /**
-     * @param {import('../../types').CommandInputUtils } interaction
-     */
+    * @param {import('../../types').CommandInputUtils} interaction
+    */
+        
     async execute(interaction) {
-        const subcommandGroup = interaction.options.getSubcommandGroup(false); // false = not required
+        const subcommandGroup = interaction.options.getSubcommandGroup(false);
         const subcommand = interaction.options.getSubcommand();
-        let handler;
-        if (subcommandGroup) {
-            handler = handlers[subcommandGroup]?.[subcommand];
-        } else {
-            handler = handlers[subcommand];
-        }
+        const handler = subcommandGroup ? handlers[subcommandGroup]?.[subcommand] : handlers[subcommand];
 
         if (!handler) {
-            return interaction.client.utils.Embed(interaction, Colors.Red, 'Level | Not Found', `Handler for \`${subcommandGroup ? `${subcommandGroup} ${subcommand}` : subcommand}\` not found.`);
+            return interaction.client.utils.Embed(interaction, Colors.Red, 'Error', `Command handler not found.`);
         }
 
         try {
-            const { guild } = interaction;
-            const guildConfig = await LevelCache.get(guild.id);
-
-            const context = {
-                guildConfig,
-            };
-
-            await handler(interaction, context);
+            const LevelConfigData = await LevelCache.get(interaction.guildId);
+            await handler(interaction, { LevelConfigData });
         } catch (error) {
-            console.error(error);
-            interaction.client.utils.Embed(interaction, Colors.Red, 'Level | Error', `Error: \`${error.message}\``);
+            console.error(`Error executing level command '${subcommand}':`, error);
+            interaction.client.utils.Embed(interaction, Colors.Red, 'Error', `An unexpected error occurred: \`${error.message}\``);
         }
     }
 };

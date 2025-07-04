@@ -24,8 +24,6 @@ module.exports = {
         const { client } = interaction;
         const focusedValue = interaction.options.getFocused();
         const choices = client.commands.map(command => command.data.name);
-
-        console.log(`Autocomplete for command reload: focusedValue = ${focusedValue}, choices = ${choices}`);
         const filtered = choices.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase())).slice(0, 25);
         
         await interaction.respond(

@@ -11,7 +11,7 @@ module.exports = async function RewardsListSetting(interaction, context) {
     const { client, options, guildId, memberPermissions, guild } = interaction;
     const { LevelConfigData } = context
     
-    if(!LevelConfigData.enabled) return client.utils.Embed(interaction, Colors.Red, 'Failed Settings', 'Levels are currently not enabled on this server.\nAsk a server admin to use `/level setup`');
+    if(!LevelConfigData?.enabled) return client.utils.Embed(interaction, Colors.Red, 'Failed Settings', 'Levels are currently not enabled on this server.\nAsk a server admin to use `/level setup`');
     if(!memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'User Missing Permissions | \`ManageGuild\`');
 
     if(LevelConfigData.rewards?.length === 0) return client.utils.Embed(interaction, Colors.Red, 'Failed Settings', 'There is currently no level rewards setup');

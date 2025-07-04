@@ -1,12 +1,17 @@
+// Core Dependencies
 const { GatewayIntentBits, Collection } = require('discord.js');
-const OvxClient = require('./structures/OvxClient')
 const path = require('node:path');
-const fsPromises = require('node:fs').promises;
+const fs = require('node:fs/promises');
 require('dotenv').config();
+const OvxClient = require('./structures/OvxClient');
 const { DeveloperMode, PublicToken, DevToken } = process.env;
+if (!PublicToken || !DevToken) {
+    console.error('[ERROR] Missing required environment variables: PublicToken or DevToken.');
+    process.exit(1); // Exit with an error code
+}
+const TOKEN = DeveloperMode === 'true' ? DevToken : PublicToken;
 
-
-// Creating Client
+// --- Client Initialization ---
 const client = new OvxClient({
     intents: [
         GatewayIntentBits.Guilds, // Guild create/update/delete events (roles, channels, threads)
@@ -28,79 +33,101 @@ const client = new OvxClient({
 		// GatewayIntentBits.GuildScheduledEvents, // Scheduled event create/update/delete events
 		// GatewayIntentBits.AutoModerationConfiguration, // Auto-moderation config update events
 		// GatewayIntentBits.AutoModerationExecution, // Auto-moderation execution events
-    ]
+    ],
 });
 
 client.commands = new Collection();
 
-// Initialise bot with commands/models/events
-const initialise = async () => {
-    
-    const directories = ['commands', 'models', 'events'];
+const fileHandlers = {
+    commands: (fileModule, filePath) => {
+        if ('data' in fileModule && 'execute' in fileModule) {
+            client.commands.set(fileModule.data.name, fileModule);
+            client.utils.LogData(`${fileModule.data.name}`, fileModule.data.description, 'info');
+        } else {
+            client.utils.LogData(`Invalid Command: ${path.basename(filePath)}`, 'Missing "data" or "execute" property.', 'error');
+        }
+    },
+    events: (fileModule, filePath) => {
+        if ('name' in fileModule && 'execute' in fileModule) {
+            const eventName = fileModule.name;
+            const listener = (...args) => fileModule.execute(...args);
+            
+            if (fileModule.once) {
+                client.once(eventName, listener);
+            } else {
+                client.on(eventName, listener);
+            }
+            client.utils.LogData(`${eventName}`, fileModule.nickname || 'No nickname provided.', 'info');
+        } else {
+            client.utils.LogData(`Invalid Event: ${path.basename(filePath)}`, 'Missing "name" or "execute" property.', 'error');
+        }
+    },
+    models: (fileModule, filePath) => {
+        // Mongoose models typically register themselves on require().
+        // This simplified handler just logs the successful loading.
+        const modelName = path.basename(filePath, '.js');
+        client.utils.LogData('Model Loaded', modelName, 'info');
+    },
+};
 
-    for (let i = 0; i < directories.length; i++) {
-        client.utils.Log(`Loading ${directories[i]}`);
-		const currentDirectory = path.join(__dirname, directories[i]);
-		await crawlDirectory(currentDirectory, directories[i]);
+/**
+ * Recursively reads directories to find and load handler files.
+ * @param {string} directory - The directory to crawl.
+ * @param {string} handlerType - The type of file to handle ('commands', 'events', etc.).
+ */
+async function loadDirectory(directory, handlerType) {
+    const handler = fileHandlers[handlerType];
+    if (!handler) {
+        client.utils.Log(`[WARN] No handler found for type: ${handlerType}`, '','warn');
+        return;
     }
+    
+    try {
+        const filesAndFolders = await fs.readdir(directory, { withFileTypes: true });
 
-	client.utils.Log('Completed Initialisation');
-};
+        for (const item of filesAndFolders) {
+            const fullPath = path.join(directory, item.name);
+            if (item.isDirectory()) {
+                await loadDirectory(fullPath, handlerType);
+            } else if (item.isFile() && item.name.endsWith('.js')) {
+                try {
+                    const fileModule = require(fullPath);
+                    handler(fileModule, fullPath);
+                } catch (error) {
+                    console.error(`[ERROR] Failed to load file ${fullPath}:`, error);
+                }
+            }
+        }
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            client.utils.Log(`Directory not found, skipping: ${directory}`, '', 'warn');
+        } else {
+            console.error(`[FATAL] Could not read directory ${directory}:`, error);
+        }
+    }
+}
 
-initialise();
+const initialise = async () => {
+    client.utils.Log('--- Initialising Bot ---');
+    
+    const directoriesToLoad = ['commands', 'models', 'events'];
 
-
-async function crawlDirectory(currentDirectory, type) {
-	const allDirectories = await fsPromises.readdir(currentDirectory, { withFileTypes: true });
-
-	for(const directory of allDirectories) {
-		const newPath = path.join(currentDirectory, directory.name);
-
-		if(directory.isDirectory()) await crawlDirectory(newPath, type);
-		
-		if(!directory.name.endsWith('.js')) continue;
-
-		switch (type) {
-			case 'commands':
-				const command = await require(newPath);
-				if('data' in command && 'execute' in command) {
-					client.utils.LogData(command.data.name, command.data.description, 'info');
-					client.commands.set(command.data.name, command);
-				} else {
-					client.utils.LogData(directory.name, ' ', 'error');
-				};
-				break;
-			case 'models':
-				const model = await require(newPath);
-				if(model.length > 0 ) {
-					client.utils.LogData('Models', model[0], 'error');
-				} else {
-					for (const key in model) {
-						if (model.hasOwnProperty(key)) {
-							client.utils.LogData('Models', key, 'info');
-						}
-					}
-				};
-				break
-			case 'events':
-				const event = await require(newPath);
-				if('name' in event && 'execute' in event) {
-					if(event.once) {
-						client.once(event.name, (...args) => event.execute(...args));
-					} else {
-						client.on(event.name, (...args) => event.execute(...args));
-					}
-					client.utils.LogData(event.name, event.nickname, 'info');
-				} else {
-					client.utils.LogData(directory.name, ' ', 'error');
-				}
-				break
-		
-			default:
-				break;
-		}
-	}
+    for (const dirType of directoriesToLoad) {
+        client.utils.Log(`Loading ${dirType}...`);
+        const dirPath = path.join(__dirname, dirType);
+        await loadDirectory(dirPath, dirType);
+    }
+    
+    client.utils.Log('--- Initialisation Complete ---');
 };
 
 
-client.login(DeveloperMode === 'true' ? DevToken : PublicToken);
+(async () => {
+    try {
+        await initialise();
+        await client.login(TOKEN);
+    } catch (error) {
+        console.error('[FATAL] An error occurred during bot startup:', error);
+        process.exit(1);
+    }
+})();

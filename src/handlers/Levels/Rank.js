@@ -5,14 +5,14 @@ const Cache_XP = require('../../cache/XP');
 
 /**
  * @param {import('../../types').CommandInputUtils} interaction
- * @param {{ guildConfig: LevelConfigType }} context
+ * @param {{ LevelConfigData: LevelConfigType }} context
  */
 module.exports = async function LevelsRank(interaction, context) {
     const { client, options, guildId, memberPermissions, user, guild } = interaction;
-    const { guildConfig } = context;
+    const { LevelConfigData } = context;
 
-    if(!guildConfig) return client.utils.Embed(interaction, Colors.Red, 'Error Levels', `No configuration found for guild \`${guild.name}\``);
-    if(!guildConfig.enabled) return client.utils.Embed(interaction, Colors.Red, 'Error Levels', `This guild hasn't configured levels for this server, advise an admin to use \`/levels setup\``);
+    if(!LevelConfigData) return client.utils.Embed(interaction, Colors.Red, 'Error Levels', `No configuration found for guild \`${guild.name}\``);
+    if(!LevelConfigData.enabled) return client.utils.Embed(interaction, Colors.Red, 'Error Levels', `This guild hasn't configured levels for this server, advise an admin to use \`/levels setup\``);
     
     const tUser = options.getUser('user') || user;
 

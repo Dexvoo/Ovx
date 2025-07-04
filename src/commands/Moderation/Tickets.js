@@ -110,13 +110,10 @@ module.exports = {
 
         const TicketData = await TicketInstance.findOne({ channelId: channel.id, guildId: guild.id });
         const TicketConfigData = await TicketCache.get(guild.id);
-        TicketConfigData.adminRoleId
         const isAdmin = member.roles.cache.has(TicketConfigData?.adminRoleId) || member.permissions.has(PermissionFlagsBits.Administrator);
         const isMod = member.roles.cache.has(TicketConfigData?.supportRoleId) || member.permissions.has(PermissionFlagsBits.ManageMessages);
         const ticketOwner = TicketData ? await guild.members.fetch(TicketData.memberId).catch(() => null) : null;
-
         const context = { TicketData, TicketConfigData, isAdmin, isMod, ticketOwner };
-
         const handler = handlers[`ovx-ticket-${subcommand}`];
 
         try {
@@ -124,7 +121,6 @@ module.exports = {
         } catch (error) {
             console.error(error);
             interaction.client.utils.Embed(interaction, Colors.Red, 'Tickets | Error', `Error: \`${error.message}\``);
-            
         }
 
     }
