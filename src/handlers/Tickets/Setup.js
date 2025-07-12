@@ -1,4 +1,4 @@
-const { Colors, GuildMember, ButtonStyle, ButtonBuilder, ActionRowBuilder, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
+const { Colors, GuildMember, ButtonStyle, ButtonBuilder, ActionRowBuilder, PermissionFlagsBits, PermissionsBitField, EmbedBuilder } = require('discord.js');
 const { TicketInstance, TicketConfig } = require('../../models/GuildSetups');
 const TicketCache = require('../../cache/Tickets');
 
@@ -50,7 +50,7 @@ module.exports = async function TicketSetup(interaction, context) {
     const [hasCategoryPermissions, missingCategoryPermissions] = client.utils.PermCheck(ticketCategory, botPermissionsInCategory, client);
     if(!hasCategoryPermissions) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`);
 
-    if(supportRole.position >= botMember.roles.highest.position || adminRole.position >= botMember.roles.highest.position) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Support roles are higher than the bot\'s role.`);
+    // if(supportRole.position >= botMember.roles.highest.position || adminRole.position >= botMember.roles.highest.position) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Support roles are higher than the bot\'s role.`);
 
     const ticketsEmbedSuccess = new EmbedBuilder()
         .setColor(Colors.Blurple)

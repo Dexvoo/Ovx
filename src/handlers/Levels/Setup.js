@@ -10,7 +10,7 @@ module.exports = async function LevelsSetup(interaction) {
     const { client, options, guildId, memberPermissions } = interaction;
     
     const enabled = options.getBoolean('enabled');
-    const channel = options.getChannel('setup-channel') || null;
+    const channel = options.getChannel('levelup-channel') || null;
 
     if(!memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'User Missing Permissions | \`ManageGuild\`');
     
