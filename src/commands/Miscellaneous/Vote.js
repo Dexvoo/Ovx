@@ -28,7 +28,7 @@ module.exports = {
 
         const inviteEmbed = new EmbedBuilder()
             .setColor(Colors.Blurple)
-            .setDescription('10% more level XP for 12 hours!');
+            .setDescription('**Rewards**: \n10% Extra XP Gain\n\nClick the button below to vote for the bot and support its development!');
 
         await interaction.reply({ embeds: [inviteEmbed], components: [buttons] });
     }

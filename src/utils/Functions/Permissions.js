@@ -1,5 +1,9 @@
 const { ChatInputCommandInteraction, GuildMember, Client, GuildChannel, ThreadChannel, PermissionFlagsBits, PermissionsBitField } = require("discord.js");
 const { PublicClientID, TopggAPIKey, DeveloperIDs } = process.env
+const VoteCache = require('../../cache/Votes');
+
+
+const VOTE_COOLDOWN_TIME = 12 * 60 * 60 * 1000;
 
 /**
  * @param {ChatInputCommandInteraction | GuildChannel | ThreadChannel} interactionChannel - Interaction or Channel
@@ -43,10 +47,19 @@ function PermCheck(interactionChannel, permissions, member) {
  * @returns {Promise<Boolean>} Boolean if voted or not
  */
 async function HasVotedTGG(userId) {
-    const hasVoted = await fetch(`https://top.gg/api/bots/${PublicClientID}/check?userId=${userId}`, {
-        headers: {
-            'Authorization': TopggAPIKey
-        }}).then(res => res.json()).then(json => json.voted);
+    const hasVoted = await VoteCache.get(userId)
+        .then((data) => {
+            if (!data || !data.votes || data.votes <= 0) {
+                return false;
+            }
+            
+            const lastVote = data.updatedAt ? new Date(data.updatedAt) : null;
+            const currentTime = new Date();
+            if (lastVote && (currentTime - lastVote) > VOTE_COOLDOWN_TIME) {
+                return false; // User has voted within the last 12 hours
+            }
+            return true;
+        })
     return hasVoted;
 }
 

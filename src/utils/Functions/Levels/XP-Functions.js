@@ -1,5 +1,5 @@
 const { Client } = require('discord.js');
-const { UserLevels } = require('../../models/UserSetups');
+const { UserLevels } = require('../../../models/UserSetups');
 
 
 

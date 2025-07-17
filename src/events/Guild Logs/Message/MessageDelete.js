@@ -39,10 +39,9 @@ module.exports = {
         
         const attachments = message.attachments.map(attachment => attachment.url).join('\n');
         const description = [
-            `-# ${content ? content.substring(0, 2000) : 'No content'}\n`,
+            `-# ${content ? content.substring(0, 2000)  : 'No content'}\n`,
         ];
 
-        if(!content) description.shift();
         if(attachments) description.push(`### Attachments:\n${attachments}`);
 
         const LogEmbed = new EmbedBuilder()

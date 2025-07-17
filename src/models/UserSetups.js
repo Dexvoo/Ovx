@@ -48,8 +48,24 @@ const UserLevelsSchema = new Schema({
 
 
 
+/**
+ * @typedef {Object} VoteType
+ * @property {string} userId - The ID of the user who voted.
+ * @property {number} votes - The number of votes the user has cast.
+ * @property {Date} createdAt - The timestamp when this document was created.
+ * @property {Date} updatedAt - The timestamp when this document was last updated.
+ */
+// Vote Schema
+const VoteSchema = new Schema({
+    userId: { type: String, required: true },
+    votes: { type: Number, default: 0 },
+}, { timestamps: true });
+
 
 module.exports = {
     UserLevels: model('User-Levels', UserLevelsSchema),
-    UserLevelsType: UserLevelsSchema
+    UserLevelsType: UserLevelsSchema,
+
+    UserVotes: model('User-Votes', VoteSchema),
+    VoteType: VoteSchema,
 };

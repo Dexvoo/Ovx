@@ -1,4 +1,4 @@
-const { Events, Client, ActivityType } = require('discord.js');
+const { Events, Client, PresenceUpdateStatus } = require('discord.js');
 const { DevGuildID } = process.env;
 
 module.exports = {
@@ -11,8 +11,6 @@ module.exports = {
 	 */
 
 	async execute(client) {
-		client.user.setActivity(`Ovx! #${client.shard?.ids?.[0]}`, {
-			type: ActivityType.Watching,
-		});
+		client.user.setPresence({ activities: [{ name: `Ovx! #${client.shard?.ids?.[0]}` }], status: PresenceUpdateStatus.Idle });
 	}
 };

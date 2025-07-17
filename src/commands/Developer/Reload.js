@@ -31,6 +31,9 @@ module.exports = {
         );
     },
 
+    /**
+    * @param {import('../../types').CommandInputUtils} interaction
+    */
     async execute(interaction) {
         const { options, client, user } = interaction;
 
@@ -38,18 +41,12 @@ module.exports = {
             return client.utils.Embed(interaction, Colors.Red, 'Command Failed', 'User Missing Permission: `Developer`');
         }
 
-        const commandName = options.getString('command');
+        const commandName = options.getString('command').toLowerCase();
         const command = client.commands.get(commandName);
-
-        if (!command) {
-            return client.utils.Embed(interaction, Colors.Red, 'Error', `There is no command with the name \`${commandName}\`.`);
-        }
+        if (!command) return client.utils.Embed(interaction, Colors.Red, 'Error', `There is no command with the name \`${commandName}\`.`);
 
         const commandPath = findCommandPath(command.category, commandName);
-
-        if (!commandPath) {
-            return client.utils.Embed(interaction, Colors.Red, 'Error', `Could not find the file for command \`${commandName}\`.`);
-        }
+        if (!commandPath) return client.utils.Embed(interaction, Colors.Red, 'Error', `Could not find the file for command \`${commandName}\`.`);
 
         delete require.cache[require.resolve(commandPath)];
 
