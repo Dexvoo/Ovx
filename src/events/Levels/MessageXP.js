@@ -20,6 +20,8 @@ module.exports = {
 
         if(author.bot || !guild || channel.type !== ChannelType.GuildText) return;
         if(cooldowns.has('Message', member.id)) return client.utils.LogData('Message Cooldown', `Guild: ${guild.name} | User: @${member.user.username} | Ends: ${(cooldowns.getRemaining('Message', member.id).toLocaleString())} `, 'default');
+        if(content.length <= 4) return;
+
         
         const guildConfigData = await LevelsConfigCache.get(guild.id);
         if(!guildConfigData.enabled || guildConfigData.channelId === null) return client.utils.LogData('Message XP', `Guild: ${guild.name} | Disabled`, 'warning');

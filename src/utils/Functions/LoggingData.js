@@ -1,7 +1,7 @@
 const { EmbedBuilder, MessageFlags, Interaction, ChatInputCommandInteraction, GuildBasedChannel, TextChannel, Message, Client, TextDisplayBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, SectionBuilder, Colors, MessageMentions } = require('discord.js')
 const Global_Cache = require('../../cache/Global')
 require('dotenv').config()
-const { CommandCID, JoinGuildCID, LeaveGuildCID, UserLevelCID, DevGuildID } = process.env
+const { CommandCID, JoinGuildCID, LeaveGuildCID, UserLevelCID, DevGuildID, VoteCID } = process.env
 /**
  * @param {string} data - String to be logged to the console
  */
@@ -185,7 +185,7 @@ const SendEmbed = async (interaction, colour, title, description, fields = [], e
 
 /**
  * Sends an embed log to the specified log channel based on the type of log.
- * @param {'command' | 'joinGuild' | 'leaveGuild' | 'userLevel' } type - Discord timestamp format 
+ * @param {'command' | 'joinGuild' | 'leaveGuild' | 'userLevel' | 'vote' } type - Discord timestamp format 
  * @param {Client} client - discord client
  * @param {EmbedBuilder} embed - The embed to send
 */
@@ -200,6 +200,7 @@ async function SendEmbedLog(type, client, embed) {
         'joinGuild': JoinGuildCID,
         'leaveGuild': LeaveGuildCID,
         'userLevel': UserLevelCID,
+        'vote': VoteCID,
     };
 
     const currentLogChannel = typesOfLogs[type];

@@ -49,8 +49,7 @@ module.exports = async function LogsSetup(interaction) {
 
     try {
         if (type === 'all') {
-            const allTypes = Object.keys(LogsConfigType).filter(key => key !== 'guildId');
-            
+            const allTypes = Object.keys(LogsConfigType.obj).filter(key => key !== 'guildId');
             const updatePromises = allTypes.map(logType => 
                 Cache_Logs.setType(guildId, logType, settings)
             );

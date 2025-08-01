@@ -1,5 +1,5 @@
 const NodeCache = require('node-cache');
-const { VoteType, Vote } = require('../models/UserSetups'); // Adjust path to your Vote model file
+const { VoteType, UserVotes } = require('../models/UserSetups'); // Adjust path to your Vote model file
 const { LogData } = require('../utils/Functions/ConsoleLogs'); // Adjust path to your logging utility
 
 class VoteCache {
@@ -20,11 +20,11 @@ class VoteCache {
             return this.cache.get(userId);
         }
 
-        let voteData = await Vote.findOne({ userId }).lean();
+        let voteData = await UserVotes.findOne({ userId }).lean();
 
         if (!voteData) {
             LogData(`VoteCache`, `MISS & INIT: ${userId}`, 'info');
-            voteData = (await Vote.create({ userId })).toObject();
+            voteData = (await UserVotes.create({ userId })).toObject();
         } else {
             LogData(`VoteCache`, `MISS & FOUND: ${userId}`, 'info');
         }
@@ -40,7 +40,7 @@ class VoteCache {
 	 * @param {Partial<VoteType>} data - The data to set.
 	 */
 	async set(userId, data) {
-		await Vote.updateOne({ userId }, { $set: data }, { upsert: true });
+		await UserVotes.updateOne({ userId }, { $set: data }, { upsert: true });
 		this.cache.del(userId); // Invalidate cache to ensure next `get` fetches fresh data
         LogData(`VoteCache`, `SET & INVALIDATE: ${userId}`, 'info');
 	}
@@ -53,7 +53,7 @@ class VoteCache {
 	 * @param {number} [amount=1] - The number of votes to add.
 	 */
     async incrementVotes(userId, amount = 1) {
-        await Vote.updateOne({ userId }, { $inc: { votes: amount } }, { upsert: true });
+        await UserVotes.updateOne({ userId }, { $inc: { votes: amount } }, { upsert: true });
         this.cache.del(userId); // Invalidate cache
         LogData(`VoteCache`, `INCREMENT & INVALIDATE: ${userId}`, 'info');
     }

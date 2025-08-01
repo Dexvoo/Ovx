@@ -1,7 +1,7 @@
 const { EmbedBuilder, MessageFlags, Interaction, ChatInputCommandInteraction, GuildBasedChannel, TextChannel, Message, Client, TextDisplayBuilder, ContainerBuilder, SeparatorBuilder, Colors, BaseInteraction, RESTJSONErrorCodes, DiscordAPIError, GuildMember, User } = require('discord.js')
 const Global_Cache = require('../../cache/Global')
 require('dotenv').config()
-const { CommandCID, JoinGuildCID, LeaveGuildCID, UserLevelCID, DevGuildID } = process.env
+const { CommandCID, JoinGuildCID, LeaveGuildCID, UserLevelCID, DevGuildID, VoteCID } = process.env
 
 /**
  * A robust utility to create and send an embed.
@@ -128,7 +128,7 @@ const SendEmbed = async (interaction, colour, title, description, fields = [], e
 
 /**
  * Sends an embed log to the specified log channel based on the type of log.
- * @param {'command' | 'joinGuild' | 'leaveGuild' | 'userLevel' } type - types of logs
+ * @param {'command' | 'joinGuild' | 'leaveGuild' | 'userLevel' | 'vote' } type - types of logs
  * @param {Client} client - discord client
  * @param {EmbedBuilder} embed - The embed to send
 */
@@ -143,6 +143,7 @@ async function EmbedDev(type, client, embed) {
         'joinGuild': JoinGuildCID,
         'leaveGuild': LeaveGuildCID,
         'userLevel': UserLevelCID,
+        'vote': VoteCID,
     };
 
     const currentLogChannel = typesOfLogs[type];
@@ -157,7 +158,9 @@ async function EmbedDev(type, client, embed) {
             const channel = guild.channels.cache.get(channelId);
             if (!channel) return;
 
-            await channel.send({ embeds: [embed] });
+            await channel.send({ embeds: [embed] }).then((message) => {
+                return message
+            }).catch(() => { return false })
         }, {
             context: {
                 embed: embed,
