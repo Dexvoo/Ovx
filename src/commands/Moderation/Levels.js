@@ -15,6 +15,7 @@ const handlers = {
         'add-reward': require('../../handlers/Levels/Settings/RewardAdd'),
         'remove-reward': require('../../handlers/Levels/Settings/RewardRemove'),
         'view-rewards': require('../../handlers/Levels/Settings/RewardsList'),
+        'blacklist': require('../../handlers/Levels/Settings/Blacklist'),
     },
 };
 
@@ -107,6 +108,12 @@ module.exports = {
             .addSubcommand(subcommand => subcommand
                 .setName('view-rewards')
                 .setDescription('List all configured level reward roles.')
+            )
+            .addSubcommand(subcommand => subcommand
+                .setName('blacklist')
+                .setDescription('Blacklist roles or channels from gaining XP.')
+                .addRoleOption(option => option.setName('role').setDescription('Role to blacklist from gaining XP.').setRequired(false))
+                .addChannelOption(option => option.setName('channel').setDescription('Channel to blacklist from gaining XP.').addChannelTypes(ChannelType.GuildText).setRequired(false))
             )
         ),
 

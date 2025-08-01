@@ -1,6 +1,8 @@
 const { Colors, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 require('dotenv').config()
 
+const { LogsConfigType } = require('../../models/GuildSetups');
+
 /**
  * @param {import('../../types').CommandInputUtils} interaction
  */
@@ -32,6 +34,15 @@ module.exports = async function LogsSetup(interaction) {
     };
 
     const Cache_Logs = require('../../cache/Logs');
-    Cache_Logs.setType(guildId, type, { enabled, channelId: channel ? channel.id : null });
+    if(type === 'all') {
+        const allTypes = Object.keys(LogsConfigType).filter(key => key !== 'guildId');
+        for (const logType of allTypes) {
+            await Cache_Logs.setType(guildId, logType, { enabled, channelId: channel ? channel.id : null });
+        }
+    } else {
+        await Cache_Logs.setType(guildId, type, { enabled, channelId: channel ? channel.id : null });
+        
+    }
+    
     client.utils.Embed(interaction, Colors.Blurple, 'Logs Setup', `Successfully ${enabled ? 'enabled' : 'disabled'} \`${type}\` logs`);
 };
