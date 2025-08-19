@@ -114,7 +114,7 @@ async function levelUp(member, channel, newLevel, levelConfig) {
 
     await client.utils.EmbedDev('userLevel', client, DevEmbed)
 
-    XPCache.set(guild.id, member.id, { lastLevelUpAt: new Date() });
+    await XPCache.set(guild.id, member.id, { lastLevelUpAt: new Date() });
 
     const levelEmbed = new EmbedBuilder()
         .setColor('Blurple')
