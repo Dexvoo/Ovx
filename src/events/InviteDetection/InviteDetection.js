@@ -20,6 +20,9 @@ module.exports = {
         const botPermissions = channel.permissionsFor(guild.members.me);
         if (!botPermissions || !botPermissions.has(PermissionFlagsBits.ManageMessages)) return client.utils.LogData('Invite Detection', `Missing 'Manage Messages' permission in #${channel.name}`, 'error');
 
+        const userPermissions = channel.permissionsFor(member);
+        if (userPermissions && userPermissions.has(PermissionFlagsBits.ManageMessages)) return;
+
         const inviteMatch = INVITE_REGEX.exec(content);
         if (!inviteMatch) return;
 
