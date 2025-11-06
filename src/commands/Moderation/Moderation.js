@@ -536,8 +536,7 @@ async function NicknameUser(interaction) {
     if(!newNickname) {
         await targetMember.setNickname('', `Changed by @${interaction.user.tag}`).catch(console.error);
 
-        client.utils.Embed(interaction, Colors.Blurple, 'Nickname Successful', `User: ${targetUser}\nOld Nickname: \`${oldNickname}\`\nModerator: @${member.user.username} | (${member})`);
-
+        client.utils.Embed(interaction, Colors.Blurple, 'Nickname Successful', `User: ${targetMember}\nOld Nickname: \`${oldNickname}\`\nModerator: @${member.user.username} | (${member})`);
         const DMEmbed = new EmbedBuilder()
             .setColor(Colors.Blurple)
             .setDescription(`Your nickname has been removed in **${guild.name}**`)
