@@ -6,7 +6,7 @@ const { DevGuildID, LeaveGuildLogCID } = process.env;
 
 
 module.exports = {
-    name: Events.GuildCreate,
+    name: Events.GuildDelete,
     once: false,
     nickname: 'Guild Leave Logs',
 

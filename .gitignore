@@ -1,3 +1,5 @@
 .env
 node_modules
 src/UnusedCommands
+src/Converted
+src/JJFxESN.bat

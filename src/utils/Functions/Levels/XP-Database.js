@@ -7,6 +7,29 @@ const { LevelConfigType} = require('../../../models/GuildSetups');
 
 
 /**
+ * Calculates the highest applicable role multiplier for a member.
+ * @param {import('../../../types.js').MemberUtils} member
+ * @param {LevelConfigType} levelConfig
+ * @returns {number} The highest multiplier, or 1 if none apply.
+ */
+function getHighestRoleMultiplier(member, levelConfig) {
+    if (!levelConfig.roleMultipliers || levelConfig.roleMultipliers.length === 0) {
+        return 1;
+    }
+
+    const applicableMultipliers = levelConfig.roleMultipliers
+        .filter(rm => member.roles.cache.has(rm.roleId))
+        .map(rm => rm.multiplier);
+
+    if (applicableMultipliers.length === 0) {
+        return 1;
+    }
+
+    // Return the highest multiplier if the user has multiple bonus roles
+    return Math.max(...applicableMultipliers);
+}
+
+/**
  * @param {import('../../../types.js').MemberUtils} member
  * @param {import('../../../types.js').ChannelUtils} channel
  * @param {LevelConfigType} levelConfig - Guild Level Config
@@ -18,19 +41,26 @@ async function addUserMessageXP(member, channel, levelConfig) {
 
     const { guild, client } = member;
     const userXPData = await XPCache.get(guild.id, member.id)
-    let randomXP = MessageXP()
+    let randomXP = MessageXP();
     
-    if (await client.utils.HasVotedTGG(member.id)) randomXP = randomXP += (Math.floor(randomXP * 0.1));
-    randomXP = Math.floor(randomXP * levelConfig.xpMultiplier)
-    let totalXP = userXPData.voiceXP + userXPData.dropsXP + userXPData.messageXP 
-    totalXP += randomXP
+    // Apply bonuses
+    if (await client.utils.HasVotedTGG(member.id)) randomXP *= 1.1; // 10% vote bonus
+    const roleMultiplier = getHighestRoleMultiplier(member, levelConfig);
+    randomXP *= roleMultiplier; // Role bonus
+    randomXP *= levelConfig.xpMultiplier; // Global server bonus
+    randomXP = Math.floor(randomXP);
+    
+    let totalXP = userXPData.xp + userXPData.voiceXP + userXPData.dropsXP + userXPData.messageXP;
+    totalXP += randomXP;
 
     const [newLevel, xpLeftover, xpForNextLevel] = LevelForExp(totalXP);
-    XPCache.set(guild.id, member.id, { level: newLevel, xp: xpLeftover, totalMessages: userXPData.totalMessages += 1, messageXP: userXPData.messageXP += randomXP, lastMessageAt: new Date()  }); 
-    client.utils.LogData('Message XP', `Guild: ${guild.id} | User: @${member.user.username} | XP Earned: ${randomXP} | Level: ${newLevel} | XP: ${xpLeftover} | XPForNext: ${xpForNextLevel}`, 'default')
+    await XPCache.set(guild.id, member.id, { level: newLevel, xp: xpLeftover, totalMessages: userXPData.totalMessages + 1, messageXP: userXPData.messageXP + randomXP, lastMessageAt: new Date()  }); 
+    client.utils.LogData('Message XP', `Guild: ${guild.id} | User: @${member.user.username} | XP Earned: ${randomXP} (Role Multi: x${roleMultiplier}) | Level: ${newLevel}`, 'default')
 
-    for( let i = userXPData.level; i < newLevel; i++) {
-        await levelUp(member, channel, i += 1, levelConfig)
+    if (newLevel > userXPData.level) {
+        for( let i = userXPData.level; i < newLevel; i++) {
+            await levelUp(member, channel, i + 1, levelConfig)
+        }
     }
 };
 
@@ -51,18 +81,26 @@ async function addUserVoiceXP(member, channel, levelConfig, timeSpent) {
     const { guild, client } = member;
     const userXPData = await XPCache.get(guild.id, member.id)
     
-    let randomXP = VoiceXP(timeSpent)
-    if (await client.utils.HasVotedTGG(member.id)) randomXP += Math.floor(randomXP * 0.1);
-    randomXP = Math.floor(randomXP * levelConfig.xpMultiplier)
-    let totalXP = userXPData.voiceXP + userXPData.dropsXP + userXPData.messageXP 
-    totalXP += randomXP
+    let randomXP = VoiceXP(timeSpent);
+
+    // Apply bonuses
+    if (await client.utils.HasVotedTGG(member.id)) randomXP *= 1.1; // 10% vote bonus
+    const roleMultiplier = getHighestRoleMultiplier(member, levelConfig);
+    randomXP *= roleMultiplier; // Role bonus
+    randomXP *= levelConfig.xpMultiplier; // Global server bonus
+    randomXP = Math.floor(randomXP);
+
+    let totalXP = userXPData.xp + userXPData.voiceXP + userXPData.dropsXP + userXPData.messageXP;
+    totalXP += randomXP;
 
     const [newLevel, xpLeftover, xpForNextLevel] = LevelForExp(totalXP);
-    XPCache.set(guild.id, member.id, { level: newLevel, xp: xpLeftover, totalVoice: userXPData.totalVoice += Math.floor(timeSpent), voiceXP: userXPData.voiceXP += randomXP, lastVoiceAt: new Date() });
-    client.utils.LogData('Voice XP', `Guild: ${guild.id} | User: @${member.user.username} | XP Earned: ${randomXP} | Level: ${newLevel} | XP: ${xpLeftover} | XPForNext: ${xpForNextLevel}`, 'default')
+    await XPCache.set(guild.id, member.id, { level: newLevel, xp: xpLeftover, totalVoice: userXPData.totalVoice + Math.floor(timeSpent), voiceXP: userXPData.voiceXP + randomXP, lastVoiceAt: new Date() });
+    client.utils.LogData('Voice XP', `Guild: ${guild.id} | User: @${member.user.username} | XP Earned: ${randomXP} (Role Multi: x${roleMultiplier}) | Level: ${newLevel}`, 'default')
 
-    for( let i = userXPData.level; i < newLevel; i++) {
-        await levelUp(member, channel, i += 1, levelConfig)
+    if (newLevel > userXPData.level) {
+        for( let i = userXPData.level; i < newLevel; i++) {
+            await levelUp(member, channel, i + 1, levelConfig)
+        }
     }
 };
 

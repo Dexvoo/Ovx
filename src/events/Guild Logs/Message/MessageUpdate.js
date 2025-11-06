@@ -22,6 +22,8 @@ module.exports = {
         const LogsData = await LogsCache.get(guild.id)
         if(!LogsData) return client.utils.LogData('Message Updated', `Guild: ${guild.name} | Disabled`, 'warning');
 
+        if (LogsData.ignoredChannels?.includes(channel.id)) return;
+
         const messageLogData = LogsData.message
         if(!messageLogData || !messageLogData.enabled || messageLogData.channelId === null) return client.utils.LogData('Member Left', `Guild: ${guild.name} | Disabled`, 'warning');
         

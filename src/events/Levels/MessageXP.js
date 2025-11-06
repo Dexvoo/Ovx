@@ -36,10 +36,10 @@ module.exports = {
             return client.utils.LogData('Levels', `Guild: ${guild.name} | Bot missing permissions in level channel, disabling levels`, 'error');
         }
         
-        if(isBlacklisted(member, levelChannel, guildConfigData)) return;
+        if(isBlacklisted(member, channel, guildConfigData)) return;
 
-        addCooldown(member.id, guildConfigData.messageCooldown);
-        await addUserMessageXP(member, levelChannel, guildConfigData)
+        // The cooldown is now applied *after* XP is granted in the addUserMessageXP function.
+        await addUserMessageXP(member, levelChannel, guildConfigData);
 
     }
 };
@@ -61,13 +61,11 @@ function isBlacklisted(member, channel, config) {
     
     if(hasBlacklistedRole) {
         client.utils.LogData('Message XP', `Guild: ${member.guild.name} | User: @${member.user.username} | Has blacklisted role`, 'warning');
-        addCooldown(member.id, config.messageCooldown);
         return true;
     }
 
     if(isBlacklistedChannel) {
         client.utils.LogData('Message XP', `Guild: ${member.guild.name} | Channel: #${channel.name} | Is a blacklisted channel`, 'warning');
-        addCooldown(member.id, config.messageCooldown);
         return true;
     }
 

@@ -16,6 +16,14 @@ const handlers = {
         'remove-reward': require('../../handlers/Levels/Settings/RewardRemove'),
         'view-rewards': require('../../handlers/Levels/Settings/RewardsList'),
         'blacklist': require('../../handlers/Levels/Settings/Blacklist'),
+        'add-multiplier': require('../../handlers/Levels/Settings/RoleMultiplierAdd'),
+        'remove-multiplier': require('../../handlers/Levels/Settings/RoleMultiplierRemove'),
+        'view-multipliers': require('../../handlers/Levels/Settings/RoleMultiplierList'),
+    },
+    admin: {
+        'set': require('../../handlers/Levels/Admin/Set'),
+        'add': require('../../handlers/Levels/Admin/Add'),
+        'remove': require('../../handlers/Levels/Admin/Remove'),
     },
 };
 
@@ -114,6 +122,46 @@ module.exports = {
                 .setDescription('Blacklist roles or channels from gaining XP.')
                 .addRoleOption(option => option.setName('role').setDescription('Role to blacklist from gaining XP.').setRequired(false))
                 .addChannelOption(option => option.setName('channel').setDescription('Channel to blacklist from gaining XP.').addChannelTypes(ChannelType.GuildText).setRequired(false))
+            )
+            .addSubcommand(subcommand => subcommand
+                .setName('add-multiplier')
+                .setDescription('Add an XP multiplier to a role.')
+                .addRoleOption(option => option.setName('role').setDescription('The role to grant bonus XP.').setRequired(true))
+                .addNumberOption(option => option.setName('multiplier').setDescription('The multiplier (e.g., 1.5 for +50% XP).').setMinValue(1.01).setMaxValue(5).setRequired(true))
+            )
+            .addSubcommand(subcommand => subcommand
+                .setName('remove-multiplier')
+                .setDescription('Remove an XP multiplier from a role.')
+                .addRoleOption(option => option.setName('role').setDescription('The role to remove the multiplier from.').setRequired(true))
+            )
+            .addSubcommand(subcommand => subcommand
+                .setName('view-multipliers')
+                .setDescription('View all configured role XP multipliers.')
+            )
+        )
+        .addSubcommandGroup(group => group
+            .setName('admin')
+            .setDescription('Admin commands to manage user levels and XP.')
+            .addSubcommand(subcommand => subcommand
+                .setName('set')
+                .setDescription("Set a user's level or XP to a specific value.")
+                .addUserOption(option => option.setName('user').setDescription('The user to modify.').setRequired(true))
+                .addIntegerOption(option => option.setName('level').setDescription('The exact level to set.').setMinValue(0))
+                .addIntegerOption(option => option.setName('xp').setDescription("The exact amount of XP to set for the user's current level."))
+            )
+            .addSubcommand(subcommand => subcommand
+                .setName('add')
+                .setDescription("Add levels or XP to a user's current total.")
+                .addUserOption(option => option.setName('user').setDescription('The user to modify.').setRequired(true))
+                .addIntegerOption(option => option.setName('levels').setDescription('The number of levels to add.'))
+                .addIntegerOption(option => option.setName('xp').setDescription('The amount of XP to add.'))
+            )
+            .addSubcommand(subcommand => subcommand
+                .setName('remove')
+                .setDescription("Remove levels or XP from a user's current total.")
+                .addUserOption(option => option.setName('user').setDescription('The user to modify.').setRequired(true))
+                .addIntegerOption(option => option.setName('levels').setDescription('The number of levels to remove.'))
+                .addIntegerOption(option => option.setName('xp').setDescription('The amount of XP to remove.'))
             )
         ),
 

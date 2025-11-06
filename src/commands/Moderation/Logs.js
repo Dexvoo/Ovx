@@ -16,7 +16,10 @@ const logChoices = [
 const handlers = {
     'ovx-logs-setup': require('../../handlers/Logs/Setup'),
     'ovx-logs-view': require('../../handlers/Logs/View'),
-    'ovx-logs-test': require('../../handlers/Logs/Test')
+    'ovx-logs-test': require('../../handlers/Logs/Test'),
+    'ovx-logs-add-ignore': require('../../handlers/Logs/IgnoreAdd'),
+    'ovx-logs-remove-ignore': require('../../handlers/Logs/IgnoreRemove'),
+    'ovx-logs-view-ignored': require('../../handlers/Logs/IgnoreView'),
 };
 
 module.exports = {
@@ -74,6 +77,29 @@ module.exports = {
                 .setRequired(true)
                 .addChoices(logChoices)
             )
+        )
+        
+        .addSubcommand(subcommand => subcommand
+            .setName('add-ignore')
+            .setDescription('Add a channel to the log ignore list.')
+            .addChannelOption(option => option
+                .setName('channel')
+                .setDescription('The channel to ignore.')
+                .setRequired(true)
+            )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('remove-ignore')
+            .setDescription('Remove a channel from the log ignore list.')
+            .addChannelOption(option => option
+                .setName('channel')
+                .setDescription('The channel to stop ignoring.')
+                .setRequired(true)
+            )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('view-ignored')
+            .setDescription('View all channels on the log ignore list.')
         ),
     /**
     * @param {import('../../types').CommandInputUtils} interaction

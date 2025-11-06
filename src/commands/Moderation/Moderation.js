@@ -212,9 +212,14 @@ async function BanUser(interaction) {
 
     // Ban user
     try {
-        await guild.bans.create(targetUser.id, { reason: `Banned by @${member.user.username} for: ${reason}`, deleteMessageSeconds: preserveMessages ? 0 : 7 });
+        const deleteDays = preserveMessages ? 0 : 7;
+        await guild.bans.create(targetUser.id, { 
+            reason: `Banned by @${member.user.username} for: ${reason}`, 
+            deleteMessageDays: deleteDays 
+        });
     } catch (error) {
-        return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', `Bot Missing Permissions | \`Unknown\``);
+        console.error("Ban failed:", error); // Log the actual error for better debugging
+        return client.utils.Embed(interaction, Colors.Red, 'Failed Ban', `Could not ban the user. Please check my permissions and role hierarchy.`);
     };
 
     client.utils.Embed(interaction, Colors.Blurple, 'Ban Successful', `User: ${targetUser}\nReason: \`${reason}\`\nModerator: @${member.user.username} | (${member})`);

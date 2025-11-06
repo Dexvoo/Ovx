@@ -23,14 +23,16 @@ module.exports = async function LevelsRank(interaction, context) {
 
     if(userConfig.level === 0 && userConfig.xp === 0) return client.utils.Embed(interaction, Colors.Red, 'Levels', `${tUser}, doesn't have a level`, [], false);
 
+    const ExpToNextLevel = ExpForLevel(userConfig.level + 1) - ExpForLevel(userConfig.level);
+
     const rankEmbed = new EmbedBuilder()
         .setColor('Blurple')
         .setTitle(`@${tUser.username}'s Rank`)
         .setThumbnail(tUser.displayAvatarURL({ dynamic: true }))
         .addFields(
             { name: 'Level', value: `**${userConfig.level}**`, inline: true },
-            { name: 'XP', value: `**${progressBar(userConfig.xp, ExpForLevel(userConfig.level))}**`, inline: true },
-            { name: 'Daily Streak', value: `**${userConfig.dailyStreak}**`, inline: true },
+            { name: 'XP', value: `**${progressBar(userConfig.xp, ExpToNextLevel)}**`, inline: true },
+            // { name: 'Daily Streak', value: `**${userConfig.dailyStreak}**`, inline: true },
 
             { name: 'Messages', value: `**${userConfig.totalMessages}**`, inline: true },
             { name: 'Voice', value: `**${userConfig.totalVoice}** minutes`, inline: true }

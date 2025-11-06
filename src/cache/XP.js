@@ -82,53 +82,40 @@ class XPCache {
     }
 
 
-    /**
-     * Get top users by a stat type (e.g., messages, voicetime, levels, xp).
+     /**
+     * Get top users by a stat type, ensuring data freshness.
+     * This method prioritizes DB accuracy and updates the cache.
      * @param {string} guildId 
-     * @param {'xp' | 'messages' | 'voicetime' | 'level'} type 
-     * @param {OvxClient} client 
+     * @param {'totalMessages' | 'totalVoice' | 'level'} type 
      * @returns {Promise<UserLevelsType[]>}
      */
-    async getTopUsers(guildId, type, client) {
+    async getTopUsers(guildId, type) {
         const limit = 15;
-        const allKeys = this.cache.keys().filter(key => key.startsWith(`${guildId}:`));
     
-        const users = allKeys
-            .map(key => this.cache.get(key))
-            .filter(user => {
-                if (!user) return false;
-                if (type === 'level') return typeof user.level === 'number' && typeof user.xp === 'number';
-                return typeof user[type] === 'number';
-            });
-        
-        if (users.length >= limit) {
-            const sorted = [...users].sort((a, b) => {
-                if (type === 'level') {
-                    return (b.level ?? 0) - (a.level ?? 0) || (b.xp ?? 0) - (a.xp ?? 0);
-                } else {
-                    return (b[type] ?? 0) - (a[type] ?? 0);
-                }
-            });
-            return sorted.slice(0, limit);
-        }
-    
-        // Fallback to DB
         const sortQuery = type === 'level'
-            ? { level: -1, xp: -1 }
+            ? { level: -1, xp: -1 } // Sort by level, then by XP within the level
             : { [type]: -1 };
     
-        const topFromDB = await UserLevels
-            .find({ guildId })
-            .sort(sortQuery)
-            .limit(limit)
-            .lean();
+        try {
+            const topFromDB = await UserLevels
+                .find({ guildId, [type]: { $gt: 0 } }) // Ensure we only get users who have a value for the stat
+                .sort(sortQuery)
+                .limit(limit)
+                .lean();
     
-        for (const user of topFromDB) {
-            const key = `${guildId}:${user.userId}`;
-            this.cache.set(key, user);
+            // Update the cache with the fresh data from the database
+            for (const user of topFromDB) {
+                const key = `${guildId}:${user.userId}`;
+                this.cache.set(key, user);
+            }
+            
+            LogData(`XPCache`, `Leaderboard REFRESH: ${guildId} by ${type}`, 'info');
+            return topFromDB;
+
+        } catch (error) {
+            console.error(`Failed to fetch leaderboard from DB for guild ${guildId}:`, error);
+            return []; // Return an empty array on error
         }
-    
-        return topFromDB;
     }
 }
 

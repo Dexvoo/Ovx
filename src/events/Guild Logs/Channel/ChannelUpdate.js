@@ -17,6 +17,8 @@ module.exports = {
         const LogsData = await LogsCache.get(guild.id);
         if (!LogsData?.channel?.enabled || !LogsData.channel.channelId) return client.utils.LogData('Channel Updated', `Guild: ${guild.name} | Disabled`, 'warning');
 
+        if (LogsData.ignoredChannels?.includes(newChannel.id)) return;
+
         const logChannel = guild.channels.cache.get(LogsData.channel.channelId);
         if (!logChannel) {
             await LogsCache.setType(guild.id, 'channel', { enabled: false, channelId: null });

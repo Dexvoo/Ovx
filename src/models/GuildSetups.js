@@ -66,6 +66,8 @@ const LogChannelSchema = new Schema({
  * @property {LogsType} server
  * @property {LogsType} member
  * @property {LogsType} punishment
+ * @property {string[]} ignoredChannels
+ * 
  * 
  */
 const LogsConfigSchema = new Schema({
@@ -79,6 +81,8 @@ const LogsConfigSchema = new Schema({
     server: LogChannelSchema,
     member: LogChannelSchema,
     punishment: LogChannelSchema,
+
+    ignoredChannels: { type: [String], default: [] }, // Add this line
 }, { timestamps: true });
 
 

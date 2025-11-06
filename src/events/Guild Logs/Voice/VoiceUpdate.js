@@ -23,6 +23,9 @@ module.exports = {
 
         const joinLogData = LogsData.voice;
         if(!joinLogData || !joinLogData.enabled || joinLogData.channelId === null) return client.utils.LogData('Voice Updated', `Guild: ${guild.name} | Disabled`, 'warning');
+
+        const relevantChannelId = newState.channelId || oldState.channelId;
+        if (LogsData.ignoredChannels?.includes(relevantChannelId)) return;
         
         const logChannel = guild.channels.cache.get(joinLogData.channelId);
         if(!logChannel) {
