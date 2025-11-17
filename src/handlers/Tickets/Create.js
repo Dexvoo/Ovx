@@ -1,5 +1,5 @@
 const { Colors, EmbedBuilder, GuildMember, ChannelType, PermissionsBitField, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { TicketInstance, TicketConfigType } = require('../../models/GuildSetups');
+const { TicketInstance, TicketConfigType, TicketConfig } = require('../../models/GuildSetups');
 const TicketsCache = require('../../cache/Tickets');
 
 /**
@@ -23,10 +23,20 @@ module.exports = async function TicketCreate(interaction, context) {
     const [hasCategoryPermissions, missingCategoryPermissions] = client.utils.PermCheck(ticketCategory, botPermissionsInCategory, client);
     if(!hasCategoryPermissions) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', `Bot Missing Permissions | \`${missingCategoryPermissions.join(', ')}\` in ${ticketCategory}`);
 
-    TicketConfigData.lastTicketId += 1;
-    
-    await TicketsCache.set(guild.id, TicketConfigData);
-    const ticketId = TicketConfigData.lastTicketId.toString().padStart(4, '0');
+    const updatedConfig = await TicketConfig.findOneAndUpdate(
+        { guildId: guild.id },
+        { $inc: { lastTicketId: 1 } },
+        { new: true } // Return the updated document
+    ).lean();
+
+    // Ensure cache is updated with the new atomic value
+    await TicketsCache.set(guild.id, updatedConfig);
+
+    if (!updatedConfig) {
+        return client.utils.Embed(interaction, Colors.Red, 'Tickets | Configuration Error', 'Could not update ticket configuration. Please contact an admin.');
+    }
+
+    const ticketId = updatedConfig.lastTicketId.toString().padStart(4, '0');
     
     const ticketChannel = await guild.channels.create({
         name: `${user.username}-${ticketId}`,

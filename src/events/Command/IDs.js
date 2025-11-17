@@ -55,13 +55,13 @@ module.exports = {
 					client.commands.set(command.name, rawCommand)
 				})
 
-				const Embed = new EmbedBuilder()
-						.setTitle('Commands')
-						.addFields(
-							{ name: 'No Sub Commands', value: noSubCommandsArray.join('\n') || 'None' },
-							{ name: 'Sub Command Groups', value: subGroupCommandsArray.join('\n') || 'None' },
-							{ name: 'Sub Commands', value: subCommandsArray.join('\n') || 'None' },
-						)
+				// const Embed = new EmbedBuilder()
+				// 		.setTitle('Commands')
+				// 		.addFields(
+				// 			{ name: 'No Sub Commands', value: noSubCommandsArray.join('\n') || 'None' },
+				// 			{ name: 'Sub Command Groups', value: subGroupCommandsArray.join('\n') || 'None' },
+				// 			{ name: 'Sub Commands', value: subCommandsArray.join('\n') || 'None' },
+						// )
 
 					// client.channels.cache.get('1115341959016480848').send({ embeds: [Embed] })
 			})

@@ -55,10 +55,10 @@ async function HasVotedTGG(userId) {
             
             const lastVote = data.updatedAt ? new Date(data.updatedAt) : null;
             const currentTime = new Date();
-            if (lastVote && (currentTime - lastVote) > VOTE_COOLDOWN_TIME) {
-                return false; // User has voted within the last 12 hours
+            if (lastVote && (currentTime - lastVote) < VOTE_COOLDOWN_TIME) {
+                return true; // User has voted within the last 12 hours
             }
-            return true;
+            return false;
         })
     return hasVoted;
 }

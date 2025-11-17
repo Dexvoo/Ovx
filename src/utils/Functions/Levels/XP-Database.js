@@ -50,7 +50,8 @@ async function addUserMessageXP(member, channel, levelConfig) {
     randomXP *= levelConfig.xpMultiplier; // Global server bonus
     randomXP = Math.floor(randomXP);
     
-    let totalXP = userXPData.xp + userXPData.voiceXP + userXPData.dropsXP + userXPData.messageXP;
+    let totalXP = ExpForLevel(userXPData.level) + userXPData.xp;
+    // Add the newly earned XP.
     totalXP += randomXP;
 
     const [newLevel, xpLeftover, xpForNextLevel] = LevelForExp(totalXP);
@@ -90,7 +91,8 @@ async function addUserVoiceXP(member, channel, levelConfig, timeSpent) {
     randomXP *= levelConfig.xpMultiplier; // Global server bonus
     randomXP = Math.floor(randomXP);
 
-    let totalXP = userXPData.xp + userXPData.voiceXP + userXPData.dropsXP + userXPData.messageXP;
+    let totalXP = userXPData.messageXP + userXPData.voiceXP + userXPData.dropsXP;
+    // Add the newly earned XP.
     totalXP += randomXP;
 
     const [newLevel, xpLeftover, xpForNextLevel] = LevelForExp(totalXP);

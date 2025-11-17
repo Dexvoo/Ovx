@@ -10,7 +10,7 @@ module.exports = async function MessageCooldownSetting(interaction, context) {
     const { client, options, guildId, memberPermissions } = interaction;
     const { LevelConfigData } = context
     
-    const cooldown = options.getInteger('cooldown') || 20;
+    const cooldown = options.getInteger('seconds') || 20;
     if(!LevelConfigData.enabled) return client.utils.Embed(interaction, Colors.Red, 'Failed Settings', 'Levels are currently not enabled on this server.\nAsk a server admin to use `/level setup`');
     if(!memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'User Missing Permissions | \`ManageGuild\`');
     

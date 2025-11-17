@@ -17,6 +17,10 @@ module.exports = {
     async execute(oldMember, newMember) {
         const { client, guild } = newMember;
 
+        if (oldMember.communicationDisabledUntilTimestamp !== newMember.communicationDisabledUntilTimestamp && oldMember.nickname === newMember.nickname && oldMember.roles.cache.size === newMember.roles.cache.size) {
+            return; // This change is handled by the Punishment/Timeouts.js logger
+        }
+
         if(!guild) return;
 
         const LogsData = await LogsCache.get(guild.id);

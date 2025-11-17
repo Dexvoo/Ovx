@@ -42,57 +42,53 @@ if (DeveloperMode === 'false') {
     });
 
     app.post('/webhook-endpoint', webhook.listener(async (vote) => {
-        console.log(vote);
-        const { user, type, bot } = vote;
-
-        // You only need this logic if you plan to send the message from the bot
-        // This is much more efficient than broadcasting.
+        LogData('Top GG Votes', `Received vote from user ID: ${vote.user}`, 'info');
 
         try {
-            // Wait until the ShardingManager has spawned all shards and knows the total count
+            // Increment the user's vote count in the database
+            await VotesCache.incrementVotes(vote.user);
+            LogData('Top GG Votes', `User ${vote.user} vote count incremented.`, 'success');
+
+            // Wait until the ShardingManager is ready
             if (ShardManager.totalShards === 'auto' || ShardManager.shards.size === 0) {
-                LogData('Top GG Votes', 'Shards not ready yet, skipping vote message.', 'warn');
+                LogData('Top GG Votes', 'Shards not ready yet, skipping Discord log message.', 'warning');
                 return;
             }
 
-
-            // Calculate the specific shard ID for your developer guild
+            // Calculate the shard ID for the developer guild
             const shardId = Number((BigInt(DevGuildID) >> 22n) % BigInt(ShardManager.totalShards));
-            LogData('Top GG Votes', `Vote received. Targeting shard: #${shardId}`, 'info');
-
-            console.log('shardId:', shardId)
             const shard = ShardManager.shards.get(shardId);
 
             if (!shard) {
-                LogData('Top GG Votes', `Could not find the target shard #${shardId}.`, 'error');
+                LogData('Top GG Votes', `Could not find the target shard #${shardId} to send log.`, 'error');
                 return;
             }
 
-            const Embed = new EmbedBuilder()
-                .setColor(Colors.Blurple)
-                .setDescription(`<@${vote.user}> | Voted for <@${vote.bot}>!)`);
+            const embedData = {
+                color: Colors.Blurple,
+                description: `<@${vote.user}> just voted for the bot! ❤️`,
+                footer: { text: `User ID: ${vote.user}` },
+                timestamp: new Date().toISOString()
+            };
 
-            // await VotesCache.get(vote.user)
-            // await VotesCache.incrementVotes(vote.user)
-
-            const success = await shard.eval(async (c, { vote, Embed }) => {
-
-                const messageSent = await c.utils.EmbedDev('vote', c, Embed);
-                if (messageSent) {
-                    // client.utils.Embed(channel, Colors.Blurple, '', `This is a test (<@${userId}> | Voted for <@${botId}>!)`)
-                    return true; // Return true on success
+            // Send log message to the specific shard
+            const success = await shard.eval(async (c, { embedData, voteCID }) => {
+                const logChannel = c.channels.cache.get(voteCID);
+                if (logChannel) {
+                    await logChannel.send({ embeds: [embedData] });
+                    return true;
                 }
-                return false; // Return false if channel not found
-            }, { vote, Embed });
+                return false;
+            }, { context: { embedData, voteCID: VoteCID } });
 
             if (success) {
-                LogData(`Top GG Votes | Shard #${shardId}`, 'Successfully sent vote message.', 'success');
+                LogData(`Top GG Votes | Shard #${shardId}`, 'Successfully sent vote log to Discord.', 'success');
             } else {
                 LogData(`Top GG Votes | Shard #${shardId}`, `Channel ${VoteCID} not found on this shard.`, 'warn');
             }
 
         } catch (error) {
-            LogData('Top GG Votes', `An error occurred processing a vote: ${error}`, 'error');
+            LogData('Top GG Votes', `An error occurred processing a vote for ${vote.user}: ${error}`, 'error');
         }
     }));
 

@@ -17,29 +17,23 @@ module.exports = {
         const { client, name, id, ownerId } = guild;
 
         try {
-            if(!name) return;
-
-            const memberCount = guild.memberCount.toLocaleString() || 'Unknown';
-
-            const devGuild = client.guilds.cache.get(DevGuildID) || await client.guilds.fetch(DevGuildID);
-            if (!devGuild) return client.utils.LogData('Guild Leave Logs', 'Guild not found', 'error');
-
-            const devChannel = devGuild.channels.cache.get(LeaveGuildLogCID) || await devGuild.channels.fetch(LeaveGuildLogCID);
-            if (!devChannel) return client.utils.LogData('Guild Leave Logs', 'Channel not found', 'error');
+            if (!name) return;
 
             const Embed = new EmbedBuilder()
                 .setTitle('Guild Left')
                 .setColor(Colors.Red)
                 .setThumbnail(guild.iconURL({ dynamic: true }))
                 .addFields(
-                    { name: 'Guild', value: `${name} (${id})`, inline: false },
+                    { name: 'Guild', value: `${name} (\`${id}\`)`, inline: false },
                     { name: 'Owner', value: `<@${ownerId}>`, inline: true },
                     { name: 'Members', value: guild.memberCount.toLocaleString() || 'Unknown', inline: true }
-                );
+                )
+                .setTimestamp();
 
-            await devChannel.send({ content: '<@387341502134878218>', embeds: [Embed] });
+            await client.utils.EmbedDev('leaveGuild', client, Embed);
+
         } catch (error) {
-            client.utils.LogData('Command Logs', `Failed to send embed: ${error.message}`, 'error');
+            client.utils.LogData('Guild Leave Logs', `Failed to process event: ${error.message}`, 'error');
         }
     }
 };

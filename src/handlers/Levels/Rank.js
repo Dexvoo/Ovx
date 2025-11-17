@@ -33,9 +33,8 @@ module.exports = async function LevelsRank(interaction, context) {
             { name: 'Level', value: `**${userConfig.level}**`, inline: true },
             { name: 'XP', value: `**${progressBar(userConfig.xp, ExpToNextLevel)}**`, inline: true },
             // { name: 'Daily Streak', value: `**${userConfig.dailyStreak}**`, inline: true },
-
-            { name: 'Messages', value: `**${userConfig.totalMessages}**`, inline: true },
-            { name: 'Voice', value: `**${userConfig.totalVoice}** minutes`, inline: true }
+            { name: 'Messages', value: `**${userConfig.totalMessages.toLocaleString()}**`, inline: true },
+            { name: 'Voice', value: `**${Math.floor(userConfig.totalVoice / 60)}h ${userConfig.totalVoice % 60}m**`, inline: true }
         )
         .setImage('https://i.sstatic.net/Fzh0w.png');
 

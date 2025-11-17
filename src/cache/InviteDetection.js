@@ -14,17 +14,17 @@ class InviteDetectionCache {
 	 */
 	async get(guildId) {
         if (this.cache.has(guildId)) {
-            LogData(`InviteDetectionCache`, `HIT: ${guildId}`, 'info');
+            // LogData(`InviteDetectionCache`, `HIT: ${guildId}`, 'info');
             return this.cache.get(guildId);
         }
 
         let config = await InviteDetectionConfig.findOne({ guildId }).lean();
 
         if (!config) {
-            LogData(`InviteDetectionCache`, `MISS & INIT: ${guildId}`, 'info');
+            // LogData(`InviteDetectionCache`, `MISS & INIT: ${guildId}`, 'info');
             config = (await InviteDetectionConfig.create({ guildId })).toObject();
         } else {
-            LogData(`InviteDetectionCache`, `MISS & FOUND: ${guildId}`, 'info');
+            // LogData(`InviteDetectionCache`, `MISS & FOUND: ${guildId}`, 'info');
         }
 
         this.cache.set(guildId, config);

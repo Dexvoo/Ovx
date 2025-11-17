@@ -76,8 +76,16 @@ module.exports = async function TicketClose(interaction, context) {
     TicketData.transcriptURL = transcriptURL;
     await TicketData.save();
 
-    // Finally, delete the channel after a short delay to allow messages to be read
+     const finalEmbed = new EmbedBuilder()
+        .setColor(Colors.Green)
+        .setTitle('Ticket Archived')
+        .setDescription(`This channel will be deleted in 15 seconds. A transcript has been sent to the archive and to the ticket creator's DMs (if enabled).`)
+        .setTimestamp();
+    
+    await channel.send({ embeds: [finalEmbed] });
+
+    // Finally, delete the channel after a longer delay
     setTimeout(() => {
         channel.delete().catch(err => console.error(`Failed to delete ticket channel ${channel.id}:`, err));
-    }, 5000); // 5 seconds
+    }, 15000); // 15 seconds
 };

@@ -28,50 +28,41 @@ module.exports = async function LevelAdminSet(interaction, context) {
 
     try {
         const userXPData = await Cache_XP.get(guildId, targetUser.id);
-        
-        let finalTotalXP = 0;
+
+        let newLevel = userXPData.level;
+        let newXP = userXPData.xp; // XP within the current level
 
         if (levelToSet !== null) {
             if (levelToSet > LevelConfigData.maxLevel) {
-                 return client.utils.Embed(interaction, Colors.Red, 'Failed', `The level provided (${levelToSet}) is higher than the server's max level (${LevelConfigData.maxLevel}).`);
+                return client.utils.Embed(interaction, Colors.Red, 'Failed', `The level provided (${levelToSet}) is higher than the server's max level (${LevelConfigData.maxLevel}).`);
             }
-            finalTotalXP = ExpForLevel(levelToSet);
-
-            if (xpToSet !== null) {
-                const xpForNextLevel = ExpForLevel(levelToSet + 1) - ExpForLevel(levelToSet);
-                if (xpToSet >= xpForNextLevel || xpToSet < 0) {
-                    return client.utils.Embed(interaction, Colors.Red, 'Invalid XP', `The XP provided must be positive and less than the amount required for the next level.`);
-                }
-                finalTotalXP += xpToSet;
-            }
-        } else { // Only xpToSet is provided
-            const xpForCurrentLevel = ExpForLevel(userXPData.level);
-            const xpForNextLevel = ExpForLevel(userXPData.level + 1) - xpForCurrentLevel;
-
-            if (xpToSet >= xpForNextLevel || xpToSet < 0) {
-                return client.utils.Embed(interaction, Colors.Red, 'Invalid XP', `The XP provided must be positive and less than the amount required for the next level.`);
-            }
-            finalTotalXP = xpForCurrentLevel + xpToSet;
+            newLevel = levelToSet;
+            newXP = 0; // Reset XP within the level when setting a new level
         }
 
-        const [recalculatedLevel, recalculatedXP] = LevelForExp(finalTotalXP);
-        
-        // This update is the critical fix.
+        if (xpToSet !== null) {
+            const requiredForNext = ExpForLevel(newLevel + 1) - ExpForLevel(newLevel);
+            if (xpToSet < 0 || xpToSet >= requiredForNext) {
+                return client.utils.Embed(interaction, Colors.Red, 'Invalid XP', `XP must be between 0 and ${requiredForNext - 1} for level ${newLevel}.`);
+            }
+            newXP = xpToSet;
+        }
+
+        // To ensure consistency, we reset the source XP fields when an admin manually sets a level/XP.
+        // The new baseline becomes the total XP required for the new level plus the new XP within that level.
+        const newTotalXP = ExpForLevel(newLevel) + newXP;
+
         await Cache_XP.set(guildId, targetUser.id, {
-            level: recalculatedLevel,
-            xp: recalculatedXP,
-            // Set the entire calculated XP as the new baseline in one of the source fields.
-            messageXP: finalTotalXP,
-            // Zero out other source fields to prevent summing errors.
+            level: newLevel,
+            xp: newXP,
+            messageXP: newTotalXP, // Set the total as the new messageXP baseline
             voiceXP: 0,
             dropsXP: 0,
         });
+        
+        Cache_XP.invalidate(guildId, targetUser.id); // Ensure the cache is updated on next read
 
-        // Invalidate the user's cache to ensure the next operation gets the fresh DB state.
-        Cache_XP.invalidate(guildId, targetUser.id);
-
-        return client.utils.Embed(interaction, Colors.Green, 'Success', `Successfully set ${targetUser}'s stats to:\n**Level:** \`${recalculatedLevel}\`\n**XP:** \`${recalculatedXP}\``);
-
+        return client.utils.Embed(interaction, Colors.Green, 'Success', `Successfully set ${targetUser}'s stats to:\n**Level:** \`${newLevel}\`\n**XP:** \`${newXP}\``);
     } catch (error) {
         console.error("Error in LevelAdminSet:", error);
         return client.utils.Embed(interaction, Colors.Red, 'Error', 'An unexpected error occurred while setting the user\'s level/XP.');
