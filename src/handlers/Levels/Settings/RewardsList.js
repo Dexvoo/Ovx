@@ -16,7 +16,10 @@ module.exports = async function RewardsListSetting(interaction, context) {
 
     if(LevelConfigData.rewards?.length === 0) return client.utils.Embed(interaction, Colors.Red, 'Failed Settings', 'There is currently no level rewards setup');
 
-    const rewards = await Promise.all(LevelConfigData.rewards.map(async (reward) => {
+    const sortedRewards = [...LevelConfigData.rewards].sort((a, b) => a.level - b.level);
+
+
+    const rewards = await Promise.all(sortedRewards.map(async (reward) => {
         const role = guild.roles.cache.get(reward.roleId);
 
         if (!role) {
