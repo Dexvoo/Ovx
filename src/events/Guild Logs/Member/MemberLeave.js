@@ -31,12 +31,26 @@ module.exports = {
       );
     }
 
+    let botMember = guild.members.me;
+    if (!botMember) {
+      try {
+        botMember = await guild.members.fetchMe();
+      } catch (err) {
+        return client.utils.LogData(
+          'Member Left',
+          `Guild: ${guild.name} | Could not fetch bot member`,
+          'error'
+        );
+      }
+    }
+
     const botPermissions = [
       PermissionFlagsBits.ViewChannel,
       PermissionFlagsBits.SendMessages,
       PermissionFlagsBits.EmbedLinks,
     ];
-    const [hasPermission] = client.utils.PermCheck(logChannel, botPermissions, client);
+
+    const [hasPermission] = client.utils.PermCheck(logChannel, botPermissions, botMember);
     if (!hasPermission) {
       await LogsCache.setType(guild.id, 'leave', { enabled: false, channelId: null });
       return client.utils.LogData(
@@ -51,14 +65,14 @@ module.exports = {
       : 'Unknown (Not cached)';
 
     const rolesList = member.roles?.cache
-      .filter((role) => role.name !== '@everyone')
+      ?.filter((role) => role.name !== '@everyone')
       .map((role) => role)
       .join(' • ');
 
     const description = [
       `${member} (${user.tag})`,
-      `**Joined:** ${joinedAtString}`,
-      `**Roles:** ${rolesList && rolesList.length > 0 ? rolesList.substring(0, 1024) : 'None'}`,
+      `Joined: ${joinedAtString}`,
+      `Roles: ${rolesList && rolesList.length > 0 ? rolesList.substring(0, 1024) : 'None'}`,
     ];
 
     const LogEmbed = new EmbedBuilder()

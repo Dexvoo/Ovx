@@ -31,6 +31,13 @@ class OvxClient extends Client {
     };
 
     this.CustomEmojis = customEmojis;
+
+    /**
+     * Global tracker for Voice XP.
+     * Key: Member ID, Value: { time: Number, guildId: String, levelConfig: Object, levelUpChannel: Channel }
+     * @type {Map<string, object>}
+     */
+    this.voiceTracker = new Map();
   }
 }
 
