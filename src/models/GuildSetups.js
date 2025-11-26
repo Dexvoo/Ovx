@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema, model } = mongoose;
 
-
 /**
  * @typedef {Object} TicketConfigType
  * @property {string} guildId
@@ -15,44 +14,44 @@ const { Schema, model } = mongoose;
  * @property {number} lastTicketId
  */
 const TicketConfigSchema = new Schema({
-    guildId: { type: String, required: true },
-    enabled: { type: Boolean, default: true },
-    setupChannelId: { type: String, required: true },
-    ticketCategoryId: { type: String, required: true },
-    archiveChannelId: { type: String, required: true },
-    supportRoleId: { type: String, required: true },
-    adminRoleId: { type: String, required: true },
-    maxTicketsPerUser: { type: Number, default: 3,}, 
-    lastTicketId: { type: Number, default: 0, },
+  guildId: { type: String, required: true },
+  enabled: { type: Boolean, default: true },
+  setupChannelId: { type: String, required: true },
+  ticketCategoryId: { type: String, required: true },
+  archiveChannelId: { type: String, required: true },
+  supportRoleId: { type: String, required: true },
+  adminRoleId: { type: String, required: true },
+  maxTicketsPerUser: { type: Number, default: 3 },
+  lastTicketId: { type: Number, default: 0 },
 });
 
 const TicketInstanceSchema = new Schema({
-    guildId: { type: String, required: true },
-    memberId: { type: String, required: true },
-    ticketId: { type: String, required: true },
-    channelId: { type: String, required: true },
-    buttonId: { type: String, required: true },
-    open: { type: Boolean, default: true },
-    locked: { type: Boolean, default: false },
-    transcriptURL: { type: String, default: null },
-    createdAt: { type: Date, default: Date.now },
-    closedAt: { type: Date, default: null },
-    closedBy: { type: String, default: null}
+  guildId: { type: String, required: true },
+  memberId: { type: String, required: true },
+  ticketId: { type: String, required: true },
+  channelId: { type: String, required: true },
+  buttonId: { type: String, required: true },
+  open: { type: Boolean, default: true },
+  locked: { type: Boolean, default: false },
+  transcriptURL: { type: String, default: null },
+  createdAt: { type: Date, default: Date.now },
+  closedAt: { type: Date, default: null },
+  closedBy: { type: String, default: null },
 });
-
-
 
 /**
  * @typedef {Object} LogsType
  * @property {Boolean} enabled
- * @property {String} channelId 
+ * @property {String} channelId
  */
 
-const LogChannelSchema = new Schema({
-  enabled: { type: Boolean, default: false },
-  channelId: { type: String, default: null },
-}, { _id: false }); 
-
+const LogChannelSchema = new Schema(
+  {
+    enabled: { type: Boolean, default: false },
+    channelId: { type: String, default: null },
+  },
+  { _id: false }
+);
 
 /**
  * @typedef {Object} LogsConfigType
@@ -67,10 +66,11 @@ const LogChannelSchema = new Schema({
  * @property {LogsType} member
  * @property {LogsType} punishment
  * @property {string[]} ignoredChannels
- * 
- * 
+ *
+ *
  */
-const LogsConfigSchema = new Schema({
+const LogsConfigSchema = new Schema(
+  {
     guildId: { type: String, required: true, unique: true },
     message: LogChannelSchema,
     channel: LogChannelSchema,
@@ -83,8 +83,9 @@ const LogsConfigSchema = new Schema({
     punishment: LogChannelSchema,
 
     ignoredChannels: { type: [String], default: [] }, // Add this line
-}, { timestamps: true });
-
+  },
+  { timestamps: true }
+);
 
 /**
  * @typedef {Object} LevelReward
@@ -114,17 +115,23 @@ const LogsConfigSchema = new Schema({
  */
 
 const LevelConfigSchema = new Schema({
-    guildId: { type: String, required: true },
-    enabled: { type: Boolean, default: false },
-    channelId: { type: String, default: null },
-    blacklisted: { roleIds: { type: [String], default: [] }, channelIds: { type: [String], default: [] }},
-    rewards: { type: Array, default: [] },
-    removePastRewards: { type: Boolean, default: false },
-    xpMultiplier: { type: Number, default: 1 }, 
-    messageCooldown: { type: Number, default: 60 },
-    maxLevel: { type: Number, default: 100 },
-    levelUpMessage: { type: String, default: '{user}, you just gained a level! Current Level: **{level}**!' },
-    roleMultipliers: [{ roleId: String, multiplier: Number }]
+  guildId: { type: String, required: true },
+  enabled: { type: Boolean, default: false },
+  channelId: { type: String, default: null },
+  blacklisted: {
+    roleIds: { type: [String], default: [] },
+    channelIds: { type: [String], default: [] },
+  },
+  rewards: { type: Array, default: [] },
+  removePastRewards: { type: Boolean, default: false },
+  xpMultiplier: { type: Number, default: 1 },
+  messageCooldown: { type: Number, default: 60 },
+  maxLevel: { type: Number, default: 100 },
+  levelUpMessage: {
+    type: String,
+    default: '{user}, you just gained a level! Current Level: **{level}**!',
+  },
+  roleMultipliers: [{ roleId: String, multiplier: Number }],
 });
 
 /**
@@ -133,10 +140,9 @@ const LevelConfigSchema = new Schema({
  * @property {boolean} enabled - Whether the leveling system is enabled.
  */
 const InviteDetectionSchema = new Schema({
-	guildId: { type: String, required: true },
-    enabled: { type: Boolean, default: false },
+  guildId: { type: String, required: true },
+  enabled: { type: Boolean, default: false },
 });
-
 
 /**
  * @typedef {Object} ReactionRole
@@ -156,22 +162,25 @@ const InviteDetectionSchema = new Schema({
  * @property {Date} updatedAt - The timestamp when this document was last updated.
  */
 
-const ReactionRolesSchema = new Schema({
-	guildId: { type: String, required: true, index: true },
-	messageId: { type: String, required: true, unique: true },
-	channelId: { type: String, required: true },
-	title: { type: String, default: 'Default Reaction Roles' },
-	enabled: { type: Boolean, default: false },
-	roles: {
-		type: [{
-            roleId: { type: String },
-			roleEmoji: { type: String },
-		}],
-		default: [],
-	},
-},
-{ timestamps: true });
-
+const ReactionRolesSchema = new Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    messageId: { type: String, required: true, unique: true },
+    channelId: { type: String, required: true },
+    title: { type: String, default: 'Default Reaction Roles' },
+    enabled: { type: Boolean, default: false },
+    roles: {
+      type: [
+        {
+          roleId: { type: String },
+          roleEmoji: { type: String },
+        },
+      ],
+      default: [],
+    },
+  },
+  { timestamps: true }
+);
 
 /**
  * @typedef {Object} GiveawayType
@@ -188,7 +197,8 @@ const ReactionRolesSchema = new Schema({
  * @property {boolean} isActive - Whether the giveaway is currently active.
  */
 
-const GiveawaySchema = new Schema({
+const GiveawaySchema = new Schema(
+  {
     guildId: { type: String, required: true },
     messageId: { type: String, required: true, unique: true },
     channelId: { type: String, required: true },
@@ -200,26 +210,27 @@ const GiveawaySchema = new Schema({
     entrants: { type: [String], default: [] },
     winners: { type: [String], default: [] },
     isActive: { type: Boolean, default: true },
-}, { timestamps: true });
+  },
+  { timestamps: true }
+);
 
 module.exports = {
-    TicketInstance: model('Guild-Tickets-Users', TicketInstanceSchema),
-    TicketConfig: model('Guild-Tickets-Config', TicketConfigSchema),
-    TicketConfigType: TicketConfigSchema,
+  TicketInstance: model('Guild-Tickets-Users', TicketInstanceSchema),
+  TicketConfig: model('Guild-Tickets-Config', TicketConfigSchema),
+  TicketConfigType: TicketConfigSchema,
 
-    LogsConfig: model('Guild-Logs-Config', LogsConfigSchema),
-    LogsConfigType: LogsConfigSchema,
-    
-    LevelConfig: model('Guild-Level-Config', LevelConfigSchema),
-    LevelConfigType: LevelConfigSchema,
+  LogsConfig: model('Guild-Logs-Config', LogsConfigSchema),
+  LogsConfigType: LogsConfigSchema,
 
-    InviteDetectionConfig: model('Guild-InviteDetection-Config', InviteDetectionSchema),
-    InviteDetectionType: InviteDetectionSchema,
+  LevelConfig: model('Guild-Level-Config', LevelConfigSchema),
+  LevelConfigType: LevelConfigSchema,
 
-    ReactionRoles: model('Guild-Reaction-Roles', ReactionRolesSchema),
-    ReactionRolesType: ReactionRolesSchema,
+  InviteDetectionConfig: model('Guild-InviteDetection-Config', InviteDetectionSchema),
+  InviteDetectionType: InviteDetectionSchema,
 
-    Giveaway: model('Guild-Giveaways', GiveawaySchema),
-    GiveawayType: GiveawaySchema,
+  ReactionRoles: model('Guild-Reaction-Roles', ReactionRolesSchema),
+  ReactionRolesType: ReactionRolesSchema,
+
+  Giveaway: model('Guild-Giveaways', GiveawaySchema),
+  GiveawayType: GiveawaySchema,
 };
-

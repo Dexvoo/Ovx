@@ -1,6 +1,6 @@
 const { Colors, EmbedBuilder } = require('discord.js');
-const { LevelConfigType } = require('../../models/GuildSetups')
-const { progressBar, ExpForLevel } = require('../../utils/Functions/Levels/XPMathematics')
+const { LevelConfigType } = require('../../models/GuildSetups');
+const { progressBar, ExpForLevel } = require('../../utils/Functions/Levels/XPMathematics');
 const Cache_XP = require('../../cache/XP');
 
 /**
@@ -8,37 +8,76 @@ const Cache_XP = require('../../cache/XP');
  * @param {{ LevelConfigData: LevelConfigType }} context
  */
 module.exports = async function LevelsRank(interaction, context) {
-    const { client, options, guildId, memberPermissions, user, guild } = interaction;
-    const { LevelConfigData } = context;
+  const { client, options, guildId, memberPermissions, user, guild } = interaction;
+  const { LevelConfigData } = context;
 
-    if(!LevelConfigData) return client.utils.Embed(interaction, Colors.Red, 'Error Levels', `No configuration found for guild \`${guild.name}\``);
-    if(!LevelConfigData.enabled) return client.utils.Embed(interaction, Colors.Red, 'Error Levels', `This guild hasn't configured levels for this server, advise an admin to use \`/levels setup\``);
-    
-    const tUser = options.getUser('user') || user;
+  if (!LevelConfigData)
+    return client.utils.Embed(
+      interaction,
+      Colors.Red,
+      'Error Levels',
+      `No configuration found for guild \`${guild.name}\``
+    );
+  if (!LevelConfigData.enabled)
+    return client.utils.Embed(
+      interaction,
+      Colors.Red,
+      'Error Levels',
+      `This guild hasn't configured levels for this server, advise an admin to use \`/levels setup\``
+    );
 
-    if(tUser.bot) return client.utils.Embed(interaction, Colors.Red, 'Levels', `${tUser}, is a bot they cannot gain XP`, [], false);
+  const tUser = options.getUser('user') || user;
 
-    const userConfig = await Cache_XP.get(guildId, tUser.id);
-    if(!userConfig) return client.utils.Embed(interaction, Colors.Red, 'Levels', `${tUser}, doesn't have a level`);
+  if (tUser.bot)
+    return client.utils.Embed(
+      interaction,
+      Colors.Red,
+      'Levels',
+      `${tUser}, is a bot they cannot gain XP`,
+      [],
+      false
+    );
 
-    if(userConfig.level === 0 && userConfig.xp === 0) return client.utils.Embed(interaction, Colors.Red, 'Levels', `${tUser}, doesn't have a level`, [], false);
+  const userConfig = await Cache_XP.get(guildId, tUser.id);
+  if (!userConfig)
+    return client.utils.Embed(interaction, Colors.Red, 'Levels', `${tUser}, doesn't have a level`);
 
-    const ExpToNextLevel = ExpForLevel(userConfig.level + 1) - ExpForLevel(userConfig.level);
+  if (userConfig.level === 0 && userConfig.xp === 0)
+    return client.utils.Embed(
+      interaction,
+      Colors.Red,
+      'Levels',
+      `${tUser}, doesn't have a level`,
+      [],
+      false
+    );
 
-    const rankEmbed = new EmbedBuilder()
-        .setColor('Blurple')
-        .setTitle(`@${tUser.username}'s Rank`)
-        .setThumbnail(tUser.displayAvatarURL({ dynamic: true }))
-        .addFields(
-            { name: 'Level', value: `**${userConfig.level}**`, inline: true },
-            { name: 'XP', value: `**${progressBar(userConfig.xp, ExpToNextLevel)}**`, inline: true },
-            // { name: 'Daily Streak', value: `**${userConfig.dailyStreak}**`, inline: true },
-            { name: 'Messages', value: `**${userConfig.totalMessages.toLocaleString()}**`, inline: true },
-            { name: 'Voice', value: `**${Math.floor(userConfig.totalVoice / 60)}h ${userConfig.totalVoice % 60}m**`, inline: true }
-        )
-        .setImage('https://i.sstatic.net/Fzh0w.png');
+  const ExpToNextLevel = ExpForLevel(userConfig.level + 1) - ExpForLevel(userConfig.level);
 
-    await interaction.reply({ embeds: [rankEmbed] });
-    
-    
+  const rankEmbed = new EmbedBuilder()
+    .setColor('Blurple')
+    .setTitle(`@${tUser.username}'s Rank`)
+    .setThumbnail(tUser.displayAvatarURL({ dynamic: true }))
+    .addFields(
+      { name: 'Level', value: `**${userConfig.level}**`, inline: true },
+      {
+        name: 'XP',
+        value: `**${progressBar(userConfig.xp, ExpToNextLevel)}**`,
+        inline: true,
+      },
+      // { name: 'Daily Streak', value: `**${userConfig.dailyStreak}**`, inline: true },
+      {
+        name: 'Messages',
+        value: `**${userConfig.totalMessages.toLocaleString()}**`,
+        inline: true,
+      },
+      {
+        name: 'Voice',
+        value: `**${Math.floor(userConfig.totalVoice / 60)}h ${userConfig.totalVoice % 60}m**`,
+        inline: true,
+      }
+    )
+    .setImage('https://i.sstatic.net/Fzh0w.png');
+
+  await interaction.reply({ embeds: [rankEmbed] });
 };

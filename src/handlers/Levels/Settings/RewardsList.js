@@ -1,5 +1,5 @@
 const { Colors, PermissionsBitField } = require('discord.js');
-const { LevelConfigType, LevelReward } = require('../../../models/GuildSetups')
+const { LevelConfigType, LevelReward } = require('../../../models/GuildSetups');
 const Cache_Levels = require('../../../cache/Levels');
 
 /**
@@ -8,27 +8,51 @@ const Cache_Levels = require('../../../cache/Levels');
  * @param {LevelReward} levelReward
  */
 module.exports = async function RewardsListSetting(interaction, context) {
-    const { client, options, guildId, memberPermissions, guild } = interaction;
-    const { LevelConfigData } = context
-    
-    if(!LevelConfigData?.enabled) return client.utils.Embed(interaction, Colors.Red, 'Failed Settings', 'Levels are currently not enabled on this server.\nAsk a server admin to use `/level setup`');
-    if(!memberPermissions.has(PermissionsBitField.Flags.ManageGuild)) return client.utils.Embed(interaction, Colors.Red, 'Failed Setup', 'User Missing Permissions | \`ManageGuild\`');
+  const { client, options, guildId, memberPermissions, guild } = interaction;
+  const { LevelConfigData } = context;
 
-    if(LevelConfigData.rewards?.length === 0) return client.utils.Embed(interaction, Colors.Red, 'Failed Settings', 'There is currently no level rewards setup');
+  if (!LevelConfigData?.enabled)
+    return client.utils.Embed(
+      interaction,
+      Colors.Red,
+      'Failed Settings',
+      'Levels are currently not enabled on this server.\nAsk a server admin to use `/level setup`'
+    );
+  if (!memberPermissions.has(PermissionsBitField.Flags.ManageGuild))
+    return client.utils.Embed(
+      interaction,
+      Colors.Red,
+      'Failed Setup',
+      'User Missing Permissions | \`ManageGuild\`'
+    );
 
-    const sortedRewards = [...LevelConfigData.rewards].sort((a, b) => a.level - b.level);
+  if (LevelConfigData.rewards?.length === 0)
+    return client.utils.Embed(
+      interaction,
+      Colors.Red,
+      'Failed Settings',
+      'There is currently no level rewards setup'
+    );
 
+  const sortedRewards = [...LevelConfigData.rewards].sort((a, b) => a.level - b.level);
 
-    const rewards = await Promise.all(sortedRewards.map(async (reward) => {
-        const role = guild.roles.cache.get(reward.roleId);
+  const rewards = await Promise.all(
+    sortedRewards.map(async (reward) => {
+      const role = guild.roles.cache.get(reward.roleId);
 
-        if (!role) {
-            LevelConfigData.rewards = LevelConfigData.rewards.filter(r => r.roleId !== reward.roleId);
-            await Cache_Levels.setType(guildId, 'rewards', LevelConfigData.rewards);
-        }
+      if (!role) {
+        LevelConfigData.rewards = LevelConfigData.rewards.filter((r) => r.roleId !== reward.roleId);
+        await Cache_Levels.setType(guildId, 'rewards', LevelConfigData.rewards);
+      }
 
-        return `Level ${reward.level}: ${role ? role.toString() : 'Role not found'}`;
-    }));
+      return `Level ${reward.level}: ${role ? role.toString() : 'Role not found'}`;
+    })
+  );
 
-    client.utils.Embed(interaction, Colors.Blurple, 'Level Rewards', rewards.join('\n') || 'No rewards set')
+  client.utils.Embed(
+    interaction,
+    Colors.Blurple,
+    'Level Rewards',
+    rewards.join('\n') || 'No rewards set'
+  );
 };

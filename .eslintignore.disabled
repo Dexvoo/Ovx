@@ -1,0 +1,9 @@
+# Renamed from .eslintignore to avoid ESLint migration warning
+# If you want to re-enable, rename back to .eslintignore (not recommended)
+node_modules/
+.git/
+dist/
+build/
+.vscode/
+*.min.js
+src/cache/

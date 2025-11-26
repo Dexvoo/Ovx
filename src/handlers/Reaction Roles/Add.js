@@ -1,83 +1,130 @@
-const { Colors, PermissionFlagsBits, EmbedBuilder, StringSelectMenuBuilder, parseEmoji, ActionRowBuilder} = require('discord.js');
-require('dotenv').config()
+const {
+  Colors,
+  PermissionFlagsBits,
+  EmbedBuilder,
+  StringSelectMenuBuilder,
+  parseEmoji,
+  ActionRowBuilder,
+} = require('discord.js');
+require('dotenv').config();
 const { ReactionRoles } = require('../../models/GuildSetups');
 
 /**
  * @param {import('../../types').CommandInputUtils} interaction
  */
 module.exports = async function LogsSetup(interaction) {
-    const { client, options, guildId, channel, guild } = interaction;
-    
-    const role = options.getRole('role');
-    const emoji = options.getString('emoji');
-    const messageId = options.getString('messageid');
-    const title = options.getString('title') || null;
+  const { client, options, guildId, channel, guild } = interaction;
 
-    const parsedEmoji = parseEmoji(emoji);
-    const unicodeEmojiRegex = /\p{Emoji}/u;
-    if (!parsedEmoji?.id && !unicodeEmojiRegex.test(emoji)) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', 'The emoji you provided is not valid. Please provide a standard Discord emoji or a custom emoji from this server.');
+  const role = options.getRole('role');
+  const emoji = options.getString('emoji');
+  const messageId = options.getString('messageid');
+  const title = options.getString('title') || null;
 
-    let message;
-    if(!messageId) {
-        const Embed = new EmbedBuilder()
-            .setColor(Colors.Blurple)
-            .setTitle(title || 'Reaction Roles');
-        message = await client.utils.Embed(channel, Colors.Blurple, title || 'Reaction Roles', '', { ephemeral: false });
+  const parsedEmoji = parseEmoji(emoji);
+  const unicodeEmojiRegex = /\p{Emoji}/u;
+  if (!parsedEmoji?.id && !unicodeEmojiRegex.test(emoji))
+    return client.utils.Embed(
+      interaction,
+      Colors.Red,
+      'Reaction Roles | Error',
+      'The emoji you provided is not valid. Please provide a standard Discord emoji or a custom emoji from this server.'
+    );
 
-        if(!message) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', 'Failed to send the message in the current channel. Please try again later.');
-    } else {
-        message = await channel.messages.fetch(messageId).catch(() => {return false});
-        if(!message) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', `Failed to fetch the message with ID \`${messageId}\`. Please make sure the message exists in this channel.`);
-    }
-
-
-    let reactionRoleData =  await ReactionRoles.findOne({ guildId, messageId: message.id });
-    if(!reactionRoleData) {
-        reactionRoleData = new ReactionRoles({
-            guildId,
-            channelId: channel.id,
-            messageId: message.id,
-            enabled: true,
-            title: title,
-            roles: []
-        });
-    }
-
-    if(reactionRoleData.roles?.length > 0) {
-        if(reactionRoleData.roles.find(r => r.roleId === role.id)) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', `The role \`${role.name}\` is already set for this reaction role.`);
-        if(reactionRoleData.roles?.length >= 10) return client.utils.Embed(interaction, Colors.Red, 'Reaction Roles | Error', 'You can only set up a maximum of 10 separate roles per reaction role. Please remove some roles before adding new ones.');
-    }
-
-    reactionRoleData.roles.push({
-        roleId: role.id,
-        roleEmoji: emoji
+  let message;
+  if (!messageId) {
+    const Embed = new EmbedBuilder().setColor(Colors.Blurple).setTitle(title || 'Reaction Roles');
+    message = await client.utils.Embed(channel, Colors.Blurple, title || 'Reaction Roles', '', {
+      ephemeral: false,
     });
 
-    await reactionRoleData.save();
+    if (!message)
+      return client.utils.Embed(
+        interaction,
+        Colors.Red,
+        'Reaction Roles | Error',
+        'Failed to send the message in the current channel. Please try again later.'
+      );
+  } else {
+    message = await channel.messages.fetch(messageId).catch(() => {
+      return false;
+    });
+    if (!message)
+      return client.utils.Embed(
+        interaction,
+        Colors.Red,
+        'Reaction Roles | Error',
+        `Failed to fetch the message with ID \`${messageId}\`. Please make sure the message exists in this channel.`
+      );
+  }
 
-    const roleMenu = new StringSelectMenuBuilder()
-        .setCustomId(`select-role.${reactionRoleData.messageId}`)
-        .setPlaceholder('Select a role')
-        .setMinValues(0)
-        .setMaxValues(reactionRoleData.roles.length)
-        .addOptions(reactionRoleData.roles.map(r => {
-            const currentEmoji = parseEmoji(r.roleEmoji);
-            const roleName = guild.roles.cache.get(r.roleId)?.name || 'Deleted Role';
-            
-            return { 
-                label: roleName, 
-                value: r.roleId, 
-                emoji: {
-                    id: currentEmoji.id,
-                    name: currentEmoji.name,
-                    animated: currentEmoji.animated,
-                }
-            };
-        }));
+  let reactionRoleData = await ReactionRoles.findOne({ guildId, messageId: message.id });
+  if (!reactionRoleData) {
+    reactionRoleData = new ReactionRoles({
+      guildId,
+      channelId: channel.id,
+      messageId: message.id,
+      enabled: true,
+      title: title,
+      roles: [],
+    });
+  }
 
-    const actionRow = new ActionRowBuilder().addComponents(roleMenu);
+  if (reactionRoleData.roles?.length > 0) {
+    if (reactionRoleData.roles.find((r) => r.roleId === role.id))
+      return client.utils.Embed(
+        interaction,
+        Colors.Red,
+        'Reaction Roles | Error',
+        `The role \`${role.name}\` is already set for this reaction role.`
+      );
+    if (reactionRoleData.roles?.length >= 10)
+      return client.utils.Embed(
+        interaction,
+        Colors.Red,
+        'Reaction Roles | Error',
+        'You can only set up a maximum of 10 separate roles per reaction role. Please remove some roles before adding new ones.'
+      );
+  }
 
-    await message.edit({ components: [actionRow] }).catch(() => {return false});
+  reactionRoleData.roles.push({
+    roleId: role.id,
+    roleEmoji: emoji,
+  });
 
-    return client.utils.Embed(interaction, Colors.Green, 'Reaction Roles | Success', `The role \`${role.name}\` has been added to the reaction roles for this message.`);
+  await reactionRoleData.save();
+
+  const roleMenu = new StringSelectMenuBuilder()
+    .setCustomId(`select-role.${reactionRoleData.messageId}`)
+    .setPlaceholder('Select a role')
+    .setMinValues(0)
+    .setMaxValues(reactionRoleData.roles.length)
+    .addOptions(
+      reactionRoleData.roles.map((r) => {
+        const currentEmoji = parseEmoji(r.roleEmoji);
+        const roleName = guild.roles.cache.get(r.roleId)?.name || 'Deleted Role';
+
+        return {
+          label: roleName,
+          value: r.roleId,
+          emoji: {
+            id: currentEmoji.id,
+            name: currentEmoji.name,
+            animated: currentEmoji.animated,
+          },
+        };
+      })
+    );
+
+  const actionRow = new ActionRowBuilder().addComponents(roleMenu);
+
+  await message.edit({ components: [actionRow] }).catch(() => {
+    return false;
+  });
+
+  return client.utils.Embed(
+    interaction,
+    Colors.Green,
+    'Reaction Roles | Success',
+    `The role \`${role.name}\` has been added to the reaction roles for this message.`
+  );
 };
