@@ -1,0 +1,19 @@
+{
+    "Client Utility Translate": {
+        "prefix": "trans",
+        "body": ["client.utils.Translate('${1:errors.title}', ${2:interaction.locale})"],
+        "description": "Insert translation utility",
+    },
+    "Client Utility Embed": {
+        "prefix": "embed",
+        "body": [
+            "client.utils.Embed(${1:interaction}, '${2:Red}', '${3:title}', '${4:description}', ${5:interaction.locale}, { $0 });",
+        ],
+        "description": "Insert client embed utility",
+    },
+    "Client Utility Log": {
+        "prefix": "log",
+        "body": ["client.utils.LogData('${1:title}', '${2:Description}', '${3:type}');"],
+        "description": "Insert client log utility",
+    },
+}

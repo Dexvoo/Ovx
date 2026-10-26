@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+    <title>Ovx</title>
+    <defs>
+        <linearGradient id="ovx-shell" x1="0.2" y1="0" x2="0.8" y2="1">
+            <stop offset="0" stop-color="#c4b0ff" />
+            <stop offset="0.45" stop-color="#a78bfa" />
+            <stop offset="1" stop-color="#6a48d4" />
+        </linearGradient>
+        <linearGradient id="ovx-ear" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#9273f0" />
+            <stop offset="1" stop-color="#5b3cc4" />
+        </linearGradient>
+        <linearGradient id="ovx-visor" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2a1f45" />
+            <stop offset="1" stop-color="#160f26" />
+        </linearGradient>
+        <radialGradient id="ovx-eye" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#fdf4ff" />
+            <stop offset="0.55" stop-color="#f0d4ff" />
+            <stop offset="1" stop-color="#e3b8ff" />
+        </radialGradient>
+        <filter id="ovx-glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="7" />
+        </filter>
+    </defs>
+
+    <!-- Ears -->
+    <rect x="22" y="112" width="30" height="66" rx="14" fill="url(#ovx-ear)" />
+    <rect x="204" y="112" width="30" height="66" rx="14" fill="url(#ovx-ear)" />
+
+    <!-- Head -->
+    <path
+        d="M128 30c58 0 92 42 92 100 0 50-30 86-92 86S36 180 36 130c0-58 34-100 92-100z"
+        fill="url(#ovx-shell)"
+    />
+    <!-- Soft shadow along the bottom of the head -->
+    <path d="M44 160c10 34 40 56 84 56s74-22 84-56c-14 24-44 40-84 40s-70-16-84-40z" fill="#5b3cc4" opacity="0.35" />
+
+    <!-- Visor -->
+    <rect x="58" y="106" width="140" height="70" rx="35" fill="url(#ovx-visor)" />
+    <rect x="58" y="106" width="140" height="70" rx="35" fill="none" stroke="#7c5ce0" stroke-width="4" opacity="0.6" />
+
+    <!-- Eye glow -->
+    <g filter="url(#ovx-glow)" opacity="0.9">
+        <circle cx="98" cy="141" r="21" fill="#e879f9" />
+        <circle cx="158" cy="141" r="21" fill="#e879f9" />
+    </g>
+    <!-- Eyes -->
+    <circle cx="98" cy="141" r="17" fill="url(#ovx-eye)" stroke="#d98cff" stroke-width="5" />
+    <circle cx="158" cy="141" r="17" fill="url(#ovx-eye)" stroke="#d98cff" stroke-width="5" />
+
+    <!-- Shine -->
+    <ellipse cx="90" cy="64" rx="24" ry="11" transform="rotate(-28 90 64)" fill="#ffffff" opacity="0.5" />
+</svg>

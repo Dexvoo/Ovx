@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1360 480">
+    <title>Ovx</title>
+    <defs>
+        <linearGradient id="ovx-shell" x1="0.2" y1="0" x2="0.8" y2="1">
+            <stop offset="0" stop-color="#c4b0ff" />
+            <stop offset="0.45" stop-color="#a78bfa" />
+            <stop offset="1" stop-color="#6a48d4" />
+        </linearGradient>
+        <linearGradient id="ovx-ear" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#9273f0" />
+            <stop offset="1" stop-color="#5b3cc4" />
+        </linearGradient>
+        <linearGradient id="ovx-visor" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2a1f45" />
+            <stop offset="1" stop-color="#160f26" />
+        </linearGradient>
+        <radialGradient id="ovx-eye" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#fdf4ff" />
+            <stop offset="0.55" stop-color="#f0d4ff" />
+            <stop offset="1" stop-color="#e3b8ff" />
+        </radialGradient>
+        <filter id="ovx-glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="7" />
+        </filter>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1d1530" />
+            <stop offset="1" stop-color="#0f0b19" />
+        </linearGradient>
+        <radialGradient id="glow-right" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#7c5ce0" stop-opacity="0.55" />
+            <stop offset="1" stop-color="#7c5ce0" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="glow-left" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#a78bfa" stop-opacity="0.22" />
+            <stop offset="1" stop-color="#a78bfa" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id="title" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#c9b8ff" />
+            <stop offset="1" stop-color="#8b6cf0" />
+        </linearGradient>
+        <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="2" fill="#a78bfa" />
+        </pattern>
+        <linearGradient id="dots-fade" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#fff" stop-opacity="0" />
+            <stop offset="0.6" stop-color="#fff" stop-opacity="0.6" />
+            <stop offset="1" stop-color="#fff" stop-opacity="0" />
+        </linearGradient>
+        <mask id="dots-mask"><rect width="1360" height="480" fill="url(#dots-fade)" /></mask>
+    </defs>
+
+    <rect width="1360" height="480" fill="url(#bg)" />
+    <rect width="1360" height="480" fill="url(#dots)" opacity="0.12" mask="url(#dots-mask)" />
+    <circle cx="1165" cy="250" r="330" fill="url(#glow-right)" />
+    <circle cx="160" cy="60" r="260" fill="url(#glow-left)" />
+
+    <!-- Floating shapes -->
+    <rect x="900" y="40" width="44" height="44" rx="12" fill="#a78bfa" opacity="0.35" transform="rotate(18 922 62)" />
+    <circle cx="1310" cy="70" r="14" fill="#e879f9" opacity="0.55" />
+    <circle cx="905" cy="410" r="10" fill="#a78bfa" opacity="0.5" />
+    <rect x="1270" y="370" width="30" height="30" rx="9" fill="#7c5ce0" opacity="0.6" transform="rotate(-14 1285 385)" />
+    <circle cx="380" cy="70" r="7" fill="#c9b8ff" opacity="0.45" />
+    <path d="M1240 150l8 18 18 8-18 8-8 18-8-18-18-8 18-8z" fill="#f0d4ff" opacity="0.8" />
+    <path d="M985 150l5 11 11 5-11 5-5 11-5-11-11-5 11-5z" fill="#f0d4ff" opacity="0.6" />
+
+    <!-- Robot -->
+    <g transform="translate(1165 245) rotate(-6) scale(1.4) translate(-128 -123)">
+        <!-- Ears -->
+    <rect x="22" y="112" width="30" height="66" rx="14" fill="url(#ovx-ear)" />
+    <rect x="204" y="112" width="30" height="66" rx="14" fill="url(#ovx-ear)" />
+
+    <!-- Head -->
+    <path
+        d="M128 30c58 0 92 42 92 100 0 50-30 86-92 86S36 180 36 130c0-58 34-100 92-100z"
+        fill="url(#ovx-shell)"
+    />
+    <!-- Soft shadow along the bottom of the head -->
+    <path d="M44 160c10 34 40 56 84 56s74-22 84-56c-14 24-44 40-84 40s-70-16-84-40z" fill="#5b3cc4" opacity="0.35" />
+
+    <!-- Visor -->
+    <rect x="58" y="106" width="140" height="70" rx="35" fill="url(#ovx-visor)" />
+    <rect x="58" y="106" width="140" height="70" rx="35" fill="none" stroke="#7c5ce0" stroke-width="4" opacity="0.6" />
+
+    <!-- Eye glow -->
+    <g filter="url(#ovx-glow)" opacity="0.9">
+        <circle cx="98" cy="141" r="21" fill="#e879f9" />
+        <circle cx="158" cy="141" r="21" fill="#e879f9" />
+    </g>
+    <!-- Eyes -->
+    <circle cx="98" cy="141" r="17" fill="url(#ovx-eye)" stroke="#d98cff" stroke-width="5" />
+    <circle cx="158" cy="141" r="17" fill="url(#ovx-eye)" stroke="#d98cff" stroke-width="5" />
+
+    <!-- Shine -->
+    <ellipse cx="90" cy="64" rx="24" ry="11" transform="rotate(-28 90 64)" fill="#ffffff" opacity="0.5" />
+    </g>
+
+    <!-- Text -->
+    <text x="440" y="222" font-family="'Segoe UI', system-ui, -apple-system, Roboto, sans-serif" font-size="160" font-weight="800" letter-spacing="2" fill="#f3eeff">O<tspan fill="url(#title)">vx</tspan></text>
+    <text x="448" y="300" font-family="'Segoe UI', system-ui, -apple-system, Roboto, sans-serif" font-size="42" font-weight="600" fill="#cfc4ee">The all-in-one Discord bot</text>
+</svg>

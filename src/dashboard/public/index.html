@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="color-scheme" content="light dark" />
+        <title>Ovx · The all-in-one Discord bot</title>
+        <meta
+            name="description"
+            content="Ovx is a free multipurpose Discord bot: levels, logs, tickets, welcome messages, auto roles and stream alerts, all set up from one dashboard."
+        />
+        <meta property="og:title" content="Ovx · The all-in-one Discord bot" />
+        <meta
+            property="og:description"
+            content="Levels, logs, tickets, welcome messages, auto roles and stream alerts, all set up from one dashboard."
+        />
+        <meta name="theme-color" content="#7c5ce0" />
+        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <link rel="stylesheet" href="/app.css?v=49" />
+        <script src="/app.js?v=49" type="module"></script>
+    </head>
+    <body>
+        <header class="topbar">
+            <a class="brand" href="/" aria-label="Ovx dashboard home">
+                <span class="brand-mark" aria-hidden="true"></span>
+                <span class="brand-name">Ovx</span>
+            </a>
+            <nav class="topnav" id="topnav" aria-label="Site" hidden>
+                <a class="topnav-link" href="/#features">Features</a>
+                <a class="topnav-link" href="https://discord.gg/t7tF2Qs3Qc" target="_blank" rel="noopener">Support</a>
+                <a class="button button-primary" href="/auth/login">Log in</a>
+            </nav>
+            <div class="account" id="account" hidden>
+                <img class="account-avatar" id="account-avatar" alt="" width="32" height="32" />
+                <span class="account-name" id="account-name"></span>
+                <a class="button button-ghost" id="dev-link" href="/dev" data-link hidden>Developer</a>
+                <button class="button button-ghost" id="logout" type="button">Log out</button>
+            </div>
+        </header>
+
+        <div class="banner" id="banner" role="status" hidden></div>
+
+        <main class="page" id="app" aria-live="polite"></main>
+
+        <footer class="site-footer">
+            <span>© Ovx</span>
+            <nav aria-label="Footer">
+                <a href="/tos" data-link>Terms of Service</a>
+                <a href="/privacypolicy" data-link>Privacy Policy</a>
+                <a href="/status" data-link>Status</a>
+                <a href="https://discord.gg/t7tF2Qs3Qc" target="_blank" rel="noopener">Support server</a>
+            </nav>
+        </footer>
+
+        <dialog class="dialog" id="invite-dialog" aria-labelledby="invite-title">
+            <div class="dialog-body">
+                <div class="dialog-icon" id="invite-icon"></div>
+                <h2 class="dialog-title" id="invite-title"></h2>
+                <p class="dialog-text" id="invite-text"></p>
+                <div class="dialog-actions">
+                    <button class="button button-ghost" id="invite-cancel" type="button">Cancel</button>
+                    <button class="button button-primary" id="invite-confirm" type="button">Invite Ovx</button>
+                </div>
+            </div>
+        </dialog>
+    </body>
+</html>

@@ -1,0 +1,34 @@
+import { Events, AuditLogEvent } from 'discord.js';
+import { getLogChannel, findAuditLogExecutor } from '../../utils/logChannel.js';
+
+export const name = Events.ChannelDelete;
+export const once = false;
+export const description = 'Guild Channel Delete Logs';
+
+/**
+ * @param {import('discord.js').GuildChannel} channel
+ */
+
+export async function execute(channel) {
+    const { guild, client } = channel;
+
+    if (!guild) return;
+
+    const logChannel = await getLogChannel(guild, 'channel');
+    if (!logChannel) return;
+
+    const executor = await findAuditLogExecutor(
+        guild,
+        AuditLogEvent.ChannelDelete,
+        (entry) => entry.targetId === channel.id
+    );
+    const username = executor?.username ?? 'Unknown';
+
+    const title = client.utils.Translate('logs.channel.delete', guild.preferredLocale, { username });
+    const footerText = `CID: ${channel.id} | ${executor ? `UID: ${executor.id}` : ''}`;
+
+    await client.utils.Embed(logChannel, 'Red', title, `#${channel.name} | ${executor ?? 'Unknown User'}`, {
+        timestamp: true,
+        footer: { text: footerText },
+    });
+}

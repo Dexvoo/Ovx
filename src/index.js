@@ -1,127 +1,102 @@
-const { ShardingManager, Colors, EmbedBuilder } = require('discord.js');
-const { Log, LogData } = require('./utils/Functions/ConsoleLogs.js');
-require('dotenv').config();
-const VotesCache = require('./cache/Votes');
-// Make sure to get DevGuildID from your .env
-const {
-  DeveloperMode,
-  PublicToken,
-  DevToken,
-  TopggAPIKey,
-  TopggAuthorizationKey,
-  VoteCID,
-  Blurple,
-  DevGuildID,
-} = process.env;
+import { ShardingManager } from 'discord.js';
+import { fileURLToPath } from 'url';
+import { LogData, Log } from './shared/utils/logger.js';
+import { ENV } from './bootstrap/environment.js';
 
-const { AutoPoster } = require('topgg-autoposter');
-const Topgg = require('@top-gg/sdk');
-const webhook = new Topgg.Webhook(TopggAuthorizationKey);
-const express = require('express');
-const app = express();
+Log('Mushroom Discord Bot | Created by: @Dexvo');
+if (ENV.DEVELOPER_MODE) LogData('Developer Mode Enabled', 'The bot is running in Developer Mode.', 'warning');
 
-Log('Ovx Discord Bot | Created by: @Dexvo');
+// Shards get FORCE_EXIT_MS (10s) to shut down themselves; give them a little longer here
+const SHARD_SHUTDOWN_TIMEOUT_MS = 15_000;
 
-const ShardManager = new ShardingManager('./src/bot.js', {
-  token: DeveloperMode === 'true' ? DevToken : PublicToken,
-  totalShards: 'auto',
+let shuttingDown = false;
+
+const ShardManager = new ShardingManager(fileURLToPath(new URL('./bootstrap/client.js', import.meta.url)), {
+    token: ENV.TOKEN,
+    totalShards: 'auto',
 });
 
 ShardManager.on('shardCreate', (shard) => {
-  LogData(`Shard: #${shard.id}`, `Shard Started`, 'info');
+    LogData('Shard Spawned', `Shard ${shard.id} has been spawned.`, 'info');
+    shard.on('ready', () => {
+        LogData('Shard Ready', `Shard ${shard.id} is ready.`, 'success');
+    });
+    shard.on('disconnect', () => {
+        LogData('Shard Disconnected', `Shard ${shard.id} has disconnected.`, 'warning');
+    });
+    shard.on('reconnecting', () => {
+        LogData('Shard Reconnecting', `Shard ${shard.id} is reconnecting.`, 'info');
+    });
+    shard.on('death', () => {
+        if (shuttingDown) LogData('Shard Stopped', `Shard ${shard.id} has shut down.`, 'info');
+        else LogData('Shard Died', `Shard ${shard.id} has died.`, 'error');
+    });
 });
 
+/** @type {import('node:http').Server | null} */
+let dashboardServer = null;
+
 ShardManager.spawn()
-  .then(() => {
-    Log('All shards have been spawned.', 'success');
-  })
-  .catch((error) => {
-    LogData('Sharding Manager', `An error occurred during spawn: ${error}`, 'error');
-  });
-
-if (DeveloperMode === 'false') {
-  const ap = AutoPoster(TopggAPIKey, ShardManager);
-
-  ap.on('posted', () => {
-    LogData('Top GG | Stats', 'Posted', 'success');
-  });
-  ap.on('error', (e) => {
-    LogData('Top GG | Stats', `Error posting stats to Top.gg: ${e}`, 'error');
-  });
-
-  app.post(
-    '/webhook-endpoint',
-    webhook.listener(async (vote) => {
-      LogData('Top GG Votes', `Received vote from user ID: ${vote.user}`, 'info');
-
-      try {
-        // Increment the user's vote count in the database
-        await VotesCache.incrementVotes(vote.user);
-        LogData('Top GG Votes', `User ${vote.user} vote count incremented.`, 'success');
-
-        // Wait until the ShardingManager is ready
-        if (ShardManager.totalShards === 'auto' || ShardManager.shards.size === 0) {
-          LogData('Top GG Votes', 'Shards not ready yet, skipping Discord log message.', 'warning');
-          return;
+    .then(async () => {
+        // The server count on Ovx's Top.gg page. Not from developer mode, which runs a different bot.
+        if (ENV.TOPGG_TOKEN && !ENV.DEVELOPER_MODE) {
+            const { startTopggStats } = await import('./features/votes/utils/topggStats.js');
+            startTopggStats({ manager: ShardManager, token: ENV.TOPGG_TOKEN, applicationId: ENV.APPLICATION_ID });
         }
 
-        // Calculate the shard ID for the developer guild
-        const shardId = Number((BigInt(DevGuildID) >> 22n) % BigInt(ShardManager.totalShards));
-        const shard = ShardManager.shards.get(shardId);
-
-        if (!shard) {
-          LogData(
-            'Top GG Votes',
-            `Could not find the target shard #${shardId} to send log.`,
-            'error'
-          );
-          return;
-        }
-
-        const embedData = {
-          color: Colors.Blurple,
-          description: `<@${vote.user}> just voted for the bot! ❤️`,
-          footer: { text: `User ID: ${vote.user}` },
-          timestamp: new Date().toISOString(),
-        };
-
-        // Send log message to the specific shard
-        const success = await shard.eval(
-          async (c, { embedData, voteCID }) => {
-            const logChannel = c.channels.cache.get(voteCID);
-            if (logChannel) {
-              await logChannel.send({ embeds: [embedData] });
-              return true;
-            }
-            return false;
-          },
-          { context: { embedData, voteCID: VoteCID } }
-        );
-
-        if (success) {
-          LogData(
-            `Top GG Votes | Shard #${shardId}`,
-            'Successfully sent vote log to Discord.',
-            'success'
-          );
-        } else {
-          LogData(
-            `Top GG Votes | Shard #${shardId}`,
-            `Channel ${VoteCID} not found on this shard.`,
-            'warn'
-          );
-        }
-      } catch (error) {
-        LogData(
-          'Top GG Votes',
-          `An error occurred processing a vote for ${vote.user}: ${error}`,
-          'error'
-        );
-      }
+        if (!ENV.DASHBOARD) return;
+        // Loaded only when enabled, so the bot doesn't pull in the web server otherwise
+        const { startDashboard } = await import('./dashboard/server.js');
+        dashboardServer = await startDashboard({ manager: ShardManager, env: ENV });
     })
-  );
+    .catch((error) => {
+        LogData('Startup Error', `${error.stack ?? error.message}`, 'error');
+    });
 
-  app.listen(25500, () => {
-    LogData(`Top GG Votes`, 'Listening on port 25500', 'success');
-  });
+/**
+ * Asks every shard to shut down cleanly (saving XP, closing the database) and waits for them.
+ * Shard.kill() would terminate them immediately, so the request goes over IPC instead.
+ * @param {string} signal
+ */
+async function shutdownShards(signal) {
+    if (shuttingDown) return;
+    shuttingDown = true;
+
+    LogData('Shutdown Initiated', `Received ${signal}. Stopping ${ShardManager.shards.size} shard(s)...`, 'warning');
+
+    // Stop the manager from respawning shards as they exit
+    ShardManager.respawn = false;
+
+    const running = [...ShardManager.shards.values()].filter((shard) => shard.process);
+    const stopped = running.map(
+        (shard) =>
+            new Promise((resolve) => {
+                shard.once('death', resolve);
+                shard.send({ type: 'shutdown' }).catch(resolve); // Already gone
+            })
+    );
+
+    const timedOut = await Promise.race([
+        Promise.all(stopped).then(() => false),
+        new Promise((resolve) => setTimeout(() => resolve(true), SHARD_SHUTDOWN_TIMEOUT_MS)),
+    ]);
+
+    if (timedOut) {
+        LogData('Shutdown', 'Some shards did not stop in time, killing them.', 'error');
+        for (const shard of running) shard.kill();
+    }
+
+    LogData('Shutdown', 'All shards stopped.', 'success');
+
+    if (dashboardServer) {
+        dashboardServer.closeAllConnections();
+        await new Promise((resolve) => dashboardServer.close(resolve));
+        const { default: mongoose } = await import('mongoose');
+        await mongoose.disconnect();
+    }
+
+    process.exit(timedOut ? 1 : 0);
 }
+
+process.on('SIGINT', () => shutdownShards('SIGINT')); // CTRL+C in terminal
+process.on('SIGTERM', () => shutdownShards('SIGTERM')); // Docker/PM2 stop commands

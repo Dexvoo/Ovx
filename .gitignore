@@ -1,5 +1,7 @@
 .env
 node_modules
-src/UnusedCommands
-src/Converted
-src/JJFxESN.bat
+src/CONVERTED
+src/convert.bat
+src/locales/list.js
+# Database backups: every server's data, never committed
+backups/
