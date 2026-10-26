@@ -209,6 +209,7 @@ export default {
                 automod: 'AutoMod and anti-raid',
                 verification: 'Member verification',
                 invite_blocker: 'Invite blocker',
+                honeypot: 'Honeypot channel',
                 starboard: 'Starboard',
                 custom_embeds: 'Custom embeds',
                 join_to_create: 'Join-to-create voice channels',
@@ -795,6 +796,10 @@ export default {
     inviteBlocker: {
         notice: '{user}, invite links to other servers are not allowed here.',
         reason: 'Posted an invite link',
+    },
+
+    honeypot: {
+        reason: 'Posted in the honeypot channel (likely a compromised account)',
     },
 
     levels: {

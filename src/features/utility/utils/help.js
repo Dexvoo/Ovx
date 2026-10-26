@@ -41,6 +41,7 @@ const DASHBOARD_FEATURES = [
     'automod',
     'verification',
     'invite_blocker',
+    'honeypot',
     'starboard',
     'custom_embeds',
     'join_to_create',

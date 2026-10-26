@@ -12,6 +12,7 @@ import { renderModeration } from './moderation.js';
 import { renderGiveaways } from './giveaways.js';
 import { renderReactionRoles } from './reactionRoles.js';
 import { renderInviteBlocker } from './inviteBlocker.js';
+import { renderHoneypot } from './honeypot.js';
 import { renderCustomEmbeds } from './customEmbeds.js';
 import { renderStarboard } from './starboard.js';
 import { renderAutomod } from './automod.js';
@@ -43,6 +44,7 @@ export const SECTIONS = [
             { slug: 'automod', label: 'AutoMod', render: renderAutomod },
             { slug: 'verification', label: 'Verification', render: renderVerification },
             { slug: 'invite-blocker', label: 'Invite Blocker', render: renderInviteBlocker },
+            { slug: 'honeypot', label: 'Honeypot', render: renderHoneypot },
             { slug: 'tickets', label: 'Tickets', render: renderTickets },
         ],
     },

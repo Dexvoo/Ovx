@@ -105,6 +105,13 @@ import {
     describeInviteChanges,
     INVITE_LIMITS,
 } from '../features/inviteBlocker/utils/settings.js';
+import Honeypot_Config_Cache from '../features/honeypot/cache/honeypotConfig.cache.js';
+import {
+    honeypotView,
+    validateHoneypotSettings,
+    describeHoneypotChanges,
+    HONEYPOT_LIMITS,
+} from '../features/honeypot/utils/settings.js';
 import { REACTION_ROLE_LIMITS } from '../features/reactionRoles/utils/validation.js';
 import { GIVEAWAY_LIMITS } from '../features/giveaways/utils/validation.js';
 import { votesEnabled, forgetVote } from '../features/votes/utils/votes.js';
@@ -157,6 +164,7 @@ const handlers = {
     saveAutoRoleSettings,
     saveModerationSettings,
     saveInviteSettings,
+    saveHoneypotSettings,
     saveStarboardSettings,
     saveWelcomeSettings,
     saveTicketSettings,
@@ -289,6 +297,7 @@ async function guildOverview(client, { guildId, userId }) {
         ticketDefaults: TICKET_DEFAULTS,
         moderation: moderationView(moderation),
         inviteBlocker: inviteView(await Invite_Config_Cache.get(guild.id)),
+        honeypot: honeypotView(await Honeypot_Config_Cache.get(guild.id)),
         starboard: starboardView(await Starboard_Config_Cache.get(guild.id)),
         tempVoice: tempVoiceView(await Temp_Voice_Config_Cache.get(guild.id)),
         verification: verificationView(await Verification_Config_Cache.get(guild.id)),
@@ -323,6 +332,7 @@ async function guildOverview(client, { guildId, userId }) {
             manageRoles: me.permissions.has(PermissionFlagsBits.ManageRoles),
             moveMembers: me.permissions.has(PermissionFlagsBits.MoveMembers),
             manageChannels: me.permissions.has(PermissionFlagsBits.ManageChannels),
+            banMembers: me.permissions.has(PermissionFlagsBits.BanMembers),
         },
         limits: {
             ...LIMITS,
@@ -338,6 +348,7 @@ async function guildOverview(client, { guildId, userId }) {
             GIVEAWAYS: GIVEAWAY_LIMITS,
             REACTION_ROLES: REACTION_ROLE_LIMITS,
             INVITES: INVITE_LIMITS,
+            HONEYPOT: HONEYPOT_LIMITS,
             STARBOARD: STARBOARD_LIMITS,
             AUTOMOD: AUTOMOD_LIMITS,
             TEMP_VOICE: TEMP_VOICE_LIMITS,
@@ -673,6 +684,24 @@ async function saveInviteSettings(client, { guildId, userId, settings }) {
 }
 
 /**
+ * Validates and saves the honeypot channel's settings, through its cache so new messages are checked with them at once.
+ * @param {Client} client
+ * @param {{ guildId: string, userId: string, settings: unknown }} payload
+ */
+async function saveHoneypotSettings(client, { guildId, userId, settings }) {
+    const access = await getManagedGuild(client, guildId, userId);
+    if (!access.ok) return access;
+    const { guild } = access;
+
+    const { settings: valid, errors } = validateHoneypotSettings(settings, guildContext(guild));
+    if (errors.length > 0) return fail(400, 'Some settings are not valid', errors);
+
+    const before = honeypotView(await Honeypot_Config_Cache.get(guild.id));
+    const after = honeypotView(await Honeypot_Config_Cache.set(guild.id, valid));
+    return { ok: true, data: after, changes: describeHoneypotChanges(before, after, nameLookup(guild)) };
+}
+
+/**
  * Validates and saves the starboard settings, through its cache so reactions use them at once.
  * @param {Client} client
  * @param {{ guildId: string, userId: string, settings: unknown }} payload
@@ -976,6 +1005,7 @@ const RESET_SECTIONS = new Set([
     'kick',
     'moderation',
     'invites',
+    'honeypot',
     'starboard',
     'commands',
 ]);
@@ -1067,6 +1097,12 @@ async function resetSettings(client, { guildId, userId, section }) {
         const before = inviteView(await Invite_Config_Cache.get(guild.id));
         const after = inviteView(await Invite_Config_Cache.reset(guild.id));
         return { ok: true, data: after, changes: describeInviteChanges(before, after, names) };
+    }
+
+    if (section === 'honeypot') {
+        const before = honeypotView(await Honeypot_Config_Cache.get(guild.id));
+        const after = honeypotView(await Honeypot_Config_Cache.reset(guild.id));
+        return { ok: true, data: after, changes: describeHoneypotChanges(before, after, names) };
     }
 
     if (section === 'auto-roles') {

@@ -14,6 +14,7 @@ import { Welcome } from '../../welcome/models/welcome.js';
 import { Giveaway, GiveawayEntry, GiveawayConfig } from '../../giveaways/models/giveaway.js';
 import { ReactionRolePanel, LegacyReactionRoles } from '../../reactionRoles/models/reactionRolePanel.js';
 import { InviteConfig } from '../../inviteBlocker/models/inviteConfig.js';
+import { HoneypotConfig } from '../../honeypot/models/honeypotConfig.js';
 import { CustomMessage } from '../../customEmbeds/models/customMessage.js';
 import { StarboardConfig, StarboardPost } from '../../starboard/models/starboard.js';
 import { AutomodConfig } from '../../automod/models/automodConfig.js';
@@ -58,6 +59,7 @@ export const GUILD_DATA_MODELS = [
     ReactionRolePanel,
     LegacyReactionRoles,
     InviteConfig,
+    HoneypotConfig,
     CustomMessage,
     StarboardConfig,
     StarboardPost,

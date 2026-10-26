@@ -13,6 +13,8 @@ import Moderation_Config_Cache from '../src/features/moderation/cache/moderation
 import { StreamSubscription } from '../src/features/streams/models/streamSubscription.js';
 import Invite_Config_Cache from '../src/features/inviteBlocker/cache/inviteConfig.cache.js';
 import { withInviteDefaults } from '../src/features/inviteBlocker/models/inviteConfig.js';
+import Honeypot_Config_Cache from '../src/features/honeypot/cache/honeypotConfig.cache.js';
+import { withHoneypotDefaults } from '../src/features/honeypot/models/honeypotConfig.js';
 import Starboard_Config_Cache, { starboardDefaults } from '../src/features/starboard/cache/starboardConfig.cache.js';
 import Temp_Voice_Config_Cache, { tempVoiceDefaults } from '../src/features/tempVoice/cache/tempVoiceConfig.cache.js';
 import Verification_Config_Cache from '../src/features/verification/cache/verificationConfig.cache.js';
@@ -180,6 +182,7 @@ beforeEach(() => {
     Moderation_Config_Cache.set = async (guildId, updates) => (moderation = { guildId, ...updates });
     // Settings the overview also shows; without these the tests would wait on a database that isn't there
     Invite_Config_Cache.get = /** @type {any} */ (async (guildId) => withInviteDefaults(guildId));
+    Honeypot_Config_Cache.get = /** @type {any} */ (async (guildId) => withHoneypotDefaults(guildId));
     Starboard_Config_Cache.get = /** @type {any} */ (async (guildId) => starboardDefaults(guildId));
     Temp_Voice_Config_Cache.get = /** @type {any} */ (async (guildId) => tempVoiceDefaults(guildId));
     Verification_Config_Cache.get = /** @type {any} */ (async (guildId) => verificationDefaults(guildId));

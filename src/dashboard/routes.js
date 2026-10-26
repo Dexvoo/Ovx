@@ -346,6 +346,18 @@ export function createApiRouter({
         })
     );
 
+    router.put('/guilds/:guildId/honeypot', requireLogin, validGuildId, (req, res) =>
+        respond(res, async () => {
+            const result = await bridge.guild('saveHoneypotSettings', req.params.guildId, {
+                userId: req.session.user.id,
+                settings: req.body,
+            });
+            if (result.ok && result.changes?.length)
+                await recordAudit(req, 'Updated the honeypot channel', result.changes);
+            return result;
+        })
+    );
+
     router.put('/guilds/:guildId/welcome', requireLogin, validGuildId, (req, res) =>
         respond(res, async () => {
             const result = await bridge.guild('saveWelcomeSettings', req.params.guildId, {
@@ -557,6 +569,7 @@ export function createApiRouter({
         kick: 'Reset Kick notifications',
         moderation: 'Reset automatic moderation',
         invites: 'Reset the invite blocker',
+        honeypot: 'Reset the honeypot channel',
         starboard: 'Reset the starboard',
         commands: 'Reset command settings',
     };

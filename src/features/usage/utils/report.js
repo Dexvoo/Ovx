@@ -8,6 +8,7 @@ import { LogsConfig } from '../../logging/models/logging.js';
 import { TicketConfig } from '../../tickets/models/ticketConfig.js';
 import { AutomodConfig } from '../../automod/models/automodConfig.js';
 import { InviteConfig } from '../../inviteBlocker/models/inviteConfig.js';
+import { HoneypotConfig } from '../../honeypot/models/honeypotConfig.js';
 import { StarboardConfig } from '../../starboard/models/starboard.js';
 import { SuggestionConfig } from '../../suggestions/models/suggestion.js';
 import { TempVoiceConfig } from '../../tempVoice/models/tempVoice.js';
@@ -60,6 +61,7 @@ const FEATURES = [
         filter: { 'warnActions.0': { $exists: true } },
     },
     { key: 'inviteBlocker', label: 'Invite blocker', model: InviteConfig, filter: { enabled: true } },
+    { key: 'honeypot', label: 'Honeypot channel', model: HoneypotConfig, filter: { enabled: true } },
     { key: 'verification', label: 'Verification', model: VerificationConfig, filter: { enabled: true } },
     { key: 'reactionRoles', label: 'Reaction roles', model: ReactionRolePanel, filter: {} },
     { key: 'starboard', label: 'Starboard', model: StarboardConfig, filter: { enabled: true } },
