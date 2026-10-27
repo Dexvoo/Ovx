@@ -112,6 +112,8 @@ import {
     describeHoneypotChanges,
     HONEYPOT_LIMITS,
 } from '../features/honeypot/utils/settings.js';
+import { syncWarning as syncHoneypotWarning } from '../features/honeypot/utils/warning.js';
+import { removePostedMessage } from '../shared/utils/postedMessage.js';
 import { REACTION_ROLE_LIMITS } from '../features/reactionRoles/utils/validation.js';
 import { GIVEAWAY_LIMITS } from '../features/giveaways/utils/validation.js';
 import { votesEnabled, forgetVote } from '../features/votes/utils/votes.js';
@@ -165,6 +167,7 @@ const handlers = {
     saveModerationSettings,
     saveInviteSettings,
     saveHoneypotSettings,
+    postHoneypotWarning,
     saveStarboardSettings,
     saveWelcomeSettings,
     saveTicketSettings,
@@ -697,8 +700,37 @@ async function saveHoneypotSettings(client, { guildId, userId, settings }) {
     if (errors.length > 0) return fail(400, 'Some settings are not valid', errors);
 
     const before = honeypotView(await Honeypot_Config_Cache.get(guild.id));
-    const after = honeypotView(await Honeypot_Config_Cache.set(guild.id, valid));
-    return { ok: true, data: after, changes: describeHoneypotChanges(before, after, nameLookup(guild)) };
+    // The settings are saved even if the warning can't be posted; the page says why
+    const { config, error } = await syncHoneypotWarning(guild, await Honeypot_Config_Cache.set(guild.id, valid));
+    const after = honeypotView(config);
+    return {
+        ok: true,
+        data: { ...after, warningError: error ?? null },
+        changes: describeHoneypotChanges(before, after, nameLookup(guild)),
+    };
+}
+
+/**
+ * Posts the honeypot warning again (or updates it), e.g. after someone deleted it.
+ * @param {Client} client
+ * @param {{ guildId: string, userId: string }} payload
+ */
+async function postHoneypotWarning(client, { guildId, userId }) {
+    const access = await getManagedGuild(client, guildId, userId);
+    if (!access.ok) return access;
+    const { guild } = access;
+
+    const current = await Honeypot_Config_Cache.get(guild.id);
+    if (!current.enabled || !current.postWarning || !current.channelId) {
+        return fail(400, 'Turn the honeypot and its warning message on first');
+    }
+    const { config, error } = await syncHoneypotWarning(guild, current);
+    if (error) return fail(400, error);
+    return {
+        ok: true,
+        data: honeypotView(config),
+        changes: [`Posted the honeypot warning in ${nameLookup(guild).channel(config.channelId)}`],
+    };
 }
 
 /**
@@ -1100,7 +1132,14 @@ async function resetSettings(client, { guildId, userId, section }) {
     }
 
     if (section === 'honeypot') {
-        const before = honeypotView(await Honeypot_Config_Cache.get(guild.id));
+        const current = await Honeypot_Config_Cache.get(guild.id);
+        const before = honeypotView(current);
+        if (current.warningMessageId) {
+            await removePostedMessage(guild, {
+                channelId: current.warningChannelId,
+                messageId: current.warningMessageId,
+            });
+        }
         const after = honeypotView(await Honeypot_Config_Cache.reset(guild.id));
         return { ok: true, data: after, changes: describeHoneypotChanges(before, after, names) };
     }

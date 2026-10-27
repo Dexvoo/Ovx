@@ -4,7 +4,7 @@
 import { HONEYPOT_ACTIONS, HONEYPOT_DELETE_SECONDS } from '../models/honeypotConfig.js';
 
 export const HONEYPOT_LIMITS = Object.freeze({ ACTIONS: HONEYPOT_ACTIONS, DELETE_SECONDS: HONEYPOT_DELETE_SECONDS });
-const TOGGLES = ['enabled', 'notify'];
+const TOGGLES = ['enabled', 'notify', 'postWarning'];
 
 /**
  * @param {import('../models/honeypotConfig.js').HoneypotConfigType} config
@@ -16,6 +16,9 @@ export function honeypotView(config) {
         action: config.action,
         deleteMessageSeconds: config.deleteMessageSeconds,
         notify: config.notify,
+        postWarning: config.postWarning,
+        // Read-only: whether the warning is up in the current channel
+        warningPosted: Boolean(config.warningMessageId) && config.warningChannelId === config.channelId,
     };
 }
 
@@ -76,5 +79,7 @@ export function describeHoneypotChanges(before, after, names) {
         );
     if (before.notify !== after.notify)
         changes.push(`Tell the member why: ${onOff(before.notify)} → ${onOff(after.notify)}`);
+    if (before.postWarning !== after.postWarning)
+        changes.push(`Post a warning message: ${onOff(before.postWarning)} → ${onOff(after.postWarning)}`);
     return changes;
 }

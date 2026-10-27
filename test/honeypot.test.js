@@ -10,6 +10,7 @@ import Guild_Settings_Cache from '../src/shared/cache/guildSettings.cache.js';
 import { ModCase, ModCaseCounter } from '../src/features/moderation/models/modCase.js';
 import { TempBan } from '../src/features/moderation/models/moderationTimers.js';
 import { Translate } from '../src/shared/utils/i18n.js';
+import { syncWarning } from '../src/features/honeypot/utils/warning.js';
 
 const GUILD = '400000000000000001';
 const TRAP = '500000000000000001';
@@ -126,7 +127,14 @@ test('several messages at once only ban once', async () => {
 
 test('settings are checked and changes described for the Web Logs', () => {
     const guild = /** @type {any} */ ({ channelIds: new Set([TRAP]) });
-    const good = { enabled: true, channelId: TRAP, action: 'softban', deleteMessageSeconds: 86400, notify: false };
+    const good = {
+        enabled: true,
+        channelId: TRAP,
+        action: 'softban',
+        deleteMessageSeconds: 86400,
+        notify: false,
+        postWarning: false,
+    };
     const { settings, errors } = validateHoneypotSettings(good, guild);
     assert.deepEqual(errors, []);
     assert.deepEqual(settings, good);
@@ -148,5 +156,75 @@ test('settings are checked and changes described for the Web Logs', () => {
         'Action: ban → softban',
         'Delete their messages from the last: 1 hour → 1 day',
         'Tell the member why: on → off',
+        'Post a warning message: on → off',
     ]);
+});
+
+// ---------- Warning message ----------
+
+/** A server whose honeypot channel records what Ovx posts, edits and deletes there. */
+function fakeWarningGuild({ canPost = true } = {}) {
+    const messages = new Map();
+    const log = [];
+    const channel = {
+        id: TRAP,
+        name: 'do-not-post',
+        isTextBased: () => true,
+        permissionsFor: () => ({ has: () => canPost }),
+        send: async (message) => {
+            const id = `msg${messages.size + 1}`;
+            messages.set(id, message);
+            log.push(['send', message.embeds[0].data.description]);
+            return { id };
+        },
+        messages: {
+            fetch: async (id) => {
+                if (!messages.has(id)) throw new Error('Unknown Message');
+                return { edit: async (message) => (messages.set(id, message), log.push(['edit', id])) };
+            },
+            delete: async (id) => (messages.delete(id), log.push(['delete', id])),
+        },
+    };
+    const guild = {
+        id: GUILD,
+        name: 'Test',
+        preferredLocale: 'en-GB',
+        iconURL: () => null,
+        members: { me: {} },
+        channels: { cache: new Map([[TRAP, channel]]) },
+    };
+    return { guild: /** @type {any} */ (guild), messages, log };
+}
+
+test('the warning is posted, then edited in place, and removed when the honeypot is turned off', async () => {
+    const saved = [];
+    Honeypot_Config_Cache.set = /** @type {any} */ (
+        async (guildId, updates) => (saved.push(updates), (config = { ...config, ...updates }))
+    );
+    const { guild, messages, log } = fakeWarningGuild();
+
+    const posted = await syncWarning(guild, config);
+    assert.equal(posted.error, undefined);
+    assert.deepEqual(saved, [{ warningChannelId: TRAP, warningMessageId: 'msg1' }]);
+    assert.match(log[0][1], /banned from the server automatically/);
+
+    await syncWarning(guild, { ...config, action: 'softban' });
+    assert.deepEqual(log[1], ['edit', 'msg1'], 'the same message is updated, not a new one posted');
+    assert.equal(saved.length, 1);
+
+    await syncWarning(guild, { ...config, enabled: false });
+    assert.deepEqual(log[2], ['delete', 'msg1']);
+    assert.equal(messages.size, 0);
+    assert.deepEqual(saved[1], { warningChannelId: null, warningMessageId: null });
+});
+
+test("the warning isn't posted when it's switched off, and says why when Ovx can't post", async () => {
+    const off = fakeWarningGuild();
+    await syncWarning(off.guild, { ...config, postWarning: false });
+    assert.equal(off.log.length, 0);
+
+    const blocked = fakeWarningGuild({ canPost: false });
+    const result = await syncWarning(blocked.guild, config);
+    assert.match(result.error, /can't post in that channel/);
+    assert.equal(blocked.log.length, 0);
 });

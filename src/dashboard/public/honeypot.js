@@ -26,9 +26,12 @@ export function renderHoneypot(container, overview) {
         async onSave(draft) {
             const { status, data } = await apiSend('PUT', `/api/guilds/${guild.id}/honeypot`, draft);
             if (status === 200) {
-                overview.honeypot = data;
-                toast('Honeypot saved');
-                return { ok: true, saved: data };
+                // Saved either way; the warning only fails to post when Ovx can't post in the channel
+                const { warningError, ...saved } = data;
+                overview.honeypot = saved;
+                if (warningError) toast(`Honeypot saved, but the warning wasn’t posted. ${warningError}`, 'error');
+                else toast('Honeypot saved');
+                return { ok: true, saved };
             }
             return { ok: false, errors: data?.details ?? [data?.error ?? 'Could not save. Try again.'] };
         },
@@ -58,7 +61,7 @@ export function renderHoneypot(container, overview) {
                 checked: state.draft[key],
                 onChange: (checked) => {
                     state.draft[key] = checked;
-                    state.changed();
+                    changed();
                 },
             }),
         });
@@ -74,10 +77,43 @@ export function renderHoneypot(container, overview) {
         select.addEventListener('change', () => {
             const picked = options.find(([value]) => String(value) === select.value);
             state.draft[key] = picked[0];
-            state.changed();
+            changed();
         });
         return select;
     }
+
+    // ---- Posting the warning again (saving posts or updates it too) ----
+    const warningButton = el('button', { type: 'button', className: 'button button-primary' });
+    const warningNote = el('p', { className: 'field-description' });
+    const updateWarning = () => {
+        const saved = state.saved;
+        const live = saved.enabled && saved.postWarning && saved.channelId;
+        warningButton.textContent = saved.warningPosted ? 'Update warning' : 'Post warning';
+        warningButton.disabled = !live || state.dirty;
+        warningNote.textContent = state.dirty
+            ? 'Save your changes first: saving posts or updates the warning.'
+            : !live
+              ? 'The warning is posted once the honeypot and its warning message are on and saved.'
+              : saved.warningPosted
+                ? 'The warning is up in the honeypot channel. Post it again if someone deleted it.'
+                : 'The warning isn’t posted. Check Ovx can send messages and embed links in the channel.';
+    };
+    warningButton.addEventListener('click', async () => {
+        warningButton.disabled = true;
+        const { status, data } = await apiSend('POST', `/api/guilds/${guild.id}/honeypot/warning`, {});
+        if (status === 200) {
+            overview.honeypot = data;
+            state.replaceSaved(data);
+            toast('Warning posted');
+        } else {
+            toast(data?.error ?? 'Could not post the warning. Try again.', 'error');
+        }
+        updateWarning();
+    });
+    const changed = () => {
+        state.changed();
+        updateWarning();
+    };
 
     function render() {
         container.replaceChildren(
@@ -98,7 +134,7 @@ export function renderHoneypot(container, overview) {
 
             card(
                 'Honeypot channel',
-                'Members with Manage Messages are never removed, so moderators can post a warning in the channel. Members whose highest role is above Ovx’s are left alone too.',
+                'Members with Manage Messages are never removed, so moderators can still post there. Members whose highest role is above Ovx’s are left alone too.',
                 [
                     switchField(
                         'enabled',
@@ -108,7 +144,7 @@ export function renderHoneypot(container, overview) {
                     field({
                         label: 'Channel',
                         description:
-                            'Use a new channel everyone can see and send messages in, near the top of the list, with a clear warning not to post. Threads inside it count too.',
+                            'Use a new channel everyone can see and send messages in, near the top of the list. Threads inside it count too.',
                         id: 'honeypot-channel',
                         control: channelSelect({
                             channels,
@@ -118,7 +154,7 @@ export function renderHoneypot(container, overview) {
                             id: 'honeypot-channel',
                             onChange: (id) => {
                                 state.draft.channelId = id;
-                                state.changed();
+                                changed();
                             },
                         }),
                     }),
@@ -160,15 +196,28 @@ export function renderHoneypot(container, overview) {
                 ),
             ]),
 
+            card('Warning message', null, [
+                switchField(
+                    'postWarning',
+                    'Post a warning message',
+                    'Ovx posts an embed in the channel saying anyone who sends a message there is banned, so real members stay out. It’s kept up to date when you change the channel or action, and removed when the honeypot is off.'
+                ),
+                field({
+                    label: 'Warning',
+                    stacked: true,
+                    control: el('div', {}, [warningButton, warningNote]),
+                }),
+            ]),
+
             resetCard({
-                description: 'Turns the honeypot off and clears its channel.',
+                description: 'Turns the honeypot off, clears its channel and deletes the warning message.',
                 confirmMessage: 'The honeypot will be turned off and its channel cleared. This cannot be undone.',
                 onReset: resetToDefaults,
             }),
 
             state.bar
         );
-        state.changed();
+        changed();
     }
 
     render();

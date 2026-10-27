@@ -16,6 +16,9 @@ export const HONEYPOT_DELETE_SECONDS = /** @type {const} */ ([0, 3600, 6 * 3600,
  * @property {'ban' | 'softban'} action - softban: banned then unbanned at once, so their messages go but they can rejoin
  * @property {number} deleteMessageSeconds - One of HONEYPOT_DELETE_SECONDS
  * @property {boolean} notify - DM the member why
+ * @property {boolean} postWarning - Ovx keeps a warning embed posted in the channel (see utils/warning.js)
+ * @property {string | null} warningChannelId - Where the warning was posted
+ * @property {string | null} warningMessageId
  */
 
 const HoneypotConfigSchema = new Schema({
@@ -25,6 +28,9 @@ const HoneypotConfigSchema = new Schema({
     action: { type: String, enum: HONEYPOT_ACTIONS, default: 'ban' },
     deleteMessageSeconds: { type: Number, default: 3600 },
     notify: { type: Boolean, default: true },
+    postWarning: { type: Boolean, default: true },
+    warningChannelId: { type: String, default: null },
+    warningMessageId: { type: String, default: null },
 });
 
 export const HoneypotConfig = model('Guild-Honeypot-Config', HoneypotConfigSchema);
@@ -42,5 +48,8 @@ export function withHoneypotDefaults(guildId, stored = null) {
         action: stored?.action ?? 'ban',
         deleteMessageSeconds: stored?.deleteMessageSeconds ?? 3600,
         notify: stored?.notify ?? true,
+        postWarning: stored?.postWarning ?? true,
+        warningChannelId: stored?.warningChannelId ?? null,
+        warningMessageId: stored?.warningMessageId ?? null,
     };
 }

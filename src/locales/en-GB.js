@@ -800,6 +800,14 @@ export default {
 
     honeypot: {
         reason: 'Posted in the honeypot channel (likely a compromised account)',
+        warning_title: '⛔ Do not send messages in this channel',
+        warning_intro:
+            'This channel is a trap for hacked accounts and spam bots, which post in every channel they can see.',
+        warning_ban:
+            '**Anyone who sends a message here is banned from the server automatically**, and their recent messages are deleted. Please don’t test it.',
+        warning_softban:
+            '**Anyone who sends a message here is removed from the server automatically**, and their recent messages are deleted. Please don’t test it.',
+        warning_ignore: 'You don’t need to do anything here: just ignore this channel.',
     },
 
     levels: {

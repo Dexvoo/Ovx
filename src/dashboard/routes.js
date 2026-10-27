@@ -358,6 +358,16 @@ export function createApiRouter({
         })
     );
 
+    router.post('/guilds/:guildId/honeypot/warning', requireLogin, validGuildId, (req, res) =>
+        respond(res, async () => {
+            const result = await bridge.guild('postHoneypotWarning', req.params.guildId, {
+                userId: req.session.user.id,
+            });
+            if (result.ok) await recordAudit(req, 'Posted the honeypot warning', result.changes);
+            return result;
+        })
+    );
+
     router.put('/guilds/:guildId/welcome', requireLogin, validGuildId, (req, res) =>
         respond(res, async () => {
             const result = await bridge.guild('saveWelcomeSettings', req.params.guildId, {
