@@ -200,3 +200,28 @@ test('every model with a guildId is deleted by the cleanup', async () => {
         .filter((name) => mongoose.model(name).schema.path('guildId') && !handled.has(name));
     assert.deepEqual(missing, []);
 });
+
+test('developer mode never marks or deletes a server (it runs a different bot on the same database)', async () => {
+    const { ENV } = await import('../src/bootstrap/environment.js');
+    const { markGuildLeft } = await import('../src/features/dataRetention/utils/retention.js');
+    const deleteCalls = [];
+    for (const model of GUILD_DATA_MODELS) {
+        model.deleteMany = /** @type {any} */ (async (filter) => deleteCalls.push(filter));
+    }
+    stored.set(GUILD_DATA_MODELS[0], [GONE]);
+    const longGone = '400000000000000003';
+    departures.set(longGone, new Date(NOW.getTime() - 40 * DAY));
+
+    ENV.DEVELOPER_MODE = true;
+    try {
+        assert.equal(await reconcileGuilds(/** @type {any} */ (fakeClient([PRESENT]))), 0);
+        await markGuildLeft(GONE);
+        assert.deepEqual(await sweepDepartedGuilds(/** @type {any} */ (fakeClient([PRESENT])), NOW), []);
+        assert.equal(await deleteGuildData(longGone, NOW), 0);
+    } finally {
+        ENV.DEVELOPER_MODE = false;
+    }
+
+    assert.deepEqual([...departures.keys()], [longGone]);
+    assert.deepEqual(deleteCalls, []);
+});

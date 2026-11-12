@@ -1,5 +1,5 @@
 import { Events } from 'discord.js';
-import { reconcileGuilds, sweepDepartedGuilds, SWEEP_INTERVAL_MS } from '../utils/retention.js';
+import { reconcileGuilds, sweepDepartedGuilds, retentionDisabled, SWEEP_INTERVAL_MS } from '../utils/retention.js';
 import { LogData } from '../../../shared/utils/logger.js';
 
 export const name = Events.ClientReady;
@@ -10,6 +10,11 @@ export const description = 'Data Retention: Delete Data of Removed Servers';
  * @param {import('discord.js').Client} client
  */
 export async function execute(client) {
+    if (retentionDisabled()) {
+        LogData('Data Retention', 'Off in developer mode: no servers are marked or deleted', 'info');
+        return;
+    }
+
     const sweep = () =>
         sweepDepartedGuilds(client).catch((error) => {
             LogData('Data Retention', `Sweep failed: ${error.message}`, 'warning');

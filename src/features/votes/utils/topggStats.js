@@ -1,4 +1,5 @@
 import { LogData } from '../../../shared/utils/logger.js';
+import { ENV } from '../../../bootstrap/environment.js';
 
 /** How often the server count is sent. Top.gg only needs it now and then; it shows it on the bot's page. */
 export const STATS_INTERVAL_MS = 30 * 60 * 1000;
@@ -52,6 +53,8 @@ export async function postTopggStats({ manager, token, applicationId, fetchImpl 
  * @returns {() => void} Stops posting
  */
 export function startTopggStats(options) {
+    // Developer mode runs a different bot: its server count must never reach Ovx's Top.gg page
+    if (ENV.DEVELOPER_MODE) return () => {};
     postTopggStats(options);
     const timer = setInterval(() => postTopggStats(options), STATS_INTERVAL_MS);
     timer.unref();
