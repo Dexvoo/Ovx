@@ -126,8 +126,43 @@ export function createAuthRouter({ applicationId, config, cookieName }) {
  */
 async function discordRequest(path, init = {}) {
     const response = await fetch(`${DISCORD_API}${path}`, { ...init, signal: AbortSignal.timeout(10_000) });
-    if (!response.ok) throw new Error(`Discord ${path} responded ${response.status}`);
+    if (!response.ok) {
+        const body = await response.text().catch(() => '');
+        throw new Error(describeDiscordError(response.status, path, body));
+    }
     return response.json();
+}
+
+const MAX_REASON_LENGTH = 200;
+
+/**
+ * The error message for a failed Discord request, with Discord's reason when it gave one
+ * (e.g. "invalid_client (Unknown client)" for a wrong client ID or secret). Only Discord's own
+ * error fields are used, never anything from the request.
+ * @param {number} status
+ * @param {string} path
+ * @param {string} bodyText
+ */
+export function describeDiscordError(status, path, bodyText) {
+    let reason = '';
+    try {
+        const body = JSON.parse(bodyText);
+        if (body && typeof body === 'object') {
+            if (typeof body.error === 'string') {
+                reason =
+                    typeof body.error_description === 'string'
+                        ? `${body.error} (${body.error_description})`
+                        : body.error;
+            } else if (typeof body.message === 'string') {
+                reason = body.message;
+            }
+        }
+    } catch {
+        reason = String(bodyText ?? '');
+    }
+    reason = reason.replace(/\s+/g, ' ').trim();
+    if (reason.length > MAX_REASON_LENGTH) reason = `${reason.slice(0, MAX_REASON_LENGTH)}…`;
+    return `Discord ${path} responded ${status}${reason ? `: ${reason}` : ''}`;
 }
 
 /**
