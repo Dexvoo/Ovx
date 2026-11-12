@@ -4,4 +4,4 @@ src/CONVERTED
 src/convert.bat
 src/locales/list.js
 # Database backups: every server's data, never committed
-backups/
+/backups/
