@@ -28,6 +28,7 @@ import { TempBan, ChannelLock } from '../../moderation/models/moderationTimers.j
 import { UsageDay } from '../../usage/models/usageDay.js';
 import { AuditLog } from '../../../dashboard/models/auditLog.js';
 import { LogData } from '../../../shared/utils/logger.js';
+import { ENV } from '../../../bootstrap/environment.js';
 
 /** How long a server's data is kept after Ovx is removed from it (stated in the Privacy Policy). */
 export const DATA_RETENTION_DAYS = 30;
@@ -35,6 +36,14 @@ const RETENTION_MS = DATA_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
 /** How often each shard deletes the data of servers that have been gone long enough. */
 export const SWEEP_INTERVAL_MS = 60 * 60 * 1000;
+
+/**
+ * Developer mode runs a different bot (in different servers) against the same database, so every
+ * production server would look like it removed Ovx. Nothing is marked or deleted from it.
+ */
+export function retentionDisabled() {
+    return ENV.DEVELOPER_MODE;
+}
 
 /**
  * Every collection with a guildId. GuildSettings is handled separately, because of premium.
@@ -85,6 +94,7 @@ export const GUILD_DATA_MODELS = [
  * @param {Date} [leftAt]
  */
 export async function markGuildLeft(guildId, leftAt = new Date()) {
+    if (retentionDisabled()) return;
     await GuildDeparture.updateOne({ guildId }, { $min: { leftAt } }, { upsert: true });
 }
 
@@ -105,6 +115,7 @@ export async function markGuildsPresent(guildIds) {
  * @returns {Promise<number>} How many documents were deleted
  */
 export async function deleteGuildData(guildId, now = new Date()) {
+    if (retentionDisabled()) return 0;
     const results = await Promise.all(GUILD_DATA_MODELS.map((model) => model.deleteMany({ guildId })));
     let deleted = results.reduce((total, result) => total + (result?.deletedCount ?? 0), 0);
 
@@ -140,6 +151,7 @@ export function isOnThisShard(client, guildId) {
  * @returns {Promise<number>} How many servers were newly found to be gone
  */
 export async function reconcileGuilds(client) {
+    if (retentionDisabled()) return 0;
     const present = [...client.guilds.cache.keys()];
     // An empty cache means something is wrong (or a brand new bot), not that every server left
     if (present.length === 0) return 0;
@@ -169,6 +181,7 @@ export async function reconcileGuilds(client) {
  * @returns {Promise<string[]>} The servers whose data was deleted
  */
 export async function sweepDepartedGuilds(client, now = new Date()) {
+    if (retentionDisabled()) return [];
     await markGuildsPresent([...client.guilds.cache.keys()]);
 
     const due = await GuildDeparture.find({ leftAt: { $lte: new Date(now.getTime() - RETENTION_MS) } }).lean();

@@ -1,7 +1,7 @@
 import './helpers/setupEnv.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { postTopggStats } from '../src/features/votes/utils/topggStats.js';
+import { postTopggStats, startTopggStats } from '../src/features/votes/utils/topggStats.js';
 
 const APPLICATION_ID = '100000000000000000';
 
@@ -188,4 +188,28 @@ test('vote reminders: one DM per vote once its 12 hours are up, and closed DMs t
     assert.equal(await sendDueReminders(client, now), 0, 'never twice for the same vote');
     assert.equal(await toggleReminders('voter', now), false);
     assert.equal(reminderMessage('en-GB').components[0].components[1].data.custom_id, 'vote:remind');
+});
+
+test('developer mode never posts to Top.gg', async () => {
+    const { ENV } = await import('../src/bootstrap/environment.js');
+    let called = false;
+    ENV.DEVELOPER_MODE = true;
+    try {
+        const stop = startTopggStats({
+            manager: /** @type {any} */ (fakeManager([5])),
+            token: 'topgg-token',
+            applicationId: APPLICATION_ID,
+            fetchImpl: /** @type {any} */ (
+                async () => {
+                    called = true;
+                    return new Response('{}', { status: 200 });
+                }
+            ),
+        });
+        stop();
+        await new Promise((resolve) => setImmediate(resolve));
+    } finally {
+        ENV.DEVELOPER_MODE = false;
+    }
+    assert.equal(called, false);
 });

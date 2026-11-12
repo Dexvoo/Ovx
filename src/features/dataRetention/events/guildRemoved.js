@@ -1,5 +1,5 @@
 import { Events } from 'discord.js';
-import { markGuildLeft } from '../utils/retention.js';
+import { markGuildLeft, retentionDisabled } from '../utils/retention.js';
 
 export const name = Events.GuildDelete;
 export const once = false;
@@ -10,6 +10,7 @@ export const description = 'Data Retention: Server Removed';
  * @param {import('discord.js').Guild} guild
  */
 export async function execute(guild) {
+    if (retentionDisabled()) return;
     // An outage is not a removal (discord.js reports those as guildUnavailable, but be sure)
     if (!guild.available) return;
     await markGuildLeft(guild.id);
