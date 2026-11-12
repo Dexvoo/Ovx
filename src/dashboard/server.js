@@ -19,7 +19,7 @@ const SESSION_DAYS = 7;
 const PUBLIC_DIR = fileURLToPath(new URL('./public', import.meta.url));
 // Client-side routes that should load the UI instead of 404ing
 // The old ovxbot.com addresses of the legal pages are kept, since the bot's Discord listing links to them
-const UI_ROUTES = /^\/(servers|leaderboard|dev|tos|privacypolicy|status)(\/[\w-]*)*\/?$/;
+const UI_ROUTES = /^\/(servers|leaderboard|dev|tos|privacypolicy|status|docs)(\/[\w-]*)*\/?$/;
 // Bot Settings can include an avatar and a banner (each up to IMAGE_MAX_BYTES, base64 adds a third); every
 // other request is small
 const PROFILE_ROUTE = /^\/guilds\/\d{17,20}\/bot$/;

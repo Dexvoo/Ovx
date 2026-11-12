@@ -68,6 +68,9 @@ const bridge = {
     async stats() {
         return [{ shardId: 0, guilds: 3, members: 40 }];
     },
+    async docs() {
+        return { intro: 'Hi', categories: [], dashboardFeatures: ['Logging'] };
+    },
 };
 
 const env = {
@@ -353,6 +356,34 @@ test('landing page numbers need no login, are cached, and the invite link lets y
         assert.deepEqual(Object.keys(first).sort(), ['guilds', 'inviteUrl', 'members']);
     } finally {
         bridge.stats = realStats;
+    }
+});
+
+test('the Docs page is public, and its command list is cached and kept while the shards are down', async () => {
+    const page = await browser().request('/docs');
+    assert.equal(page.status, 200);
+    assert.match(page.headers.get('content-type'), /text\/html/);
+
+    const realDocs = bridge.docs;
+    let calls = 0;
+    bridge.docs = async () => {
+        calls++;
+        return realDocs();
+    };
+    try {
+        const first = await browser().request('/api/public/docs');
+        assert.equal(first.status, 200);
+        assert.deepEqual((await first.json()).dashboardFeatures, ['Logging']);
+
+        bridge.docs = async () => {
+            calls++;
+            throw new Error('Shard 0 is not ready');
+        };
+        const second = await browser().request('/api/public/docs');
+        assert.equal(second.status, 200, 'the cached copy is still served');
+        assert.equal(calls, 1, 'cached, so the shards are not asked again');
+    } finally {
+        bridge.docs = realDocs;
     }
 });
 

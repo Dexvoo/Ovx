@@ -78,7 +78,7 @@ import {
     describeCommandChanges,
     COMMAND_SETTINGS_LIMITS,
 } from '../features/commandSettings/utils/commandSettings.js';
-import { CATEGORIES } from '../features/utility/utils/help.js';
+import { CATEGORIES, docsData } from '../features/utility/utils/help.js';
 import { Translate } from '../shared/utils/i18n.js';
 import Verification_Config_Cache from '../features/verification/cache/verificationConfig.cache.js';
 import {
@@ -191,6 +191,7 @@ const handlers = {
     resetSettings,
     leaderboard,
     stats,
+    docs,
 };
 
 /**
@@ -1218,6 +1219,14 @@ async function leaderboard(client, { guildId, type, limit, viewerId }) {
         maxLevel: config.maxLevel,
         entries,
     });
+}
+
+/**
+ * The public Docs page: every command, from this shard's loaded commands (the same on every shard).
+ * @param {Client} client
+ */
+async function docs(client) {
+    return ok(docsData(client.commands?.values() ?? []));
 }
 
 /**
