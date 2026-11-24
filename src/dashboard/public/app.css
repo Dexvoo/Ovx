@@ -2381,6 +2381,200 @@ a.sidebar-link:hover {
     font-weight: 700;
 }
 
+/* ---------- Docs ---------- */
+
+.docs {
+    max-width: 820px;
+    margin: 0 auto;
+}
+
+.docs-lead {
+    margin: 6px 0 24px;
+    color: var(--muted);
+    font-size: 1.08rem;
+}
+
+.docs h2 {
+    margin: 0 0 8px;
+    font-size: 1.25rem;
+}
+
+.docs code {
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+    font-size: 0.92em;
+}
+
+.docs-start {
+    padding: 20px 22px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.docs-steps {
+    margin: 12px 0 18px;
+    padding-left: 22px;
+}
+
+.docs-steps li {
+    margin-bottom: 8px;
+}
+
+.docs-steps strong {
+    display: block;
+}
+
+.docs-steps span {
+    color: var(--muted);
+}
+
+.docs-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.docs-heading {
+    margin-top: 40px !important;
+}
+
+.docs-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 16px;
+}
+
+.docs-chip {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-decoration: none;
+}
+
+.docs-chip:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.docs-search {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.docs-category {
+    margin-top: 32px;
+    scroll-margin-top: 80px;
+}
+
+.docs-category-text {
+    margin: 0 0 14px;
+    color: var(--muted);
+}
+
+.docs-command {
+    margin-bottom: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+}
+
+.docs-command h3 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    color: var(--accent-strong);
+}
+
+.docs-command > p {
+    margin: 0 0 8px;
+}
+
+.docs-entries,
+.docs-options {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.docs-entries > li {
+    padding: 6px 0;
+    border-top: 1px solid var(--border);
+}
+
+.docs-entries > li:first-child {
+    border-top: 0;
+}
+
+.docs-path {
+    margin-right: 8px;
+    font-weight: 600;
+}
+
+.docs-options {
+    margin: 4px 0 0 14px;
+    color: color-mix(in srgb, var(--text) 80%, var(--muted));
+    font-size: 0.93rem;
+}
+
+.docs-options li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: baseline;
+    padding: 2px 0;
+}
+
+.docs-required {
+    padding: 0 6px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.docs-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+}
+
+.docs-meta dt {
+    font-weight: 700;
+}
+
+.docs-meta dt::after {
+    content: ':';
+}
+
+.docs-meta dd {
+    margin: 0 0 0 -12px;
+}
+
+.docs-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    padding: 0;
+    list-style: none;
+}
+
+.docs-features li {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
 /* ---------- Footer ---------- */
 
 /* Keeps the footer at the bottom of short pages */

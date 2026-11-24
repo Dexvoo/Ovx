@@ -89,6 +89,16 @@ export function createShardBridge(manager) {
         },
 
         /**
+         * The Docs page's command reference. Every shard has the same commands, so the first one answers.
+         * @returns {Promise<any>}
+         */
+        async docs() {
+            const result = await run('docs', {}, 0);
+            if (!result?.ok) throw new Error(result?.error ?? 'No docs');
+            return result.data;
+        },
+
+        /**
          * Stats from every shard, ordered by shard ID.
          * @returns {Promise<any[]>}
          */

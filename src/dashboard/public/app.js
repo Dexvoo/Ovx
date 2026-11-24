@@ -7,6 +7,7 @@ import { renderPicker, renderPickerSkeleton } from './picker.js';
 import { renderServerPage, clearServerCache } from './serverPage.js';
 import { renderLanding, renderLegal } from './landing.js';
 import { renderStatus } from './status.js';
+import { renderDocs } from './docs.js';
 import { renderDeveloper } from './developer.js';
 
 const app = document.getElementById('app');
@@ -148,6 +149,11 @@ async function render() {
     // Open to everyone; the account bar fills in once we know who is looking
     if (/^\/status\/?$/.test(location.pathname)) {
         cleanup = renderStatus(app);
+        if (!me) await loadMe();
+        return;
+    }
+    if (/^\/docs\/?$/.test(location.pathname)) {
+        cleanup = renderDocs(app);
         if (!me) await loadMe();
         return;
     }

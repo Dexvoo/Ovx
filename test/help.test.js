@@ -15,6 +15,7 @@ import {
     overviewPage,
     categoryPage,
     commandPage,
+    docsData,
 } from '../src/features/utility/utils/help.js';
 import { Translate } from '../src/shared/utils/i18n.js';
 
@@ -124,4 +125,26 @@ test('every category page fits in a Discord embed', async () => {
         const page = await categoryPage(client(), help(null), id);
         assert.ok(page.embeds[0].data.description.length <= 4096, id);
     }
+});
+
+test('the Docs page lists every public command, with subcommands and options, and no developer tools', () => {
+    const docs = docsData(commands.values());
+    const listed = docs.categories.flatMap((category) => category.commands.map((command) => command.name));
+    for (const command of commands.values()) {
+        const developer = featureOf(command) === 'developer' || command.meta.developerOnly;
+        assert.equal(listed.includes(command.commandData.name), !developer, command.commandData.name);
+    }
+    assert.equal(new Set(listed).size, listed.length, 'each command is listed once');
+
+    const level = docs.categories.flatMap((category) => category.commands).find((command) => command.name === 'level');
+    assert.ok(level.entries.some((entry) => entry.path === 'level rank'));
+    for (const category of docs.categories) {
+        assert.ok(category.name && category.long, category.id);
+        for (const command of category.commands) {
+            assert.ok(command.menu || command.description, command.name);
+            assert.ok(command.servers || command.dms, command.name);
+        }
+    }
+    assert.ok(docs.dashboardFeatures.length > 0);
+    assert.doesNotThrow(() => JSON.stringify(docs), 'it can be sent between processes');
 });

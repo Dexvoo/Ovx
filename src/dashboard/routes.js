@@ -9,6 +9,7 @@ const PUBLIC_CACHE_MS = 60_000;
 const PUBLIC_CACHE_MAX = 500;
 const PUBLIC_STATS_MS = 5 * 60_000;
 const PUBLIC_HEALTH_MS = 15_000;
+const PUBLIC_DOCS_MS = 10 * 60_000;
 const USAGE_CACHE_MS = 5 * 60_000;
 const CASE_NUMBER = /^[1-9]\d{0,8}$/;
 const CASE_LABELS = {
@@ -725,6 +726,21 @@ export function createApiRouter({
             }
         }
         res.json({ guilds: publicStats.guilds, members: publicStats.members, inviteUrl: inviteUrl(applicationId) });
+    });
+
+    // Public: the Docs page's command reference. Commands only change on a restart, so it's cached,
+    // and the last copy keeps being served while the shards are down.
+    let publicDocs = { at: 0, body: null };
+    router.get('/public/docs', async (req, res) => {
+        if (!publicDocs.body || Date.now() - publicDocs.at >= PUBLIC_DOCS_MS) {
+            try {
+                publicDocs = { at: Date.now(), body: await bridge.docs() };
+            } catch {
+                // Keep the last copy; try again on the next request
+            }
+        }
+        if (!publicDocs.body) return res.status(503).json({ error: 'The bot is restarting, try again in a moment' });
+        res.json(publicDocs.body);
     });
 
     // Public: whether Ovx is working, for the Status page and uptime monitors (UptimeRobot, Better Stack...).

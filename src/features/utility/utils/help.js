@@ -329,3 +329,56 @@ export async function commandPage(command, help) {
         );
     return { embeds: [embed], components: [links(help.locale)] };
 }
+
+/**
+ * Everything the public Docs page shows, in English: each category's commands with their subcommands,
+ * options, who can use them, where and their cooldown, plus the features set up on the dashboard.
+ * Built from the loaded commands, like /help, so the page never goes out of date.
+ * @param {Iterable<Command>} commands
+ */
+export function docsData(commands) {
+    const t = (key, vars) => Translate(`commands.help.${key}`, 'en-GB', vars);
+    const all = [...commands];
+
+    const describe = (command) => {
+        const json = /** @type {any} */ (command.commandData.toJSON());
+        const menu = json.type === ApplicationCommandType.Message || json.type === ApplicationCommandType.User;
+        const contexts = json.contexts ?? [0];
+        return {
+            name: json.name,
+            description: menu ? null : json.description,
+            // Right-click menus: where to right-click
+            menu: menu ? t(json.type === ApplicationCommandType.Message ? 'on_message' : 'on_user') : null,
+            entries: menu
+                ? []
+                : commandEntries(json).map((entry) => ({
+                      path: entry.path,
+                      description: entry.description,
+                      options: entry.options.map((option) => ({
+                          name: option.name,
+                          description: option.description ?? '',
+                          required: Boolean(option.required),
+                      })),
+                  })),
+            permissions: permissionNames(json.default_member_permissions),
+            servers: contexts.includes(0),
+            dms: contexts.includes(1) || contexts.includes(2),
+            cooldown: command.meta.cooldown ?? 0,
+        };
+    };
+
+    return {
+        intro: t('intro'),
+        categories: CATEGORIES.map((category) => ({
+            id: category.id,
+            emoji: category.emoji,
+            name: t(`categories.${category.id}.name`),
+            short: t(`categories.${category.id}.short`),
+            long: t(`categories.${category.id}.long`),
+            commands: categoryCommands(all, category.id, null)
+                .filter((command) => featureOf(command) !== 'developer')
+                .map(describe),
+        })).filter((category) => category.commands.length > 0),
+        dashboardFeatures: DASHBOARD_FEATURES.map((key) => t(`dashboard_features.${key}`)),
+    };
+}
